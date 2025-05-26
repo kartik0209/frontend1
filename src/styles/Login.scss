@@ -1,0 +1,198 @@
+
+.login-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+ position: relative;    // ← add
+ display: flex;
+}
+
+.sidebar {
+  flex: 1;
+  background: linear-gradient(135deg, #050A2C);
+  color: #fff;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}
+
+.welcome {
+  max-width: 360px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.summary {
+  font-size: 1rem;
+  opacity: 0.85;
+  line-height: 1.6;
+}
+
+.form-area {
+  flex: 1;
+  background: #fff;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-wrap {
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  padding: 1rem;
+}
+
+.logo {
+  height: 40px;
+  margin-bottom: 1.5rem;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.label {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  color: #374151;
+}
+
+.input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  outline: none;
+}
+
+.input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  border-color: transparent;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.btn {
+  padding: 0.75rem;
+  background-color: #111827;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+  background-color: #1f2937;
+}
+
+.btn.outline {
+  background: transparent;
+  color: #111827;
+  border: 1px solid #111827;
+}
+
+.btn.outline:hover {
+  background-color: #f3f4f6;
+}
+
+.forgot {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: right;
+}
+
+.link {
+  color: #3b82f6;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.signup-prompt {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.signup-btns {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+/* Bottom decorative graphic */
+ .bottom-deco {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;           /* adjust to how tall you want the white strip + leaves */
+  overflow: hidden;       /* hide the sky above */
+  background: #fff;       /* white background behind the leaves */
+  pointer-events: none;
+}
+
+.bottom-deco img {
+  display: block;
+  width: 100%;
+  /* move the graphic up so only the leaves are visible in the 80px-high window */
+  transform: translateY(160px);  
+  /* tweak that translateY until only the top of the hills/leaves remain */
+}
+ 
+@media (max-width: 480px) {
+  .form-wrap {
+    padding: 0.5rem;
+  }
+
+  .heading {
+    font-size: 1.25rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+}
