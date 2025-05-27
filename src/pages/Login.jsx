@@ -5,7 +5,8 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Login.scss";
-import BottomGraphic from '../assets/bottom_deco.svg';
+import BottomGraphic from "../assets/bottom_deco.png"; 
+import logo from "../assets/logo.png"; // Placeholder for logo
 
 // Validation schema
 const LoginSchema = Yup.object().shape({
@@ -21,7 +22,7 @@ const Login = () => {
   // Extract subdomain for branding
   const brand = useMemo(() => {
     const host = window.location.hostname;
-    const parts = host.split("."); 
+    const parts = host.split(".");
     return parts.length > 2 ? parts[0] : "YourBrand";
   }, []);
 
@@ -45,7 +46,6 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      {/* Toast container */}
       <ToastContainer position="top-center" hideProgressBar />
 
       <aside className="sidebar">
@@ -58,7 +58,8 @@ const Login = () => {
             </span>
           </h1>
           <p className="summary">
-            Access your dashboard at {brand}.<br />
+            Access your dashboard at {brand}.
+            <br />
             Log in to manage your partnerships and track earnings effortlessly.
           </p>
         </div>
@@ -67,7 +68,7 @@ const Login = () => {
       <main className="form-area">
         <div className="form-wrap">
           <img
-            src="https://via.placeholder.com/120x40?text=Logo"
+            src={logo}
             alt="Logo"
             className="logo"
           />
@@ -128,7 +129,7 @@ const Login = () => {
           </Formik>
 
           <a href="#" className="forgot">
-            Forgot password? <span className="link">Click here</span>
+            Forgot password? 
           </a>
 
           <div className="signup-prompt">
@@ -143,11 +144,12 @@ const Login = () => {
             </button>
           </div>
         </div>
+
+        
         <div className="bottom-deco">
-+         <img src={BottomGraphic} alt="Foliage graphic" />
-+      </div>
+          <img src={BottomGraphic} alt="Foliage graphic"  />
+        </div>
       </main>
-      
     </div>
   );
 };

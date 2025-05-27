@@ -1,15 +1,15 @@
+/* src/styles/Login.scss */
 
 .login-container {
   display: flex;
   min-height: 100vh;
   font-family: "Inter", sans-serif;
- position: relative;    // ← add
- display: flex;
 }
 
+/* Sidebar on desktop */
 .sidebar {
   flex: 1;
-  background: linear-gradient(135deg, #050A2C);
+  background: linear-gradient(135deg, #050a2c, #0a1a4e);
   color: #fff;
   padding: 2rem;
   display: flex;
@@ -40,6 +40,7 @@
   line-height: 1.6;
 }
 
+/* Form panel */
 .form-area {
   flex: 1;
   background: #fff;
@@ -47,6 +48,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;   /* allows absolute children */
+  overflow: hidden;     /* clips the foliage image */
 }
 
 .form-wrap {
@@ -68,6 +71,7 @@
   margin-bottom: 1rem;
 }
 
+/* Form & fields */
 .form {
   display: flex;
   flex-direction: column;
@@ -106,6 +110,7 @@
   margin-top: 0.25rem;
 }
 
+/* Buttons */
 .btn {
   padding: 0.75rem;
   background-color: #111827;
@@ -132,6 +137,7 @@
   background-color: #f3f4f6;
 }
 
+/* Links & misc */
 .forgot {
   display: block;
   margin-top: 0.5rem;
@@ -163,26 +169,25 @@
   margin-top: 0.75rem;
 }
 
-/* Bottom decorative graphic */
- .bottom-deco {
+/* Bottom-right decorative foliage */
+.bottom-deco {
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 80px;           /* adjust to how tall you want the white strip + leaves */
-  overflow: hidden;       /* hide the sky above */
-  background: #fff;       /* white background behind the leaves */
+  right: 0;
+  width: 360px;     /* matches .form-wrap max-width */
+  height: 80px;     /* visible leaf area height */
+  overflow: hidden; /* hides everything above leaves */
+  background: #fff; /* ensures white background */
   pointer-events: none;
 }
 
 .bottom-deco img {
   display: block;
   width: 100%;
-  /* move the graphic up so only the leaves are visible in the 80px-high window */
-  transform: translateY(160px);  
-  /* tweak that translateY until only the top of the hills/leaves remain */
+  
 }
- 
+
+/* Responsive tweaks */
 @media (max-width: 480px) {
   .form-wrap {
     padding: 0.5rem;
@@ -195,4 +200,11 @@
   .title {
     font-size: 2rem;
   }
+
+  .bottom-deco {
+    width: 100%;  /* fill mobile width */
+    height: 60px;
+  }
+
+  
 }
