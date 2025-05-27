@@ -1,0 +1,21 @@
+/* src/styles/Layout.scss */
+
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  margin-left: 280px; /* Sidebar width */
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+}

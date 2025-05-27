@@ -7,19 +7,19 @@
 }
 
 /* Sidebar on desktop */
-.sidebar {
-  flex: 1;
+.login-leftside {
+  flex: 1 !important;
   background: linear-gradient(135deg, #050a2c, #0a1a4e);
   color: #fff;
   padding: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    display: none;
+  .login-leftside {
+    display: none !important;
   }
 }
 

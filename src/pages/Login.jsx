@@ -1,8 +1,11 @@
+// src/pages/Login.jsx
 import React, { useMemo, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Login.scss";
 import BottomGraphic from "../assets/bottom_deco.png"; 
@@ -18,6 +21,8 @@ const LoginSchema = Yup.object().shape({
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Extract subdomain for branding
   const brand = useMemo(() => {
@@ -29,15 +34,32 @@ const Login = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     setLoading(true);
     try {
-      // Dummy API for testing
+      // Simulate API call - in real app, validate credentials with backend
       const response = await axios.post(
         "https://jsonplaceholder.typicode.com/posts",
         values
       );
-      toast.success("Login simulated! Status: " + response.status);
-      console.log(response.data);
+      
+      // Mock successful login
+      if (response.status === 201) {
+        const userData = {
+          email: values.email,
+          name: values.email.split('@')[0], // Use email prefix as name
+          role: 'User'
+        };
+        
+        // Use auth context to login
+        login(userData);
+        
+        toast.success("Login successful! Redirecting...");
+        
+        // Redirect to dashboard after short delay
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      }
     } catch (error) {
-      toast.error("Simulation failed");
+      toast.error("Login failed. Please try again.");
     } finally {
       setLoading(false);
       setSubmitting(false);
@@ -48,7 +70,7 @@ const Login = () => {
     <div className="login-container">
       <ToastContainer position="top-center" hideProgressBar />
 
-      <aside className="sidebar">
+      <aside className="login-leftside">
         <div className="welcome">
           <h1 className="title">
             Hello <br />
@@ -133,7 +155,7 @@ const Login = () => {
           </a>
 
           <div className="signup-prompt">
-            Don’t have an account? Create one now:
+            Don't have an account? Create one now:
           </div>
           <div className="signup-btns">
             <button type="button" className="btn outline">
