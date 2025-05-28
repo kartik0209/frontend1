@@ -1,5 +1,5 @@
 // src/context/AuthContext.jsx
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -16,9 +16,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   const login = (userData) => {
-    // Simulate login - in real app, this would validate with backend
     setIsAuthenticated(true);
     setUser(userData);
+    // Persist auth state and user info
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('user', JSON.stringify(userData));
   };
@@ -30,11 +30,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
-  // Check if user was previously logged in
-  React.useEffect(() => {
+  useEffect(() => {
     const savedAuth = localStorage.getItem('isAuthenticated');
     const savedUser = localStorage.getItem('user');
-    
+
     if (savedAuth === 'true' && savedUser) {
       setIsAuthenticated(true);
       setUser(JSON.parse(savedUser));
@@ -43,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     isAuthenticated,
-    user,
+    user,           // { name, role, permissions }
     login,
     logout,
   };

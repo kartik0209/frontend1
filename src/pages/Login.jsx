@@ -9,14 +9,12 @@ import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Login.scss";
 import BottomGraphic from "../assets/bottom_deco.png"; 
-import logo from "../assets/logo.png"; // Placeholder for logo
+import logo from "../assets/logo.png";
+import { jwtDecode } from "jwt-decode";
 
-// Validation schema
 const LoginSchema = Yup.object().shape({
-  email: Yup.string().email("Invalid email address").required("Required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Required"),
+  email: Yup.string().email("Invalid email address").required("Email is required"),
+  password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
 });
 
 const Login = () => {
@@ -24,42 +22,81 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Extract subdomain for branding
   const brand = useMemo(() => {
-    const host = window.location.hostname;
-    const parts = host.split(".");
-    return parts.length > 2 ? parts[0] : "YourBrand";
+    const host = window.location.hostname.split(".");
+    return host.length > 2 ? host[0] : "YourBrand";
   }, []);
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
+
     try {
-      // Simulate API call - in real app, validate credentials with backend
       const response = await axios.post(
-        "https://jsonplaceholder.typicode.com/posts",
-        values
+        'https://afftrex.onrender.com/api/common/auth/login',
+        {
+          email: values.email.trim().toLowerCase(),
+          password: values.password,
+        },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 30000,
+          withCredentials: false,
+        }
       );
+
+      const { data } = response.data;
+      console.log("data--->",response); 
       
-      // Mock successful login
-      if (response.status === 201) {
-        const userData = {
-          email: values.email,
-          name: values.email.split('@')[0], // Use email prefix as name
-          role: 'User'
-        };
-        
-        // Use auth context to login
-        login(userData);
-        
-        toast.success("Login successful! Redirecting...");
-        
-        // Redirect to dashboard after short delay
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
-      }
+        localStorage.setItem('authToken', data);
+        const decoded = jwtDecode(data);
+
+
+      
+const { name, role, permissions } = decoded;
+      
+
+
+  await login(data.user || { email: values.email });
+      toast.success("Login successful! ");
+
+      setTimeout(() => navigate("/dashboard", { replace: true }), 1500);
     } catch (error) {
-      toast.error("Login failed. Please try again.");
+      let message = "Login failed. Please try again.";
+
+      if (error.code === 'ECONNABORTED') {
+        message = "Request timeout. Please check your connection.";
+      } else if (error.code === 'ERR_NETWORK') {
+        message = "Network error. Please try again later.";
+      } else if (error.response) {
+        const { status, data } = error.response;
+        switch (status) {
+          case 400:
+            message = data?.message || "Invalid email or password.";
+            break;
+          case 401:
+            message = "Invalid credentials.";
+            setFieldError("password", "Invalid credentials");
+            break;
+          case 403:
+            message = "Access denied. Contact support.";
+            break;
+          case 404:
+            message = "Login service not found.";
+            break;
+          case 429:
+            message = "Too many attempts. Try later.";
+            break;
+          case 500:
+            message = "Server error. Try again later.";
+            break;
+          default:
+            message = data?.message || `Error: ${status}`;
+        }
+      } else if (error.request) {
+        message = "Server unreachable. Check internet connection.";
+      }
+
+      toast.error(message);
     } finally {
       setLoading(false);
       setSubmitting(false);
@@ -68,21 +105,17 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      <ToastContainer position="top-center" hideProgressBar />
+      <ToastContainer position="top-center" autoClose={5000} hideProgressBar pauseOnHover />
 
       <aside className="login-leftside">
         <div className="welcome">
           <h1 className="title">
             Hello <br />
-            {brand.charAt(0).toUpperCase() + brand.slice(1)}{" "}
-            <span role="img" aria-label="wave">
-              👋
-            </span>
+            {brand.charAt(0).toUpperCase() + brand.slice(1)} 👋
           </h1>
           <p className="summary">
-            Access your dashboard at {brand}.
-            <br />
-            Log in to manage your partnerships and track earnings effortlessly.
+            Access your dashboard at {brand}.<br />
+            Log in to manage your partnerships and track earnings.
           </p>
         </div>
       </aside>
@@ -91,8 +124,9 @@ const Login = () => {
         <div className="form-wrap">
           <img
             src={logo}
-            alt="Logo"
+            alt={`${brand} Logo`}
             className="logo"
+            onError={(e) => (e.target.style.display = 'none')}
           />
           <h2 className="heading">Welcome Back!</h2>
 
@@ -100,49 +134,42 @@ const Login = () => {
             initialValues={{ email: "", password: "" }}
             validationSchema={LoginSchema}
             onSubmit={handleSubmit}
+            validateOnChange
+            validateOnBlur
           >
-            {({ isSubmitting }) => (
-              <Form className="form">
+            {({ isSubmitting, errors, touched }) => (
+              <Form className="form" noValidate>
                 <div className="field">
-                  <label htmlFor="email" className="label">
-                    Email
-                  </label>
+                  <label htmlFor="email" className="label">Email Address</label>
                   <Field
                     id="email"
                     name="email"
                     type="email"
                     placeholder="you@example.com"
-                    className="input"
+                    className={`input ${errors.email && touched.email ? 'error' : ''}`}
+                    autoComplete="email"
                   />
-                  <ErrorMessage
-                    name="email"
-                    component="div"
-                    className="error"
-                  />
+                  <ErrorMessage name="email" component="div" className="error" />
                 </div>
 
                 <div className="field">
-                  <label htmlFor="password" className="label">
-                    Password
-                  </label>
+                  <label htmlFor="password" className="label">Password</label>
                   <Field
                     id="password"
                     name="password"
                     type="password"
                     placeholder="••••••••"
-                    className="input"
+                    className={`input ${errors.password && touched.password ? 'error' : ''}`}
+                    autoComplete="current-password"
                   />
-                  <ErrorMessage
-                    name="password"
-                    component="div"
-                    className="error"
-                  />
+                  <ErrorMessage name="password" component="div" className="error" />
                 </div>
 
                 <button
                   type="submit"
                   className="btn"
                   disabled={isSubmitting || loading}
+                  aria-label={loading ? "Logging in..." : "Login Now"}
                 >
                   {loading ? "Logging in..." : "Login Now"}
                 </button>
@@ -150,26 +177,23 @@ const Login = () => {
             )}
           </Formik>
 
-          <a href="#" className="forgot">
-            Forgot password? 
-          </a>
+          <button type="button" className="forgot" onClick={() => navigate("/forgot-password")}>
+            Forgot password?
+          </button>
 
-          <div className="signup-prompt">
-            Don't have an account? Create one now:
-          </div>
+          <div className="signup-prompt">Don't have an account? Create one:</div>
           <div className="signup-btns">
-            <button type="button" className="btn outline">
+            <button className="btn outline" onClick={() => navigate("/signup/publisher")}>
               Sign up as Publisher
             </button>
-            <button type="button" className="btn outline">
+            <button className="btn outline" onClick={() => navigate("/signup/advertiser")}>
               Sign up as Advertiser
             </button>
           </div>
         </div>
 
-        
         <div className="bottom-deco">
-          <img src={BottomGraphic} alt="Foliage graphic"  />
+          <img src={BottomGraphic} alt="Decorative" onError={(e) => (e.target.style.display = 'none')} />
         </div>
       </main>
     </div>
