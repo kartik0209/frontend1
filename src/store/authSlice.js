@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import { getRolePermissions } from '../utils/rbac'; // Import the utility function
 
 // Initial state
 const initialState = {
@@ -33,13 +34,14 @@ export const loginUser = createAsyncThunk(
       );
 
       const { data } = response.data;
+      console.log("Login response data:", response);
       
       // Store token in localStorage (as backup)
       localStorage.setItem("authToken", data);
       
       // Decode JWT to extract user details
       const decoded = jwtDecode(data);
-      const { name, role, permissions, email, id } = decoded;
+      const { name, role, email, id } = decoded;
 
       const user = {
         id,
@@ -48,10 +50,13 @@ export const loginUser = createAsyncThunk(
         role
       };
 
+      // Get permissions based on role since token doesn't include permissions
+      const permissions = decoded.permissions || getRolePermissions(role);
+
       return {
         token: data,
         user,
-        permissions: permissions || [],
+        permissions,
         role
       };
     } catch (error) {
@@ -111,13 +116,16 @@ export const initializeAuth = createAsyncThunk(
         return rejectWithValue('Token expired');
       }
 
-      const { name, role, permissions, email, id } = decoded;
+      const { name, role, email, id } = decoded;
       const user = { id, name, email, role };
+      
+      // Get permissions based on role since token doesn't include permissions
+      const permissions = decoded.permissions || getRolePermissions(role);
       
       return {
         token,
         user,
-        permissions: permissions || [],
+        permissions,
         role
       };
     } catch (error) {

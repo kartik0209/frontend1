@@ -169,13 +169,13 @@ const Login = () => {
             )}
           </Formik>
 
-          <button
-            type="button"
+          <a
+            href="/forgot-password"
             className="forgot"
-            onClick={() => navigate("/forgot-password")}
+           
           >
             Forgot password?
-          </button>
+          </a>
 
           <div className="signup-prompt">
             Don't have an account? Create one:

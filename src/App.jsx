@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Loading component for PersistGate
 const Loading = () => (
@@ -45,7 +46,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route 
             path="/dashboard" 
             element={

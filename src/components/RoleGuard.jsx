@@ -1,32 +1,46 @@
+// src/components/RoleGuard.jsx
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { hasPermission, hasAnyPermission } from '../utils/rbac';
+import { hasPermission, hasAnyPermission, hasAllPermissions } from '../utils/rbac';
 
 const RoleGuard = ({ 
   children, 
   requiredPermission, 
-  requiredPermissions = [], 
-  requiredRole,
+  requiredPermissions, 
+  requireAll = false,
   fallback = null 
 }) => {
-  const { user, permissions, role } = useSelector(state => state.auth);
+  const { permissions = [], role } = useSelector(state => state.auth);
 
-  // Check role-based access
-  if (requiredRole && role !== requiredRole) {
-    return fallback;
+  // Debug logging
+  console.log('RoleGuard Debug:', {
+    userPermissions: permissions,
+    userRole: role,
+    requiredPermission,
+    requiredPermissions,
+    requireAll
+  });
+
+  let hasAccess = false;
+
+  if (requiredPermission) {
+    // Single permission check
+    hasAccess = hasPermission(permissions, requiredPermission);
+  } else if (requiredPermissions && requiredPermissions.length > 0) {
+    // Multiple permissions check
+    if (requireAll) {
+      hasAccess = hasAllPermissions(permissions, requiredPermissions);
+    } else {
+      hasAccess = hasAnyPermission(permissions, requiredPermissions);
+    }
+  } else {
+    // If no permissions specified, allow access
+    hasAccess = true;
   }
 
-  // Check single permission
-  if (requiredPermission && !hasPermission(permissions, requiredPermission)) {
-    return fallback;
-  }
+  console.log('RoleGuard Access:', hasAccess);
 
-  // Check multiple permissions
-  if (requiredPermissions.length > 0 && !hasAnyPermission(permissions, requiredPermissions)) {
-    return fallback;
-  }
-
-  return children;
+  return hasAccess ? children : fallback;
 };
 
 export default RoleGuard;
