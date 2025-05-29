@@ -1,21 +1,20 @@
-// src/components/Layout.jsx
 import React from 'react';
 import { useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
-import '../styles/Layout.scss';
 
 const Layout = ({ children }) => {
   const location = useLocation();
-  const isLoginPage = location.pathname === '/';
-
-  if (isLoginPage) {
-    return <>{children}</>;
-  }
-
+  const { isAuthenticated } = useSelector(state => state.auth);
+  
+  // Pages where sidebar should not be shown
+  const publicPages = ['/', '/forgot-password', '/signup/publisher', '/signup/advertiser'];
+  const showSidebar = isAuthenticated && !publicPages.includes(location.pathname);
+  
   return (
-    <div className="layout-container">
-      <Sidebar />
-      <main className="main-content">
+    <div className="app-layout">
+      {showSidebar && <Sidebar />}
+      <main className={`main-content ${showSidebar ? 'with-sidebar' : 'full-width'}`}>
         {children}
       </main>
     </div>

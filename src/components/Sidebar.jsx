@@ -1,5 +1,5 @@
-// src/components/Sidebar.jsx
 import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu } from 'antd';
 import {
@@ -16,6 +16,9 @@ import {
 } from '@ant-design/icons';
 
 import { toast } from 'react-toastify';
+import { logout } from '../store/authActions';
+import { PERMISSIONS } from '../utils/rbac';
+import RoleGuard from './RoleGuard';
 import logo from '../assets/logo.png';
 import '../styles/Sidebar.scss';
 
@@ -24,7 +27,10 @@ const { SubMenu } = Menu;
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
+  
+  const { user, permissions } = useSelector(state => state.auth);
+  
   const [selectedKeys, setSelectedKeys] = useState([location.pathname]);
 
   const handleMenuClick = ({ key }) => {
@@ -37,7 +43,7 @@ const Sidebar = () => {
   };
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     toast.success('Logged out successfully!');
     navigate('/');
   };
@@ -53,7 +59,7 @@ const Sidebar = () => {
         <img src={logo} alt="Logo" className="sidebar-logo" />
         <div className="sidebar-info">
           <h2 className="sidebar-title">Admin Panel</h2>
-          <p className="sidebar-subtitle">Welcome to the Admin Dashboard</p>
+          <p className="sidebar-subtitle">Welcome {user?.name}</p>
         </div>
       </div>
 
@@ -65,52 +71,76 @@ const Sidebar = () => {
           className="sidebar-menu"
           theme="dark"
         >
-          <Menu.Item key="/dashboard" icon={<DashboardOutlined />}>
-            Dashboard
-          </Menu.Item>
-
-          <SubMenu 
-            key="campaign-menu" 
-            icon={<ThunderboltOutlined />} 
-            title="Campaign"
-          >
-            <Menu.Item key="/campaign/manage" icon={<EditOutlined />}>
-              Manage Campaign
+          <RoleGuard requiredPermission={PERMISSIONS.DASHBOARD_VIEW}>
+            <Menu.Item key="/dashboard" icon={<DashboardOutlined />}>
+              Dashboard
             </Menu.Item>
-            <Menu.Item key="/campaign/create" icon={<PlusOutlined />}>
-              Create Campaign
+          </RoleGuard>
+
+          <RoleGuard requiredPermissions={[PERMISSIONS.CAMPAIGNS_VIEW, PERMISSIONS.CAMPAIGNS_CREATE]}>
+            <SubMenu 
+              key="campaign-menu" 
+              icon={<ThunderboltOutlined />} 
+              title="Campaign"
+            >
+              <RoleGuard requiredPermission={PERMISSIONS.CAMPAIGNS_VIEW}>
+                <Menu.Item key="/campaign/manage" icon={<EditOutlined />}>
+                  Manage Campaign
+                </Menu.Item>
+              </RoleGuard>
+              
+              <RoleGuard requiredPermission={PERMISSIONS.CAMPAIGNS_CREATE}>
+                <Menu.Item key="/campaign/create" icon={<PlusOutlined />}>
+                  Create Campaign
+                </Menu.Item>
+              </RoleGuard>
+            </SubMenu>
+          </RoleGuard>
+
+          <RoleGuard requiredPermission={PERMISSIONS.PUBLISHERS_VIEW}>
+            <Menu.Item key="/publishers" icon={<UserOutlined />}>
+              Publishers
             </Menu.Item>
-          </SubMenu>
+          </RoleGuard>
 
-          <Menu.Item key="/publishers" icon={<UserOutlined />}>
-            Publishers
-          </Menu.Item>
-
-          <Menu.Item key="/advertisers" icon={<TeamOutlined />}>
-            Advertisers
-          </Menu.Item>
-
-          <Menu.Item key="/teams" icon={<TeamOutlined />}>
-            Teams
-          </Menu.Item>
-           <Menu.Item key="/users" icon={<TeamOutlined />}>
-            Users
-          </Menu.Item>
-
-          <SubMenu 
-            key="reports-menu" 
-            icon={<BarChartOutlined />} 
-            title="Reports"
-          >
-            <Menu.Item key="/reports/conversion" icon={<FileTextOutlined />}>
-              Conversion Report
+          <RoleGuard requiredPermission={PERMISSIONS.ADVERTISERS_VIEW}>
+            <Menu.Item key="/advertisers" icon={<TeamOutlined />}>
+              Advertisers
             </Menu.Item>
-            <Menu.Item key="/reports/campaign" icon={<FileTextOutlined />}>
-              Campaign Report
-            </Menu.Item>
-          </SubMenu>
+          </RoleGuard>
 
-         
+          <RoleGuard requiredPermission={PERMISSIONS.USERS_VIEW}>
+            <Menu.Item key="/teams" icon={<TeamOutlined />}>
+              Teams
+            </Menu.Item>
+          </RoleGuard>
+
+          <RoleGuard requiredPermission={PERMISSIONS.USERS_VIEW}>
+            <Menu.Item key="/users" icon={<TeamOutlined />}>
+              Users
+            </Menu.Item>
+          </RoleGuard>
+
+          <RoleGuard requiredPermission={PERMISSIONS.REPORTS_VIEW}>
+            <SubMenu 
+              key="reports-menu" 
+              icon={<BarChartOutlined />} 
+              title="Reports"
+            >
+              <Menu.Item key="/reports/conversion" icon={<FileTextOutlined />}>
+                Conversion Report
+              </Menu.Item>
+              <Menu.Item key="/reports/campaign" icon={<FileTextOutlined />}>
+                Campaign Report
+              </Menu.Item>
+            </SubMenu>
+          </RoleGuard>
+
+          <RoleGuard requiredPermission={PERMISSIONS.SETTINGS_VIEW}>
+            <Menu.Item key="/settings" icon={<SettingOutlined />}>
+              Settings
+            </Menu.Item>
+          </RoleGuard>
         </Menu>
       </div>
 
