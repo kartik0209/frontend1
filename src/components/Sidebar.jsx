@@ -14,7 +14,7 @@ import {
   PlusOutlined,
   EditOutlined
 } from '@ant-design/icons';
-import { useAuth } from '../context/AuthContext';
+
 import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
 import '../styles/Sidebar.scss';
@@ -24,7 +24,7 @@ const { SubMenu } = Menu;
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
+
   const [selectedKeys, setSelectedKeys] = useState([location.pathname]);
 
   const handleMenuClick = ({ key }) => {
@@ -53,9 +53,7 @@ const Sidebar = () => {
         <img src={logo} alt="Logo" className="sidebar-logo" />
         <div className="sidebar-info">
           <h2 className="sidebar-title">Admin Panel</h2>
-          {user && (
-            <p className="user-info">Welcome, {user.name || user.email}</p>
-          )}
+          <p className="sidebar-subtitle">Welcome to the Admin Dashboard</p>
         </div>
       </div>
 

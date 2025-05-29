@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Login.scss";
 import BottomGraphic from "../assets/bottom_deco.png"; 
@@ -20,7 +20,7 @@ const LoginSchema = Yup.object().shape({
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+
 
   const brand = useMemo(() => {
     const host = window.location.hostname.split(".");
@@ -56,7 +56,7 @@ const { name, role, permissions } = decoded;
       
 
 
-  await login(data.user || { email: values.email });
+  
       toast.success("Login successful! ");
 
       setTimeout(() => navigate("/dashboard", { replace: true }), 1500);
