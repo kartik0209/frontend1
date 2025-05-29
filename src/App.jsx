@@ -1,8 +1,10 @@
+// src/App.jsx
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Provider, useDispatch } from 'react-redux';
-import store from './store/store';
-import { initializeAuth } from './store/authActions';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './store/store';
+import { initializeAuth } from './store/authSlice';
 import { PERMISSIONS } from './utils/rbac';
 
 import Layout from "./components/Layout";
@@ -11,6 +13,19 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import ForgotPassword from "./pages/ForgotPassword";
+
+// Loading component for PersistGate
+const Loading = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: '100vh',
+    fontSize: '18px'
+  }}>
+    Loading...
+  </div>
+);
 
 // Component to initialize auth
 const AuthInitializer = ({ children }) => {
@@ -141,9 +156,11 @@ function AppContent() {
 function App() {
   return (
     <Provider store={store}>
-      <AuthInitializer>
-        <AppContent />
-      </AuthInitializer>
+      <PersistGate loading={<Loading />} persistor={persistor}>
+        <AuthInitializer>
+          <AppContent />
+        </AuthInitializer>
+      </PersistGate>
     </Provider>
   );
 }

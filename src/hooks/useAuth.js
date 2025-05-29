@@ -1,5 +1,6 @@
+// src/hooks/useAuth.js
 import { useSelector, useDispatch } from 'react-redux';
-import { logout, loginUser, updateUserProfile } from '../store/authActions';
+import { logout, loginUser, updateUserProfile } from '../store/authSlice';
 
 export const useAuth = () => {
   const dispatch = useDispatch();

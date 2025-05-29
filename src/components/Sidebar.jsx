@@ -1,3 +1,4 @@
+// src/components/Sidebar.jsx
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -16,7 +17,7 @@ import {
 } from '@ant-design/icons';
 
 import { toast } from 'react-toastify';
-import { logout } from '../store/authActions';
+import { logout } from '../store/authSlice';
 import { PERMISSIONS } from '../utils/rbac';
 import RoleGuard from './RoleGuard';
 import logo from '../assets/logo.png';
@@ -106,12 +107,6 @@ const Sidebar = () => {
           <RoleGuard requiredPermission={PERMISSIONS.ADVERTISERS_VIEW}>
             <Menu.Item key="/advertisers" icon={<TeamOutlined />}>
               Advertisers
-            </Menu.Item>
-          </RoleGuard>
-
-          <RoleGuard requiredPermission={PERMISSIONS.USERS_VIEW}>
-            <Menu.Item key="/teams" icon={<TeamOutlined />}>
-              Teams
             </Menu.Item>
           </RoleGuard>
 

@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from "react";
+// src/pages/Login.jsx
+import React, { useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
-import { loginUser, clearAuthError } from "../store/authActions";
+import { loginUser, clearError } from "../store/authSlice";
 
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Login.scss";
@@ -25,39 +26,53 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const { loading, error } = useSelector(state => state.auth);
+  const { loading, error, isAuthenticated } = useSelector(state => state.auth);
   
   const brand = useMemo(() => {
     const host = window.location.hostname.split(".");
     return host.length > 2 ? host[0] : "YourBrand";
   }, []);
 
-  // Clear any existing errors when component mounts
-  React.useEffect(() => {
-    if (error) {
-      dispatch(clearAuthError());
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || "/dashboard";
+      navigate(from, { replace: true });
     }
-  }, []);
+  }, [isAuthenticated, navigate, location]);
+
+  // Clear any existing errors when component mounts
+  useEffect(() => {
+    if (error) {
+      dispatch(clearError());
+    }
+  }, [dispatch]);
 
   const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
-    const result = await dispatch(loginUser(values));
-    
-    if (result.success) {
+    try {
+      const result = await dispatch(loginUser(values)).unwrap();
+      
       toast.success("Login successful!");
       
       // Redirect to intended page or dashboard
       const from = location.state?.from?.pathname || "/dashboard";
       setTimeout(() => navigate(from, { replace: true }), 1500);
-    } else {
-      toast.error(result.error);
       
-      if (result.error.includes("Invalid credentials")) {
+    } catch (error) {
+      toast.error(error);
+      
+      if (error.includes("Invalid credentials")) {
         setFieldError("password", "Invalid credentials");
       }
+    } finally {
+      setSubmitting(false);
     }
-    
-    setSubmitting(false);
   };
+
+  // Don't render login form if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="login-container">
