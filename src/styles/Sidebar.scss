@@ -1,260 +1,94 @@
-
+/* src/styles/Sidebar.scss */
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  width: 280px;
   height: 100vh;
-  background: linear-gradient(135deg, #050a2c, #0a1a4e) !important;
-  color: #ffffff;
+  width: 250px;
+  background-color: #0b1e66;
+  color: #fff;
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease;
   z-index: 1000;
-  overflow-x: hidden;
-  transition: transform 0.3s ease;
-}
 
-.sidebar-header {
-  padding: 2rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+  &.collapsed {
+    width: 80px;
 
-.sidebar-logo {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-}
-
-.sidebar-info {
-  flex: 1;
-}
-
-.sidebar-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  color: #ffffff;
-}
-
-.sidebar-subtitle {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0.25rem 0 0 0;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: 1rem 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Ant Design Menu Customization */
-.sidebar-menu {
-  background: transparent !important;
-  border: none !important;
-
-  .ant-menu-item {
-    color: rgba(255, 255, 255, 0.7) !important;
-    background: transparent !important;
-    border-radius: 8px !important;
-    margin: 4px 12px !important;
-    padding: 0 16px !important;
-    height: 44px !important;
-    line-height: 44px !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.1) !important;
-      color: #ffffff !important;
-      transform: translateX(4px) !important;
-    }
-
-    &.ant-menu-item-selected {
-      background: rgba(255, 255, 255, 0.15) !important;
-      color: #ffffff !important;
-      font-weight: 700 !important;
-      border-right: none !important;
-
-      &::after {
-        display: none !important;
-      }
-    }
-
-    .ant-menu-item-icon {
-      font-size: 18px !important;
-      margin-right: 12px !important;
-    }
-  }
-
-  /* Submenu styling */
-  .ant-menu-submenu {
-    .ant-menu-submenu-title {
-      color: rgba(255, 255, 255, 0.7) !important;
-      background: transparent !important;
-      border-radius: 8px !important;
-      margin: 4px 12px !important;
-      padding: 0 16px !important;
-      height: 44px !important;
-      line-height: 44px !important;
-      font-weight: 500 !important;
-      transition: all 0.2s ease !important;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.1) !important;
-        color: #ffffff !important;
-        transform: translateX(4px) !important;
-      }
-
-      .ant-menu-submenu-arrow {
-        color: rgba(255, 255, 255, 0.5) !important;
-        right: 16px !important;
-
-        &::before,
-        &::after {
-          background: rgba(255, 255, 255, 0.5) !important;
-        }
-      }
-    }
-
-    &.ant-menu-submenu-open {
-      .ant-menu-submenu-title {
-        background: rgba(255, 255, 255, 0.15) !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-      }
-    }
-
-    .ant-menu-sub {
-      background: rgba(0, 0, 0, 0.2) !important;
-
-      .ant-menu-item {
-        margin: 2px 12px 2px 32px !important;
-        padding-left: 24px !important;
-        font-size: 14px !important;
-        height: 36px !important;
-        line-height: 36px !important;
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.1) !important;
-          transform: translateX(4px) !important;
-        }
-
-        &.ant-menu-item-selected {
-          background: rgba(255, 255, 255, 0.15) !important;
-          border-right: none !important;
-          color: #ffffff !important;
-          font-weight: 700 !important;
-        }
-      }
-    }
-  }
-}
-
-/* Logout menu specific styling */
-.logout-menu {
-  .ant-menu-item {
-    &:hover {
-      background-color: rgba(248, 113, 113, 0.2) !important;
-      color: #fca5a5 !important;
-      transform: translateX(4px) !important;
-    }
-  }
-
-  .logout-item {
-    color: rgba(255, 255, 255, 0.6) !important;
-  }
-}
-
-/* Mobile responsiveness */
-@media (max-width: 1024px) {
-  .sidebar {
-    width: 240px;
-  }
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-
-    &.mobile-open {
-      transform: translateX(0);
+    .sidebar-info,
+    .sidebar-title,
+    .sidebar-subtitle,
+    .sidebar-logo {
+      display: none;
     }
   }
 
   .sidebar-header {
-    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: #0a194f;
+    gap: 0.75rem;
+
+    .toggle-btn {
+      cursor: pointer;
+      font-size: 18px;
+      color: white;
+    }
+
+    .sidebar-logo {
+      width: 40px;
+      height: 40px;
+    }
+
+    .sidebar-info {
+      h2 {
+        font-size: 18px;
+        margin: 0;
+      }
+
+      p {
+        font-size: 12px;
+        margin: 0;
+        color: #ccc;
+      }
+    }
   }
 
-  .sidebar-menu {
-    .ant-menu-item,
-    .ant-menu-submenu .ant-menu-submenu-title {
-      margin: 4px 8px !important;
-      padding: 0 12px !important;
+  .sidebar-nav {
+    flex-grow: 1;
+    overflow-y: auto;
+    .ant-menu {
+      background-color: transparent;
+      border-right: none;
+
+      .ant-menu-item,
+      .ant-menu-submenu-title {
+        color: #fff;
+      }
+
+      .ant-menu-item-selected {
+        background-color: #11296b !important;
+      }
+    }
+  }
+
+  .sidebar-footer {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid #12235b;
+
+    .logout-item {
+      color: #ff4d4f;
     }
   }
 }
 
-/* Custom scrollbar for sidebar nav */
-.sidebar-nav::-webkit-scrollbar {
-  width: 6px;
-}
+/* Make sure main content shifts accordingly */
+.main-content {
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
 
-.sidebar-nav::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-}
-
-/* Animation for menu items */
-.sidebar-menu .ant-menu-item,
-.sidebar-menu .ant-menu-submenu {
-  opacity: 0;
-  animation: slideInLeft 0.3s ease forwards;
-}
-
-.sidebar-menu .ant-menu-item:nth-child(1),
-.sidebar-menu .ant-menu-submenu:nth-child(1) { animation-delay: 0.1s; }
-.sidebar-menu .ant-menu-item:nth-child(2),
-.sidebar-menu .ant-menu-submenu:nth-child(2) { animation-delay: 0.2s; }
-.sidebar-menu .ant-menu-item:nth-child(3),
-.sidebar-menu .ant-menu-submenu:nth-child(3) { animation-delay: 0.3s; }
-.sidebar-menu .ant-menu-item:nth-child(4),
-.sidebar-menu .ant-menu-submenu:nth-child(4) { animation-delay: 0.4s; }
-.sidebar-menu .ant-menu-item:nth-child(5),
-.sidebar-menu .ant-menu-submenu:nth-child(5) { animation-delay: 0.5s; }
-.sidebar-menu .ant-menu-item:nth-child(6),
-.sidebar-menu .ant-menu-submenu:nth-child(6) { animation-delay: 0.6s; }
-.sidebar-menu .ant-menu-item:nth-child(7),
-.sidebar-menu .ant-menu-submenu:nth-child(7) { animation-delay: 0.7s; }
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+  &.collapsed {
+    margin-left: 80px;
   }
 }

@@ -1,9 +1,10 @@
 // src/components/Sidebar.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu } from "antd";
 import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
   DashboardOutlined,
   SettingOutlined,
   LogoutOutlined,
@@ -15,59 +16,56 @@ import {
   PlusOutlined,
   EditOutlined,
 } from "@ant-design/icons";
-
+import { Menu } from "antd";
 import { toast } from "react-toastify";
 import { logout } from "../store/authSlice";
 import { PERMISSIONS } from "../utils/rbac";
-import RoleGuard from "./RoleGuard";
 import logo from "../assets/logo.png";
 import "../styles/Sidebar.scss";
 
 const { SubMenu } = Menu;
 
-const Sidebar = () => {
+const Sidebar = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { user, permissions } = useSelector((state) => state.auth);
-
+  const [collapsed, setCollapsed] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState([location.pathname]);
 
   const handleMenuClick = ({ key }) => {
-    console.log('Menu clicked with key:', key); // Debug log
     if (key === "logout") {
-      handleLogout();
+      dispatch(logout());
+      toast.success("Logged out successfully!");
+      navigate("/");
       return;
     }
     setSelectedKeys([key]);
     navigate(key);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    toast.success("Logged out successfully!");
-    navigate("/");
-  };
-
-  // Update selected keys when location changes
-  React.useEffect(() => {
+  useEffect(() => {
     setSelectedKeys([location.pathname]);
   }, [location.pathname]);
 
-  // Helper function to check permissions
-  const hasPermission = (permission) => {
-    return permissions?.includes(permission);
-  };
+  const hasPermission = (perm) => permissions?.includes(perm);
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
-        <img src={logo} alt="Logo" className="sidebar-logo" />
-        <div className="sidebar-info">
-          <h2 className="sidebar-title">Admin Panel</h2>
-          <p className="sidebar-subtitle">Welcome {user?.name}</p>
+        <div className="toggle-btn" onClick={() => setCollapsed(!collapsed)}>
+          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         </div>
+        {!collapsed && (
+          <>
+            <img src={logo} alt="Logo" className="sidebar-logo" />
+            <div className="sidebar-info">
+              <h2 className="sidebar-title">Admin Panel</h2>
+              <p className="sidebar-subtitle">Welcome {user?.name}</p>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="sidebar-nav">
@@ -75,29 +73,22 @@ const Sidebar = () => {
           mode="inline"
           selectedKeys={selectedKeys}
           onClick={handleMenuClick}
-          className="sidebar-menu"
           theme="dark"
+          inlineCollapsed={collapsed}
         >
-          {/* Dashboard - Always visible for authenticated users */}
           {hasPermission(PERMISSIONS.DASHBOARD_VIEW) && (
             <Menu.Item key="/dashboard" icon={<DashboardOutlined />}>
               Dashboard
             </Menu.Item>
           )}
 
-          {/* Campaign SubMenu */}
           {(hasPermission(PERMISSIONS.CAMPAIGNS_VIEW) || hasPermission(PERMISSIONS.CAMPAIGNS_CREATE)) && (
-            <SubMenu
-              key="campaign-menu"
-              icon={<ThunderboltOutlined />}
-              title="Campaign"
-            >
+            <SubMenu key="campaign-menu" icon={<ThunderboltOutlined />} title="Campaign">
               {hasPermission(PERMISSIONS.CAMPAIGNS_VIEW) && (
                 <Menu.Item key="/campaign/manage" icon={<EditOutlined />}>
                   Manage Campaign
                 </Menu.Item>
               )}
-
               {hasPermission(PERMISSIONS.CAMPAIGNS_CREATE) && (
                 <Menu.Item key="/campaign/create" icon={<PlusOutlined />}>
                   Create Campaign
@@ -106,34 +97,26 @@ const Sidebar = () => {
             </SubMenu>
           )}
 
-          {/* Publishers */}
           {hasPermission(PERMISSIONS.PUBLISHERS_VIEW) && (
             <Menu.Item key="/publishers" icon={<UserOutlined />}>
               Publishers
             </Menu.Item>
           )}
 
-          {/* Advertisers */}
           {hasPermission(PERMISSIONS.ADVERTISERS_VIEW) && (
             <Menu.Item key="/advertisers" icon={<TeamOutlined />}>
               Advertisers
             </Menu.Item>
           )}
 
-          {/* Users - This is the problematic one */}
           {hasPermission(PERMISSIONS.USERS_VIEW) && (
             <Menu.Item key="/users" icon={<TeamOutlined />}>
               Users
             </Menu.Item>
           )}
 
-          {/* Reports SubMenu */}
           {hasPermission(PERMISSIONS.REPORTS_VIEW) && (
-            <SubMenu
-              key="reports-menu"
-              icon={<BarChartOutlined />}
-              title="Reports"
-            >
+            <SubMenu key="reports-menu" icon={<BarChartOutlined />} title="Reports">
               <Menu.Item key="/reports/conversion" icon={<FileTextOutlined />}>
                 Conversion Report
               </Menu.Item>
@@ -146,17 +129,8 @@ const Sidebar = () => {
       </div>
 
       <div className="sidebar-footer">
-        <Menu
-          mode="inline"
-          className="sidebar-menu logout-menu"
-          theme="dark"
-          onClick={handleMenuClick}
-        >
-          <Menu.Item
-            key="logout"
-            icon={<LogoutOutlined />}
-            className="logout-item"
-          >
+        <Menu mode="inline" theme="dark" onClick={handleMenuClick}>
+          <Menu.Item key="logout" icon={<LogoutOutlined />} className="logout-item">
             Logout
           </Menu.Item>
         </Menu>

@@ -1,53 +1,40 @@
-/* src/styles/Layout.scss - Updated */
+/* Add this to your main layout CSS file or App.css */
 
+/* Assuming your sidebar has a fixed width (adjust the width as needed) */
+.main-content {
+  margin-left: 250px; /* Adjust this value to match your sidebar width */
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+/* If you have a wrapper around your main content */
 .app-layout {
   display: flex;
-  min-height: 100vh;
-  background-color: #f8fafc;
 }
 
-.main-content {
-  flex: 1;
-  min-height: 100vh;
-  transition: margin-left 0.3s ease;
-  
-  &.with-sidebar {
-    margin-left: 280px; /* Match sidebar width */
-    padding: 2rem;
-  }
-  
-  &.full-width {
-    margin-left: 0;
-    padding: 2rem;
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .main-content.with-sidebar {
-    margin-left: 240px; /* Smaller sidebar width on medium screens */
-  }
-}
-
-@media (max-width: 768px) {
-  .main-content.with-sidebar {
-    margin-left: 0; /* No margin on mobile - sidebar will be overlay */
-    padding: 1rem;
-  }
-  
-  .main-content.full-width {
-    padding: 1rem;
-  }
-}
-
-/* Ensure proper z-index layering */
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px; /* Make sure this matches the margin-left above */
+  height: 100vh;
   z-index: 1000;
 }
 
-.main-content {
-  z-index: 1;
-  position: relative;
+/* For responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
 }
 
-/* Updated Sidebar.scss */
+
