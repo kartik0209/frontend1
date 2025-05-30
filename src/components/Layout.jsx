@@ -1,3 +1,4 @@
+// src/components/Layout.jsx
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -18,7 +19,7 @@ const Layout = ({ children }) => {
       {showSidebar && (
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       )}
-      <main className={`main-content ${showSidebar ? (collapsed ? 'collapsed' : 'with-sidebar') : 'full-width'}`}>
+      <main className={`main-content ${showSidebar ? (collapsed ? 'collapsed' : '') : 'full-width'}`}>
         {children}
       </main>
     </div>

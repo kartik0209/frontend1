@@ -31,7 +31,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   const dispatch = useDispatch();
 
   const { user, permissions } = useSelector((state) => state.auth);
-  const [collapsed, setCollapsed] = useState(false);
+  // Remove conflicting state - use props instead
   const [selectedKeys, setSelectedKeys] = useState([location.pathname]);
 
   const handleMenuClick = ({ key }) => {
