@@ -35,6 +35,7 @@ const Sidebar = () => {
   const [selectedKeys, setSelectedKeys] = useState([location.pathname]);
 
   const handleMenuClick = ({ key }) => {
+    console.log('Menu clicked with key:', key); // Debug log
     if (key === "logout") {
       handleLogout();
       return;
@@ -54,6 +55,11 @@ const Sidebar = () => {
     setSelectedKeys([location.pathname]);
   }, [location.pathname]);
 
+  // Helper function to check permissions
+  const hasPermission = (permission) => {
+    return permissions?.includes(permission);
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -72,56 +78,57 @@ const Sidebar = () => {
           className="sidebar-menu"
           theme="dark"
         >
-          <RoleGuard requiredPermission={PERMISSIONS.DASHBOARD_VIEW}>
+          {/* Dashboard - Always visible for authenticated users */}
+          {hasPermission(PERMISSIONS.DASHBOARD_VIEW) && (
             <Menu.Item key="/dashboard" icon={<DashboardOutlined />}>
               Dashboard
             </Menu.Item>
-          </RoleGuard>
+          )}
 
-          <RoleGuard
-            requiredPermissions={[
-              PERMISSIONS.CAMPAIGNS_VIEW,
-              PERMISSIONS.CAMPAIGNS_CREATE,
-            ]}
-          >
+          {/* Campaign SubMenu */}
+          {(hasPermission(PERMISSIONS.CAMPAIGNS_VIEW) || hasPermission(PERMISSIONS.CAMPAIGNS_CREATE)) && (
             <SubMenu
               key="campaign-menu"
               icon={<ThunderboltOutlined />}
               title="Campaign"
             >
-              <RoleGuard requiredPermission={PERMISSIONS.CAMPAIGNS_VIEW}>
+              {hasPermission(PERMISSIONS.CAMPAIGNS_VIEW) && (
                 <Menu.Item key="/campaign/manage" icon={<EditOutlined />}>
                   Manage Campaign
                 </Menu.Item>
-              </RoleGuard>
+              )}
 
-              <RoleGuard requiredPermission={PERMISSIONS.CAMPAIGNS_CREATE}>
+              {hasPermission(PERMISSIONS.CAMPAIGNS_CREATE) && (
                 <Menu.Item key="/campaign/create" icon={<PlusOutlined />}>
                   Create Campaign
                 </Menu.Item>
-              </RoleGuard>
+              )}
             </SubMenu>
-          </RoleGuard>
+          )}
 
-          <RoleGuard requiredPermission={PERMISSIONS.PUBLISHERS_VIEW}>
+          {/* Publishers */}
+          {hasPermission(PERMISSIONS.PUBLISHERS_VIEW) && (
             <Menu.Item key="/publishers" icon={<UserOutlined />}>
               Publishers
             </Menu.Item>
-          </RoleGuard>
+          )}
 
-          <RoleGuard requiredPermission={PERMISSIONS.ADVERTISERS_VIEW}>
+          {/* Advertisers */}
+          {hasPermission(PERMISSIONS.ADVERTISERS_VIEW) && (
             <Menu.Item key="/advertisers" icon={<TeamOutlined />}>
               Advertisers
             </Menu.Item>
-          </RoleGuard>
+          )}
 
-          <RoleGuard requiredPermission={PERMISSIONS.USERS_VIEW}>
+          {/* Users - This is the problematic one */}
+          {hasPermission(PERMISSIONS.USERS_VIEW) && (
             <Menu.Item key="/users" icon={<TeamOutlined />}>
               Users
             </Menu.Item>
-          </RoleGuard>
+          )}
 
-          <RoleGuard requiredPermission={PERMISSIONS.REPORTS_VIEW}>
+          {/* Reports SubMenu */}
+          {hasPermission(PERMISSIONS.REPORTS_VIEW) && (
             <SubMenu
               key="reports-menu"
               icon={<BarChartOutlined />}
@@ -134,7 +141,7 @@ const Sidebar = () => {
                 Campaign Report
               </Menu.Item>
             </SubMenu>
-          </RoleGuard>
+          )}
         </Menu>
       </div>
 

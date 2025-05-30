@@ -1,6 +1,6 @@
-/* src/styles/Layout.scss */
+/* src/styles/Layout.scss - Updated */
 
-.layout-container {
+.app-layout {
   display: flex;
   min-height: 100vh;
   background-color: #f8fafc;
@@ -8,14 +8,46 @@
 
 .main-content {
   flex: 1;
-  padding: 2rem;
-  margin-left: 280px; /* Sidebar width */
-  overflow-x: auto;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+  
+  &.with-sidebar {
+    margin-left: 280px; /* Match sidebar width */
+    padding: 2rem;
+  }
+  
+  &.full-width {
+    margin-left: 0;
+    padding: 2rem;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .main-content.with-sidebar {
+    margin-left: 240px; /* Smaller sidebar width on medium screens */
+  }
 }
 
 @media (max-width: 768px) {
-  .main-content {
-    margin-left: 0;
+  .main-content.with-sidebar {
+    margin-left: 0; /* No margin on mobile - sidebar will be overlay */
+    padding: 1rem;
+  }
+  
+  .main-content.full-width {
     padding: 1rem;
   }
 }
+
+/* Ensure proper z-index layering */
+.sidebar {
+  z-index: 1000;
+}
+
+.main-content {
+  z-index: 1;
+  position: relative;
+}
+
+/* Updated Sidebar.scss */

@@ -13,13 +13,13 @@ const RoleGuard = ({
   const { permissions = [], role } = useSelector(state => state.auth);
 
   // Debug logging
-  console.log('RoleGuard Debug:', {
-    userPermissions: permissions,
-    userRole: role,
-    requiredPermission,
-    requiredPermissions,
-    requireAll
-  });
+  // console.log('RoleGuard Debug:', {
+  //   userPermissions: permissions,
+  //   userRole: role,
+  //   requiredPermission,
+  //   requiredPermissions,
+  //   requireAll
+  // });
 
   let hasAccess = false;
 
