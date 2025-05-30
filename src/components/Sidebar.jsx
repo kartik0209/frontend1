@@ -1,8 +1,8 @@
 // src/components/Sidebar.jsx
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu } from 'antd';
+import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu } from "antd";
 import {
   DashboardOutlined,
   SettingOutlined,
@@ -13,15 +13,15 @@ import {
   TeamOutlined,
   BarChartOutlined,
   PlusOutlined,
-  EditOutlined
-} from '@ant-design/icons';
+  EditOutlined,
+} from "@ant-design/icons";
 
-import { toast } from 'react-toastify';
-import { logout } from '../store/authSlice';
-import { PERMISSIONS } from '../utils/rbac';
-import RoleGuard from './RoleGuard';
-import logo from '../assets/logo.png';
-import '../styles/Sidebar.scss';
+import { toast } from "react-toastify";
+import { logout } from "../store/authSlice";
+import { PERMISSIONS } from "../utils/rbac";
+import RoleGuard from "./RoleGuard";
+import logo from "../assets/logo.png";
+import "../styles/Sidebar.scss";
 
 const { SubMenu } = Menu;
 
@@ -29,13 +29,13 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
-  const { user, permissions } = useSelector(state => state.auth);
-  
+
+  const { user, permissions } = useSelector((state) => state.auth);
+
   const [selectedKeys, setSelectedKeys] = useState([location.pathname]);
 
   const handleMenuClick = ({ key }) => {
-    if (key === 'logout') {
+    if (key === "logout") {
       handleLogout();
       return;
     }
@@ -45,8 +45,8 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    toast.success('Logged out successfully!');
-    navigate('/');
+    toast.success("Logged out successfully!");
+    navigate("/");
   };
 
   // Update selected keys when location changes
@@ -78,10 +78,15 @@ const Sidebar = () => {
             </Menu.Item>
           </RoleGuard>
 
-          <RoleGuard requiredPermissions={[PERMISSIONS.CAMPAIGNS_VIEW, PERMISSIONS.CAMPAIGNS_CREATE]}>
-            <SubMenu 
-              key="campaign-menu" 
-              icon={<ThunderboltOutlined />} 
+          <RoleGuard
+            requiredPermissions={[
+              PERMISSIONS.CAMPAIGNS_VIEW,
+              PERMISSIONS.CAMPAIGNS_CREATE,
+            ]}
+          >
+            <SubMenu
+              key="campaign-menu"
+              icon={<ThunderboltOutlined />}
               title="Campaign"
             >
               <RoleGuard requiredPermission={PERMISSIONS.CAMPAIGNS_VIEW}>
@@ -89,7 +94,7 @@ const Sidebar = () => {
                   Manage Campaign
                 </Menu.Item>
               </RoleGuard>
-              
+
               <RoleGuard requiredPermission={PERMISSIONS.CAMPAIGNS_CREATE}>
                 <Menu.Item key="/campaign/create" icon={<PlusOutlined />}>
                   Create Campaign
@@ -117,9 +122,9 @@ const Sidebar = () => {
           </RoleGuard>
 
           <RoleGuard requiredPermission={PERMISSIONS.REPORTS_VIEW}>
-            <SubMenu 
-              key="reports-menu" 
-              icon={<BarChartOutlined />} 
+            <SubMenu
+              key="reports-menu"
+              icon={<BarChartOutlined />}
               title="Reports"
             >
               <Menu.Item key="/reports/conversion" icon={<FileTextOutlined />}>
@@ -129,12 +134,6 @@ const Sidebar = () => {
                 Campaign Report
               </Menu.Item>
             </SubMenu>
-          </RoleGuard>
-
-          <RoleGuard requiredPermission={PERMISSIONS.SETTINGS_VIEW}>
-            <Menu.Item key="/settings" icon={<SettingOutlined />}>
-              Settings
-            </Menu.Item>
           </RoleGuard>
         </Menu>
       </div>
@@ -146,7 +145,11 @@ const Sidebar = () => {
           theme="dark"
           onClick={handleMenuClick}
         >
-          <Menu.Item key="logout" icon={<LogoutOutlined />} className="logout-item">
+          <Menu.Item
+            key="logout"
+            icon={<LogoutOutlined />}
+            className="logout-item"
+          >
             Logout
           </Menu.Item>
         </Menu>

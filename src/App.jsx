@@ -137,17 +137,7 @@ function AppContent() {
             } 
           />
           
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute requiredPermission={PERMISSIONS.SETTINGS_VIEW}>
-                <div style={{ padding: "2rem", textAlign: "center" }}>
-                  <h2>Settings Page</h2>
-                  <p>System Settings</p>
-                </div>
-              </ProtectedRoute>
-            }
-          />
+       
         </Routes>
       </Layout>
     </Router>
