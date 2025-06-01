@@ -1,12 +1,10 @@
-/* src/styles/Login.scss */
-
 .login-container {
   display: flex;
   min-height: 100vh;
   font-family: "Inter", sans-serif;
 }
 
-/* Sidebar on desktop */
+
 .login-leftside {
   flex: 1 !important;
   background: linear-gradient(135deg, #050a2c, #0a1a4e);
@@ -22,6 +20,8 @@
     display: none !important;
   }
 }
+
+
 
 .welcome {
   max-width: 360px;

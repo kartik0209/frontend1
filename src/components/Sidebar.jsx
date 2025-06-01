@@ -111,7 +111,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
 
           {hasPermission(PERMISSIONS.USERS_VIEW) && (
             <Menu.Item key="/users" icon={<TeamOutlined />}>
-              Users
+              Teams
             </Menu.Item>
           )}
 

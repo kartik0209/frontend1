@@ -110,11 +110,11 @@
 
 /* Make sure main content shifts accordingly */
 .main-content {
-  margin-left: 250px;
-  transition: margin-left 0.3s ease;
+  margin-left: 250px !important;
+  transition: margin-left 0.3s ease !important;
 
   &.collapsed {
-    margin-left: 80px;
+    margin-left: 80px !important;
   }
 }
 
