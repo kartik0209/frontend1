@@ -1,10 +1,11 @@
 // src/pages/Login.jsx
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import axios from "axios";
 import { loginUser, clearError } from "../store/authSlice";
 
 import "react-toastify/dist/ReactToastify.css";
@@ -25,13 +26,50 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  const { loading, error, isAuthenticated } = useSelector(state => state.auth);
-  
+  const { loading, error, isAuthenticated } = useSelector(
+    (state) => state.auth
+  );
+
+  // Derive brand from subdomain of window.location.hostname
   const brand = useMemo(() => {
-    const host = window.location.hostname.split(".");
-    return host.length > 2 ? host[0] : "YourBrand";
+    const hostParts = window.location.hostname.split(".");
+    return hostParts.length > 2 ? hostParts[0] : "Afftrex";
   }, []);
+
+  // Read ?company=… or default to "afftrex"
+  const [searchParams] = useSearchParams();
+  const rawCompany = searchParams.get("company");
+  const companyName =
+    rawCompany && rawCompany.trim() !== "" ? rawCompany : "afftrex";
+
+  const [companyData, setCompanyData] = useState(null);
+
+  useEffect(() => {
+    const fetchCompanyInfo = async () => {
+      try {
+        // Notice: no extra quotes around the URL string
+        const response = await axios.get(
+          "https://afftrex.onrender.com/api/company/auth/loginInfo",
+          { params: { subdomain: companyName } }
+        );
+
+        const json = response.data;
+        console.log("Company info response:", json);
+
+        if (json.success) {
+          console.log("Company data fetched successfully:", json.data);
+          setCompanyData(json.data);
+        } else {
+          console.error("API returned an error:", json.message);
+        }
+      } catch (err) {
+        console.error("Network error when fetching company info:", err);
+      }
+    };
+
+    console.log("Fetching company info for:", companyData);
+    fetchCompanyInfo();
+  }, [companyName]);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -46,22 +84,17 @@ const Login = () => {
     if (error) {
       dispatch(clearError());
     }
-  }, [dispatch]);
+  }, [dispatch, error]);
 
   const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
     try {
-      const result = await dispatch(loginUser(values)).unwrap();
-      
+      await dispatch(loginUser(values)).unwrap();
       toast.success("Login successful!");
-      
-      // Redirect to intended page or dashboard
       const from = location.state?.from?.pathname || "/dashboard";
-      setTimeout(() => navigate(from, { replace: true }), 1500);
-      
-    } catch (error) {
-      toast.error(error);
-      
-      if (error.includes("Invalid credentials")) {
+      navigate(from, { replace: true });
+    } catch (errMsg) {
+      toast.error(errMsg);
+      if (errMsg.includes("Invalid credentials")) {
         setFieldError("password", "Invalid credentials");
       }
     } finally {
@@ -69,7 +102,6 @@ const Login = () => {
     }
   };
 
-  // Don't render login form if already authenticated
   if (isAuthenticated) {
     return null;
   }
@@ -90,7 +122,8 @@ const Login = () => {
             {brand.charAt(0).toUpperCase() + brand.slice(1)} 👋
           </h1>
           <p className="summary">
-            Access your dashboard at {brand}.<br />
+            Access your dashboard at {brand}.
+            <br />
             Log in to manage your partnerships and track earnings.
           </p>
         </div>
@@ -99,7 +132,7 @@ const Login = () => {
       <main className="form-area">
         <div className="form-wrap">
           <img
-            src={logo}
+            src={companyData?.logo}
             alt={`${brand} Logo`}
             className="logo"
             onError={(e) => (e.target.style.display = "none")}
@@ -169,11 +202,7 @@ const Login = () => {
             )}
           </Formik>
 
-          <a
-            href="/forgot-password"
-            className="forgot"
-           
-          >
+          <a href="/forgot-password" className="forgot">
             Forgot password?
           </a>
 

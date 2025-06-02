@@ -12,7 +12,8 @@ const initialState = {
   permissions: [],
   role: null,
   loading: false,
-  error: null
+  error: null,
+  subdomain: null 
 };
 
 // Async thunk for login
@@ -25,6 +26,7 @@ export const loginUser = createAsyncThunk(
         {
           email: credentials.email.trim().toLowerCase(),
           password: credentials.password,
+          subdomain:  "afftrex",
         },
         {
           headers: { "Content-Type": "application/json" },
@@ -170,6 +172,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.permissions = action.payload.permissions;
         state.role = action.payload.role;
+        state.subdomain=action.payload.subdomain;
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -179,6 +182,7 @@ const authSlice = createSlice({
         state.token = null;
         state.permissions = [];
         state.role = null;
+        state.subdomain = null;
         state.error = action.payload;
       })
       // Initialize auth cases
@@ -192,6 +196,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.permissions = action.payload.permissions;
         state.role = action.payload.role;
+
         state.error = null;
       })
       .addCase(initializeAuth.rejected, (state) => {
