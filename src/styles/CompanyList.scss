@@ -1,0 +1,102 @@
+// Variables
+$background-light: #f0f2f5;
+$card-bg: #ffffff;
+
+// Use the gradient for the button background
+$primary-gradient: linear-gradient(135deg, #050a2c, #0a1a4e);
+
+$secondary-text: #595959;
+$border-radius: 4px;
+$spacing-base: 24px;
+$spacing-sm: 16px;
+$spacing-xs: 8px;
+
+// Page container
+.company-list-page {
+  background-color: $background-light;
+  min-height: 100vh;
+  padding: $spacing-base;
+
+  &__header {
+    background-color: $card-bg;
+    padding: $spacing-base $spacing-sm;
+    margin-bottom: $spacing-base;
+    border-radius: $border-radius;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+
+    &-info {
+      flex: 1 1 300px;
+
+      .company-list-page__title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      .company-list-page__subtitle {
+        margin: $spacing-xs 0 0;
+        color: $secondary-text;
+        font-size: 14px;
+      }
+    }
+
+    &-search {
+      flex: 1 1 200px;
+      max-width: 300px;
+      display: flex;
+      gap: $spacing-xs;
+      margin-top: $spacing-xs;
+
+      @media (max-width: 576px) {
+        max-width: 100%;
+        margin-top: $spacing-sm;
+        flex-direction: column;
+
+        .company-list-page__search-button {
+          width: 100%;
+        }
+      }
+    }
+
+    .company-list-page__search-input {
+      flex-grow: 1;
+    }
+
+    .company-list-page__search-button {
+      /* Use the gradient as background */
+      background-image: $primary-gradient;
+      border: none;
+      color: #fff;
+      transition: opacity 0.2s;
+
+      &:hover,
+      &:focus {
+        /* Same gradient on hover */
+        background-image: $primary-gradient !important;
+    opacity: 0.85   !important; // a slight fade effect on hover
+      }
+    }
+  }
+
+  &__table-container {
+    background-color: $card-bg;
+    padding: $spacing-base;
+    border-radius: $border-radius;
+
+    @media (max-width: 576px) {
+      padding: $spacing-sm;
+    }
+  }
+
+  &__spinner {
+    text-align: center;
+    padding: 2rem 0;
+  }
+
+  &__alert {
+    margin: $spacing-sm 0;
+  }
+}

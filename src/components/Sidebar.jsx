@@ -1,13 +1,10 @@
-// src/components/Sidebar.jsx
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   DashboardOutlined,
-  SettingOutlined,
-  LogoutOutlined,
   ThunderboltOutlined,
   FileTextOutlined,
   UserOutlined,
@@ -15,6 +12,7 @@ import {
   BarChartOutlined,
   PlusOutlined,
   EditOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { Menu } from "antd";
 import { toast } from "react-toastify";
@@ -31,8 +29,32 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   const dispatch = useDispatch();
 
   const { user, permissions } = useSelector((state) => state.auth);
-  // Remove conflicting state - use props instead
+
+  // Track which menu item is selected & which SubMenus are open
   const [selectedKeys, setSelectedKeys] = useState([location.pathname]);
+  const [openKeys, setOpenKeys] = useState([]);
+
+  // Update selectedKeys & openKeys whenever URL changes
+  useEffect(() => {
+    const path = location.pathname;
+    setSelectedKeys([path]);
+
+    // Decide which SubMenu to open based on prefix
+    if (path.startsWith("/campaign")) {
+      setOpenKeys(["campaign-menu"]);
+    } else if (path.startsWith("/company")) {
+      setOpenKeys(["company-menu"]);
+    } else if (path.startsWith("/reports")) {
+      setOpenKeys(["reports-menu"]);
+    } else {
+      setOpenKeys([]);
+    }
+  }, [location.pathname]);
+
+  // Invoked when user expands/collapses a SubMenu manually
+  const onOpenChange = (keys) => {
+    setOpenKeys(keys);
+  };
 
   const handleMenuClick = ({ key }) => {
     if (key === "logout") {
@@ -44,10 +66,6 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     setSelectedKeys([key]);
     navigate(key);
   };
-
-  useEffect(() => {
-    setSelectedKeys([location.pathname]);
-  }, [location.pathname]);
 
   const hasPermission = (perm) => permissions?.includes(perm);
 
@@ -71,9 +89,11 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       <div className="sidebar-nav">
         <Menu
           mode="inline"
-          selectedKeys={selectedKeys}
-          onClick={handleMenuClick}
           theme="dark"
+          selectedKeys={selectedKeys}
+          openKeys={openKeys}
+          onOpenChange={onOpenChange}
+          onClick={handleMenuClick}
           inlineCollapsed={collapsed}
         >
           {hasPermission(PERMISSIONS.DASHBOARD_VIEW) && (
@@ -82,8 +102,13 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
             </Menu.Item>
           )}
 
-          {(hasPermission(PERMISSIONS.CAMPAIGNS_VIEW) || hasPermission(PERMISSIONS.CAMPAIGNS_CREATE)) && (
-            <SubMenu key="campaign-menu" icon={<ThunderboltOutlined />} title="Campaign">
+          {(hasPermission(PERMISSIONS.CAMPAIGNS_VIEW) ||
+            hasPermission(PERMISSIONS.CAMPAIGNS_CREATE)) && (
+            <SubMenu
+              key="campaign-menu"
+              icon={<ThunderboltOutlined />}
+              title="Campaign"
+            >
               {hasPermission(PERMISSIONS.CAMPAIGNS_VIEW) && (
                 <Menu.Item key="/campaign/manage" icon={<EditOutlined />}>
                   Manage Campaign
@@ -109,6 +134,21 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
             </Menu.Item>
           )}
 
+          {hasPermission(PERMISSIONS.COMPANY_VIEW) && (
+            <SubMenu
+              key="company-menu"
+              icon={<BarChartOutlined />}
+              title="Company"
+            >
+              <Menu.Item key="/company/list" icon={<FileTextOutlined />}>
+                Company List
+              </Menu.Item>
+              <Menu.Item key="/company/requests" icon={<FileTextOutlined />}>
+                Company Requests
+              </Menu.Item>
+            </SubMenu>
+          )}
+
           {hasPermission(PERMISSIONS.USERS_VIEW) && (
             <Menu.Item key="/users" icon={<TeamOutlined />}>
               Teams
@@ -116,8 +156,15 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           )}
 
           {hasPermission(PERMISSIONS.REPORTS_VIEW) && (
-            <SubMenu key="reports-menu" icon={<BarChartOutlined />} title="Reports">
-              <Menu.Item key="/reports/conversion" icon={<FileTextOutlined />}>
+            <SubMenu
+              key="reports-menu"
+              icon={<BarChartOutlined />}
+              title="Reports"
+            >
+              <Menu.Item
+                key="/reports/conversion"
+                icon={<FileTextOutlined />}
+              >
                 Conversion Report
               </Menu.Item>
               <Menu.Item key="/reports/campaign" icon={<FileTextOutlined />}>
@@ -130,7 +177,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
 
       <div className="sidebar-footer">
         <Menu mode="inline" theme="dark" onClick={handleMenuClick}>
-          <Menu.Item key="logout" icon={<LogoutOutlined />} className="logout-item">
+          <Menu.Item key="logout" icon={<LogoutOutlined />}>
             Logout
           </Menu.Item>
         </Menu>

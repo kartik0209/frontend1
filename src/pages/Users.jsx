@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { FiSearch, FiPlus, FiEdit, FiTrash } from 'react-icons/fi';
 import '../styles/Users.scss';
+import UserProfile from '../components/UserProfile';
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -124,6 +125,7 @@ const Users = () => {
           </table>
         </div>
       </div>
+      
     </div>
   );
 };

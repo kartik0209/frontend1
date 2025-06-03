@@ -35,9 +35,14 @@ export const PERMISSIONS = {
   REPORTS_VIEW: 'reports:view',
   REPORTS_EXPORT: 'reports:export',
   
-  // Settings
-  SETTINGS_VIEW: 'settings:view',
-  SETTINGS_MANAGE: 'settings:manage'
+  
+
+  //company management
+  COMPANY_VIEW: 'company:view',
+  COMPANY_CREATE: 'company:create',
+  COMPANY_EDIT: 'company:edit',
+  COMPANY_DELETE: 'company:delete',
+
 };
 
 // Role-based permission mapping
@@ -58,7 +63,7 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.ADVERTISERS_MANAGE,
     PERMISSIONS.REPORTS_VIEW,
     PERMISSIONS.REPORTS_EXPORT,
-    PERMISSIONS.SETTINGS_VIEW
+ 
   ],
   
   [ROLES.MANAGER]: [

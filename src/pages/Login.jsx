@@ -1,77 +1,58 @@
 // src/pages/Login.jsx
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import axios from "axios";
-import { loginUser, clearError } from "../store/authSlice";
+import { loginUser, clearError, fetchCompanyData } from "../store/authSlice";
 
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Login.scss";
 import BottomGraphic from "../assets/bottom_deco.png";
-import logo from "../assets/logo.png";
 
+// Enhanced validation schema
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
     .email("Invalid email address")
-    .required("Email is required"),
+    .required("Email is required")
+    .max(100, "Email too long"),
   password: Yup.string()
     .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
+    .required("Password is required")
+    .max(50, "Password too long"),
 });
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { loading, error, isAuthenticated } = useSelector(
+  const [searchParams] = useSearchParams();
+  
+  const { loading, error, isAuthenticated, companyData } = useSelector(
     (state) => state.auth
   );
 
-  // Derive brand from subdomain of window.location.hostname
+  // Memoized brand calculation
   const brand = useMemo(() => {
     const hostParts = window.location.hostname.split(".");
     return hostParts.length > 2 ? hostParts[0] : "Afftrex";
   }, []);
 
-  // Read ?company=… or default to "afftrex"
-  const [searchParams] = useSearchParams();
-  const rawCompany = searchParams.get("company");
-  const companyName =
-    rawCompany && rawCompany.trim() !== "" ? rawCompany : "afftrex";
+  // Get company name from URL params
+  const companyName = useMemo(() => {
+    const rawCompany = searchParams.get("company");
+    return rawCompany?.trim() || "afftrex";
+  }, [searchParams]);
 
-  const [companyData, setCompanyData] = useState(null);
-
+  // Fetch company data on mount
   useEffect(() => {
-    const fetchCompanyInfo = async () => {
-      try {
-        // Notice: no extra quotes around the URL string
-        const response = await axios.get(
-          "https://afftrex.onrender.com/api/company/auth/loginInfo",
-          { params: { subdomain: companyName } }
-        );
+    if (companyName && !companyData) {
+      dispatch(fetchCompanyData(companyName));
+    }
+  }, [dispatch, companyName, companyData]);
 
-        const json = response.data;
-        console.log("Company info response:", json);
-
-        if (json.success) {
-          console.log("Company data fetched successfully:", json.data);
-          setCompanyData(json.data);
-        } else {
-          console.error("API returned an error:", json.message);
-        }
-      } catch (err) {
-        console.error("Network error when fetching company info:", err);
-      }
-    };
-
-    console.log("Fetching company info for:", companyData);
-    fetchCompanyInfo();
-  }, [companyName]);
-
-  // Redirect if already authenticated
+  // Handle authentication redirect
   useEffect(() => {
     if (isAuthenticated) {
       const from = location.state?.from?.pathname || "/dashboard";
@@ -79,29 +60,42 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate, location]);
 
-  // Clear any existing errors when component mounts
+  // Clear errors on mount
   useEffect(() => {
     if (error) {
       dispatch(clearError());
     }
   }, [dispatch, error]);
 
-  const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
+  // Optimized submit handler
+  const handleSubmit = useCallback(async (values, { setSubmitting, setFieldError }) => {
     try {
-      await dispatch(loginUser(values)).unwrap();
+      const credentials = {
+        ...values,
+        subdomain: companyName,
+      };
+      
+      await dispatch(loginUser(credentials)).unwrap();
       toast.success("Login successful!");
+      
       const from = location.state?.from?.pathname || "/dashboard";
       navigate(from, { replace: true });
     } catch (errMsg) {
       toast.error(errMsg);
-      if (errMsg.includes("Invalid credentials")) {
+      
+      // Set specific field errors
+      if (errMsg.toLowerCase().includes("credentials") || 
+          errMsg.toLowerCase().includes("password")) {
         setFieldError("password", "Invalid credentials");
+      } else if (errMsg.toLowerCase().includes("email")) {
+        setFieldError("email", "Invalid email");
       }
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [dispatch, companyName, location, navigate]);
 
+  // Don't render if already authenticated
   if (isAuthenticated) {
     return null;
   }
@@ -110,9 +104,10 @@ const Login = () => {
     <div className="login-container">
       <ToastContainer
         position="top-center"
-        autoClose={5000}
+        autoClose={4000}
         hideProgressBar
         pauseOnHover
+        limit={3}
       />
 
       <aside className="login-leftside">
@@ -131,22 +126,28 @@ const Login = () => {
 
       <main className="form-area">
         <div className="form-wrap">
-          <img
-            src={companyData?.logo}
-            alt={`${brand} Logo`}
-            className="logo"
-            onError={(e) => (e.target.style.display = "none")}
-          />
+          {companyData?.logo && (
+            <img
+              src={companyData.logo}
+              alt={`${brand} Logo`}
+              className="logo"
+              loading="lazy"
+              onError={(e) => {
+                e.target.style.display = "none";
+              }}
+            />
+          )}
+          
           <h2 className="heading">Welcome Back!</h2>
 
           <Formik
             initialValues={{ email: "", password: "" }}
             validationSchema={LoginSchema}
             onSubmit={handleSubmit}
-            validateOnChange
-            validateOnBlur
+            validateOnChange={false}
+            validateOnBlur={true}
           >
-            {({ isSubmitting, errors, touched }) => (
+            {({ isSubmitting, errors, touched, values }) => (
               <Form className="form" noValidate>
                 <div className="field">
                   <label htmlFor="email" className="label">
@@ -161,6 +162,8 @@ const Login = () => {
                       errors.email && touched.email ? "error" : ""
                     }`}
                     autoComplete="email"
+                    autoCapitalize="none"
+                    spellCheck="false"
                   />
                   <ErrorMessage
                     name="email"
@@ -193,7 +196,7 @@ const Login = () => {
                 <button
                   type="submit"
                   className="btn"
-                  disabled={isSubmitting || loading}
+                  disabled={isSubmitting || loading || !values.email || !values.password}
                   aria-label={loading ? "Logging in..." : "Login Now"}
                 >
                   {loading ? "Logging in..." : "Login Now"}
@@ -213,12 +216,14 @@ const Login = () => {
             <button
               className="btn outline"
               onClick={() => navigate("/signup/publisher")}
+              type="button"
             >
               Sign up as Publisher
             </button>
             <button
               className="btn outline"
               onClick={() => navigate("/signup/advertiser")}
+              type="button"
             >
               Sign up as Advertiser
             </button>
@@ -229,7 +234,10 @@ const Login = () => {
           <img
             src={BottomGraphic}
             alt="Decorative"
-            onError={(e) => (e.target.style.display = "none")}
+            loading="lazy"
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
           />
         </div>
       </main>
