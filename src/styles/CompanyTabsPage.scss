@@ -1,351 +1,553 @@
-// src/styles/CompanyTabsPage.scss
+// Import color module for modern Sass color functions
+@use "sass:color";
 
+// Variables
+$primary-color: #1890ff;
+$success-color: #52c41a;
+$warning-color: #faad14;
+$error-color: #ff4d4f;
+$text-color: #262626;
+$text-secondary: #8c8c8c;
+$border-color: #f0f0f0;
+$background-light: #fafafa;
+$white: #ffffff;
+$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$border-radius: 8px;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+}
+
+@mixin card-shadow {
+  box-shadow: $box-shadow;
+  border-radius: $border-radius;
+}
+
+@mixin mobile-responsive {
+  @media (max-width: 768px) {
+    @content;
+  }
+}
+
+@mixin tablet-responsive {
+  @media (max-width: 1024px) {
+    @content;
+  }
+}
+
+// Main Container
 .company-tabs-page {
   padding: 24px;
-  background-color: #f5f5f5;
   min-height: 100vh;
+  background-color: $background-light;
 
-  &__header-card {
-    margin-bottom: 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  @include mobile-responsive {
+    padding: 16px;
+  }
+
+  .page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .main-card {
+    @include card-shadow;
+    border: none;
 
     .ant-card-body {
       padding: 32px;
+
+      @include mobile-responsive {
+        padding: 20px;
+      }
+    }
+  }
+}
+
+// Page Header
+.page-header {
+  margin-bottom: 32px;
+
+  @include mobile-responsive {
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .page-title {
+    margin-bottom: 8px !important;
+    color: $text-color;
+    font-weight: 600;
+
+    @include mobile-responsive {
+      font-size: 24px !important;
     }
   }
 
-  &__content-card {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    background: #fff;
+  .page-description {
+    font-size: 16px;
+    color: $text-secondary;
+
+    @include mobile-responsive {
+      font-size: 14px;
+    }
+  }
+}
+
+// Stats Cards
+.stats-cards {
+  margin-bottom: 32px;
+
+  @include mobile-responsive {
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    @include card-shadow;
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
 
     .ant-card-body {
-      padding: 24px;
+      padding: 20px;
+
+      @include mobile-responsive {
+        padding: 16px;
+      }
+    }
+
+    .ant-statistic-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .ant-statistic-content {
+      .ant-statistic-content-value {
+        font-size: 28px;
+        font-weight: 700;
+
+        @include mobile-responsive {
+          font-size: 24px;
+        }
+      }
+
+      .anticon {
+        margin-right: 8px;
+        font-size: 20px;
+      }
+    }
+
+    &.total-card {
+      border-left: 4px solid $primary-color;
+    }
+
+    &.approved-card {
+      border-left: 4px solid $success-color;
+    }
+
+    &.pending-card {
+      border-left: 4px solid $warning-color;
+    }
+
+    &.rejected-card {
+      border-left: 4px solid $error-color;
     }
   }
+}
 
-  &__loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 20px;
-    background: #fafafa;
-    border-radius: 8px;
-    margin: 20px 0;
+// Section Divider
+.section-divider {
+  margin: 32px 0;
+  border-color: $border-color;
+
+  @include mobile-responsive {
+    margin: 24px 0;
   }
+}
 
-  // Tab customization
-  .ant-tabs {
-    .ant-tabs-tab {
-      font-weight: 600;
-      font-size: 16px;
-      padding: 12px 20px;
-      
-      &.ant-tabs-tab-active {
-        .ant-tabs-tab-btn {
-          color: black;
-          font-weight: 700;
-        }
-      }
+// Tabs Container
+.tabs-container {
+  .company-tabs {
+    .ant-tabs-nav {
+      margin-bottom: 24px;
 
-      .ant-badge {
-        .ant-badge-count {
-          font-weight: bold;
-          min-width: 24px;
-          height: 20px;
-          line-height: 20px;
-          font-size: 12px;
-        }
-      }
-    }
+      .ant-tabs-tab {
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 500;
 
-    .ant-tabs-ink-bar {
-      height: 3px;
-      border-radius: 2px;
-    }
-
-    .ant-tabs-content-holder {
-      .ant-tabs-content {
-        .ant-tabs-tabpane {
-          padding-top: 8px;
-        }
-      }
-    }
-  }
-
-  // Table customization
-  .company-table {
-    .ant-table {
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-
-      .ant-table-thead > tr > th {
-        background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
-        border-bottom: 2px solid #e8e8e8;
-        font-weight: 600;
-        color: #262626;
-        font-size: 14px;
-        padding: 16px 12px;
-      }
-
-      .ant-table-tbody > tr {
-        transition: all 0.3s ease;
-
-        &:hover {
-          background-color: #f8f9fa;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        @include mobile-responsive {
+          padding: 10px 16px;
+          font-size: 14px;
         }
 
-        > td {
-          padding: 16px 12px;
-          border-bottom: 1px solid #f0f0f0;
-          vertical-align: middle;
-        }
-      }
-    }
+        .tab-label {
+          @include flex-center;
 
-    .ant-pagination {
-      margin-top: 24px;
-      text-align: center;
-
-      .ant-pagination-item {
-        border-radius: 6px;
-        border: 1px solid #d9d9d9;
-        
-        &.ant-pagination-item-active {
-          background:white;
-          border-color: black;
-          
-          a {
-            color: black ;
+          .tab-count {
+            margin-left: 8px;
+            padding: 2px 8px;
+            background-color: $background-light;
+            border-radius: 12px;
+            font-size: 12px;
             font-weight: 600;
+            color: $text-secondary;
+            transition: all 0.2s ease;
+          }
+        }
+
+        &.ant-tabs-tab-active {
+          .tab-count {
+            background-color: $primary-color;
+            color: $white;
           }
         }
       }
     }
   }
+}
 
-  // Statistics cards
-  .stat-card {
-    border-radius: 8px;
-    border: 1px solid #f0f0f0;
-    transition: all 0.3s ease;
-    
-    &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transform: translateY(-2px);
-    }
+// Table Container
+.table-container {
+  .companies-table {
+    .ant-table {
+      border-radius: $border-radius;
+      overflow: hidden;
 
-    .ant-card-body {
-      padding: 16px;
-    }
-
-    .ant-statistic {
-      .ant-statistic-title {
-        font-size: 12px;
+      .ant-table-thead > tr > th {
+        background-color: $background-light;
         font-weight: 600;
-        color: #666;
-        margin-bottom: 8px;
+        color: $text-color;
+        border-bottom: 2px solid $border-color;
+        padding: 16px;
+
+        @include mobile-responsive {
+          padding: 12px 8px;
+          font-size: 12px;
+        }
       }
 
-      .ant-statistic-content {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+      .ant-table-tbody > tr > td {
+        padding: 16px;
+        border-bottom: 1px solid $border-color;
+
+        @include mobile-responsive {
+          padding: 12px 8px;
+        }
+      }
+
+      .ant-table-tbody > tr:hover > td {
+        background-color: rgba($primary-color, 0.05);
       }
     }
   }
 
-  // Modal enhancements
-  .ant-modal {
-    .ant-modal-header {
-      border-radius: 12px 12px 0 0;
-      background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-      border-bottom: 2px solid #f0f0f0;
-      padding: 20px 24px;
+  .custom-pagination {
+    margin-top: 24px;
+    text-align: center;
 
-      .ant-modal-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #262626;
-      }
-    }
+    @include mobile-responsive {
+      margin-top: 16px;
 
-    .ant-modal-body {
-      padding: 24px;
-    }
-
-    .ant-modal-footer {
-      border-top: 1px solid #f0f0f0;
-      padding: 16px 24px;
-      border-radius: 0 0 12px 12px;
-
-      .ant-btn {
-        height: 40px;
-        font-weight: 600;
-        border-radius: 6px;
-        min-width: 100px;
+      .ant-pagination-options {
+        display: none;
       }
     }
   }
+}
 
-  // Alert customization
-  .ant-alert {
-    border-radius: 8px;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+// Table Cell Styles
+.company-cell {
+  @include flex-center;
 
-    &.ant-alert-error {
-      background: linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%);
-      .ant-alert-icon {
-        color: #ff4d4f;
-      }
-    }
+  .company-avatar {
+    margin-right: 12px;
+    flex-shrink: 0;
 
-    &.ant-alert-info {
-      background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
-      .ant-alert-icon {
-        color:black;
-      }
-    }
-
-    &.ant-alert-success {
-      background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
-      .ant-alert-icon {
-        color: #52c41a;
-      }
+    @include mobile-responsive {
+      margin-right: 8px;
     }
   }
 
-  // Button enhancements
-  .ant-btn {
-    border-radius: 6px;
+  .company-info {
+    min-width: 0;
+    flex: 1;
+
+    .company-name {
+      font-weight: 600;
+      color: $text-color;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      @include mobile-responsive {
+        font-size: 14px;
+      }
+    }
+
+    .company-id {
+      font-size: 12px;
+      color: $text-secondary;
+    }
+  }
+}
+
+.email-cell {
+  @include flex-center;
+
+  .email-icon {
+    color: $primary-color;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  .email-text {
+    min-width: 0;
+    flex: 1;
+
+    @include mobile-responsive {
+      font-size: 12px;
+    }
+
+    .ant-typography-copy {
+      margin-left: 4px;
+    }
+  }
+}
+
+.subdomain-cell {
+  @include flex-center;
+
+  .subdomain-icon {
+    color: $primary-color;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  .subdomain-text {
+    background-color: rgba($primary-color, 0.1);
+    border: 1px solid rgba($primary-color, 0.2);
+    color: $primary-color;
     font-weight: 500;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
 
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    &.ant-btn-primary {
-      background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
-      border: none;
-      
-      &:hover {
-        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-      }
-    }
-
-    &.ant-btn-danger {
-      background: linear-gradient(135deg, #ff7875 0%, #ff4d4f 100%);
-      border: none;
-      
-      &:hover {
-        background: linear-gradient(135deg, #ff4d4f 0%, #f5222d 100%);
-      }
+    @include mobile-responsive {
+      font-size: 11px;
+      padding: 2px 6px;
     }
   }
+}
 
-  // Tag enhancements
-  .ant-tag {
-    border-radius: 12px;
-    font-weight: 500;
-    padding: 4px 12px;
-    border: none;
-    display: inline-flex;
-    align-items: center;
+.date-cell {
+  color: $text-secondary;
+  font-size: 14px;
+
+  @include mobile-responsive {
+    font-size: 12px;
+  }
+}
+
+// Status Tags
+.status-tag {
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  @include mobile-responsive {
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+}
+
+// Action Buttons
+.action-buttons {
+  @include flex-center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  @include mobile-responsive {
+    flex-direction: column;
     gap: 4px;
   }
+}
 
-  // Responsive design
-  @media (max-width: 768px) {
-    padding: 16px;
+.approve-btn {
+  background-color: $success-color;
+  border-color: $success-color;
+  font-weight: 500;
+  transition: all 0.2s ease;
 
-    &__header-card .ant-card-body {
-      padding: 20px;
-    }
+  &:hover {
+    background-color: rgba($success-color, 0.8);
+    border-color: rgba($success-color, 0.8);
+    opacity: 0.9;
+  }
 
-    &__content-card .ant-card-body {
-      padding: 16px;
-    }
+  @include mobile-responsive {
+    font-size: 11px;
+    padding: 4px 8px;
+    height: auto;
+  }
+}
 
-    .stat-card {
-      margin-bottom: 12px;
-    }
+.reject-btn {
+  background-color: $error-color;
+  border-color: $error-color;
+  font-weight: 500;
+  transition: all 0.2s ease;
 
-    .company-table {
-      .ant-table-thead > tr > th,
-      .ant-table-tbody > tr > td {
-        padding: 12px 8px;
-        font-size: 13px;
-      }
-    }
+  &:hover {
+    background-color: rgba($error-color, 0.8);
+    border-color: rgba($error-color, 0.8);
+    opacity: 0.9;
+  }
 
-    .ant-tabs .ant-tabs-tab {
-      padding: 8px 12px;
+  @include mobile-responsive {
+    font-size: 11px;
+    padding: 4px 8px;
+    height: auto;
+  }
+}
+
+// Error Alert
+.error-alert {
+  margin-bottom: 24px;
+  border-radius: $border-radius;
+
+  @include mobile-responsive {
+    margin-bottom: 16px;
+  }
+}
+
+// Empty State
+.empty-state {
+  padding: 60px 0;
+
+  @include mobile-responsive {
+    padding: 40px 0;
+  }
+
+  .ant-empty-description {
+    color: $text-secondary;
+    font-size: 16px;
+
+    @include mobile-responsive {
       font-size: 14px;
     }
   }
+}
 
-  @media (max-width: 480px) {
-    padding: 12px;
+// Responsive Table Adjustments
+@include mobile-responsive {
+  .ant-table-wrapper {
+    .ant-table-container {
+      .ant-table-content {
+        .ant-table-tbody {
+          .company-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
 
-    .company-table {
-      .ant-table {
-        .ant-table-thead > tr > th,
-        .ant-table-tbody > tr > td {
-          padding: 8px 6px;
-          font-size: 12px;
+            .company-avatar {
+              margin-right: 0;
+              align-self: center;
+            }
+
+            .company-info {
+              text-align: center;
+              width: 100%;
+            }
+          }
+
+          .email-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+
+            .email-icon {
+              margin-right: 0;
+            }
+          }
+
+          .subdomain-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+
+            .subdomain-icon {
+              margin-right: 0;
+            }
+          }
         }
       }
     }
   }
 }
 
-// Loading animations
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
+// Loading States
+.ant-spin-nested-loading {
+  .ant-spin-container {
+    transition: opacity 0.3s ease;
   }
 }
 
-.ant-spin-spinning {
-  animation: pulse 1.5s ease-in-out infinite;
+// Custom Scrollbar
+.table-container {
+  .ant-table-body {
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $background-light;
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $text-secondary;
+      border-radius: 3px;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background: rgba($text-secondary, 0.8);
+      }
+    }
+  }
 }
 
-// Custom scrollbar
-.company-tabs-page {
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
+// Additional hover effects for interactive elements
+.stat-card,
+.company-cell,
+.email-cell,
+.subdomain-cell {
+  transition: all 0.2s ease;
 
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
+  &:hover {
+    opacity: 0.95;
   }
+}
 
-  ::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-    
-    &:hover {
-      background: #a8a8a8;
+// Table row hover with transparency
+.ant-table-tbody > tr {
+  transition: all 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+
+    > td {
+      background-color: rgba($primary-color, 0.03) !important;
     }
   }
 }
