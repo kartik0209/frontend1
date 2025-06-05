@@ -1,0 +1,30 @@
+/* src/components/CompanyStatsCards.scss */
+
+.stats-cards {
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+
+/* Blue border for total */
+.stat-card.total-card {
+  border-left-color: #1890ff;
+}
+
+/* Green border for approved */
+.stat-card.approved-card {
+  border-left-color: #52c41a;
+}
+
+/* Orange border for pending */
+.stat-card.pending-card {
+  border-left-color: #faad14;
+}
+
+/* Red border for rejected */
+.stat-card.rejected-card {
+  border-left-color: #ff4d4f;
+}
