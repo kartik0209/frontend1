@@ -18,7 +18,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const CompanyList = lazy(() => import("./pages/CopmpanyList"));
 const CompanyTabsPage = lazy(() => import("./pages/CompanyTabsPage"));
-
+const CampaignCreator = lazy(() => import("./pages/CampaignCreator"));
 // Enhanced loading component
 const Loading = () => (
   <div
@@ -92,14 +92,7 @@ const ManageCampaignsPage = lazy(() => Promise.resolve({
   )
 }));
 
-const CreateCampaignPage = lazy(() => Promise.resolve({
-  default: () => (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
-      <h2>Create Campaign</h2>
-      <p>Create New Campaign</p>
-    </div>
-  )
-}));
+
 
 const ConversionReportsPage = lazy(() => Promise.resolve({
   default: () => (
@@ -183,7 +176,7 @@ function AppContent() {
                   path="campaign/create"
                   element={
                     <ProtectedRoute requiredPermission={PERMISSIONS.CAMPAIGNS_CREATE}>
-                      <CreateCampaignPage />
+                      <CampaignCreator />
                     </ProtectedRoute>
                   }
                 />
