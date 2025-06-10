@@ -111,6 +111,7 @@ export default function CompanyTable({ activeTab, companies, loading, onLocalUpd
     
     try {
       const res = await apiClient.put(`/admin/company/reject/${id}`);
+      console.log("Reject - API Response:", res.data);
       
       closeRejectModal();
       setSuccessMessage(`"${name}" rejected successfully.`);
