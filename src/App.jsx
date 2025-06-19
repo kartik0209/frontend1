@@ -19,6 +19,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const CompanyList = lazy(() => import("./pages/CopmpanyList"));
 const CompanyTabsPage = lazy(() => import("./pages/CompanyTabsPage"));
 const CampaignCreator = lazy(() => import("./pages/CampaignCreator"));
+const CampaignManagement = lazy(() => import("./pages/CampaignManagement"));
 // Enhanced loading component
 const Loading = () => (
   <div
@@ -167,7 +168,7 @@ function AppContent() {
                   path="campaign/manage"
                   element={
                     <ProtectedRoute requiredPermission={PERMISSIONS.CAMPAIGNS_VIEW}>
-                      <ManageCampaignsPage />
+                      <CampaignManagement />
                     </ProtectedRoute>
                   }
                 />

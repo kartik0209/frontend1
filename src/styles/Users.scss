@@ -1,226 +1,315 @@
 // src/styles/Users.scss
+
 .users-page {
   padding: 24px;
-  background-color: #f5f5f5;
+  background: #f5f5f5;
   min-height: 100vh;
 
+  // Header Card Styles
   .users-header-card {
     margin-bottom: 24px;
-    border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    border: none;
 
     .page-title {
-      margin-bottom: 8px !important;
-      color: #1890ff;
+      margin: 0;
+      margin-bottom: 8px;
+      color: #1a1a1a;
       font-weight: 600;
     }
 
     .page-subtitle {
       font-size: 16px;
-      color: #8c8c8c;
+      color: #666;
     }
 
-    .add-user-btn {
-      height: 40px;
-      border-radius: 6px;
+    .add-user-button {
+      height: 44px;
+      padding: 0 24px;
+      border-radius: 8px;
       font-weight: 500;
+      box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
       
       &:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+        box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
       }
     }
   }
 
+  // Content Card Styles
   .users-content-card {
-    border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    border: none;
 
-    .users-toolbar {
+    .search-section {
       margin-bottom: 24px;
 
       .search-input {
-        max-width: 400px;
-        border-radius: 6px;
+        max-width: 500px;
+        border-radius: 8px;
         
-        &:focus {
+        .search-icon {
+          color: #bfbfbf;
+        }
+
+        &:focus-within {
           box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
         }
       }
     }
+  }
 
-    .users-table {
-      .user-info {
-        display: flex;
-        align-items: center;
+  // Table Styles
+  .users-table {
+    .ant-table {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ant-table-thead > tr > th {
+      background-color: #fafafa;
+      font-weight: 600;
+      color: #1a1a1a;
+      border-bottom: 2px solid #f0f0f0;
+      padding: 16px;
+
+      &:first-child {
+        border-top-left-radius: 8px;
+      }
+
+      &:last-child {
+        border-top-right-radius: 8px;
+      }
+    }
+
+    .users-table-row {
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background-color: #f8f9ff;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      td {
+        padding: 16px;
+        border-bottom: 1px solid #f0f0f0;
+      }
+    }
+
+    // User Info Column
+    .user-info {
+      display: flex;
+      align-items: center;
+
+      .user-avatar-table {
+        background: linear-gradient(135deg, #1890ff, #36cfc9);
+        margin-right: 12px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+      }
+
+      .user-details {
+        min-width: 0;
+        flex: 1;
 
         .user-name {
           font-weight: 500;
-          color: #262626;
+          font-size: 14px;
           margin-bottom: 2px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          color: #1a1a1a;
         }
 
         .user-email {
           font-size: 12px;
-        }
-      }
-
-      .action-btn {
-        &.edit {
-          color: #1890ff;
-          
-          &:hover {
-            background-color: #e6f7ff;
-            border-color: #91d5ff;
-          }
-        }
-      }
-
-      // Custom table styling
-      .ant-table {
-        border-radius: 8px;
-        overflow: hidden;
-
-        .ant-table-thead > tr > th {
-          background-color: #fafafa;
-          font-weight: 600;
-          color: #262626;
-          border-bottom: 2px solid #f0f0f0;
-        }
-
-        .ant-table-tbody > tr {
-          &:hover > td {
-            background-color: #f5f5f5;
-          }
-
-          > td {
-            border-bottom: 1px solid #f0f0f0;
-          }
-        }
-      }
-
-      // Pagination styling
-      .ant-pagination {
-        margin-top: 24px;
-        text-align: right;
-
-        .ant-pagination-item-active {
-          border-color: #1890ff;
-          
-          a {
-            color: #1890ff;
-          }
-        }
-      }
-    }
-  }
-
-  // Drawer styling
-  .ant-drawer {
-    .ant-drawer-header {
-      border-bottom: 1px solid #f0f0f0;
-      
-      .ant-drawer-title {
-        font-weight: 600;
-        color: #1890ff;
-      }
-    }
-
-    .ant-drawer-body {
-      .ant-form {
-        .ant-form-item-label > label {
-          font-weight: 500;
-          color: #262626;
-        }
-
-        .ant-input,
-        .ant-select-selector,
-        .ant-picker {
-          border-radius: 6px;
-          
-          &:focus,
-          &.ant-select-focused,
-          &.ant-picker-focused {
-            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-          }
-        }
-
-        .ant-btn {
-          border-radius: 6px;
-          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
       }
     }
 
-    .ant-drawer-footer {
-      border-top: 1px solid #f0f0f0;
-      padding: 16px 24px;
-    }
-  }
-
-  // Tag styling
-  .ant-tag {
-    border-radius: 4px;
-    font-weight: 500;
-    font-size: 11px;
-    padding: 2px 8px;
-    border: none;
-  }
-
-  // Avatar styling
-  .ant-avatar {
-    border: 2px solid #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  // Message and notification styling
-  .ant-message {
-    .ant-message-notice-content {
+    // Role Tag
+    .role-tag {
+      font-weight: 500;
       border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      font-size: 11px;
+      padding: 2px 8px;
+      border: none;
     }
-  }
 
-  // Loading state
-  .ant-spin-container {
-    .ant-spin {
-      .ant-spin-dot {
-        i {
-          background-color: #1890ff;
+    // Status Column
+    .status-column {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .status-tag {
+        font-weight: 500;
+        border-radius: 6px;
+        font-size: 11px;
+        margin-right: 0;
+      }
+
+      .status-switch {
+        &.ant-switch-checked {
+          background-color: #52c41a;
+        }
+      }
+    }
+
+    // Actions Button
+    .actions-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #f0f0f0;
+        transform: scale(1.05);
+      }
+    }
+
+    // Table Pagination
+    .table-pagination {
+      margin-top: 24px;
+      
+      .ant-pagination-item {
+        border-radius: 6px;
+        
+        &:hover {
+          border-color: #1890ff;
+        }
+      }
+
+      .ant-pagination-item-active {
+        background: linear-gradient(135deg, #1890ff, #36cfc9);
+        border-color: #1890ff;
+
+        a {
+          color: white;
         }
       }
     }
   }
 
-  // Responsive design
+  // Drawer Styles
+  .user-drawer {
+    .drawer-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+  }
+
+  // User Details Modal
+  .user-details-modal {
+    padding: 16px 0;
+
+    .user-avatar-section {
+      margin-bottom: 16px;
+      text-align: center;
+
+      .user-avatar {
+        background: linear-gradient(135deg, #1890ff, #36cfc9);
+        box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+      }
+    }
+
+    .user-info-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .info-label {
+          font-weight: 600;
+          color: #1a1a1a;
+          min-width: 100px;
+          margin-right: 12px;
+        }
+
+        .info-value {
+          color: #666;
+          flex: 1;
+        }
+
+        .ant-tag {
+          margin-left: 0;
+        }
+      }
+    }
+  }
+
+  // Responsive Design
   @media (max-width: 768px) {
     padding: 16px;
 
     .users-header-card {
+      margin-bottom: 16px;
+
       .ant-row {
         flex-direction: column;
         gap: 16px;
         text-align: center;
       }
-    }
 
-    .users-content-card {
-      .users-toolbar {
-        .search-input {
-          max-width: 100%;
-        }
+      .page-title {
+        font-size: 20px;
       }
 
-      .users-table {
-        .ant-table {
-          font-size: 12px;
-        }
+      .page-subtitle {
+        font-size: 14px;
       }
     }
 
-    .ant-drawer {
-      .ant-drawer-content-wrapper {
-        width: 100% !important;
+    .search-section {
+      .search-input {
+        max-width: 100%;
+      }
+    }
+
+    .users-table {
+      .ant-table-tbody > tr > td {
+        padding: 12px 8px;
+      }
+
+      .user-info {
+        .user-avatar-table {
+          margin-right: 8px;
+        }
+
+        .user-details {
+          .user-name {
+            font-size: 13px;
+          }
+
+          .user-email {
+            font-size: 11px;
+          }
+        }
       }
     }
   }
@@ -230,53 +319,85 @@
 
     .users-header-card,
     .users-content-card {
-      .ant-card-body {
-        padding: 16px;
-      }
+      margin-bottom: 12px;
     }
-  }
-}
 
-// Dark theme support
-[data-theme='dark'] {
-  .users-page {
-    background-color: #141414;
+    .page-title {
+      font-size: 18px;
+    }
 
-    .users-header-card,
-    .users-content-card {
-      background-color: #1f1f1f;
-      border-color: #303030;
-
-      .page-title {
-        color: #1890ff;
-      }
-
-      .page-subtitle {
-        color: #8c8c8c;
-      }
+    .add-user-button {
+      width: 100%;
+      height: 40px;
     }
 
     .users-table {
-      .ant-table {
-        .ant-table-thead > tr > th {
-          background-color: #262626;
-          color: #fff;
-          border-bottom-color: #303030;
-        }
-
-        .ant-table-tbody > tr {
-          &:hover > td {
-            background-color: #262626;
-          }
-
-          > td {
-            border-bottom-color: #303030;
-          }
-        }
+      .ant-table-tbody > tr > td {
+        padding: 8px 4px;
       }
     }
   }
 }
 
+// Custom Ant Design Overrides
+.ant-modal-info {
+  .ant-modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+  }
 
+  .ant-modal-header {
+    background: linear-gradient(135deg, #f0f2ff, #f6ffed);
+    border-bottom: 1px solid #f0f0f0;
+  }
 
+  .ant-modal-title {
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+}
+
+.ant-drawer {
+  .ant-drawer-header {
+    background: linear-gradient(135deg, #f0f2ff, #f6ffed);
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .ant-drawer-title {
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+}
+
+// Dropdown Menu Styles
+.ant-dropdown {
+  .ant-dropdown-menu {
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f0f0f0;
+
+    .ant-dropdown-menu-item {
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin: 4px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #f0f2ff;
+        color: #1890ff;
+      }
+
+      &.ant-dropdown-menu-item-danger {
+        &:hover {
+          background-color: #fff2f0;
+          color: #ff4d4f;
+        }
+      }
+    }
+
+    .ant-dropdown-menu-item-divider {
+      margin: 8px 4px;
+      background-color: #f0f0f0;
+    }
+  }
+}

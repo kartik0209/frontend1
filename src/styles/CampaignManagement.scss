@@ -1,0 +1,465 @@
+// Variables
+$primary-color: #1890ff;
+$success-color: #52c41a;
+$warning-color: #faad14;
+$error-color: #ff4d4f;
+$background-color: #f0f2f5;
+$white: #ffffff;
+$border-color: #d9d9d9;
+$border-radius: 8px;
+$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$transition: all 0.3s ease;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin card-style {
+  background: $white;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  border: 1px solid $border-color;
+}
+
+// Main campaign management container
+.campaign-management {
+  min-height: 100vh;
+  background: $background-color;
+  padding: 24px;
+
+  .campaign-header {
+    @include flex-between;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    @include card-style;
+
+    .header-title {
+      .page-title {
+        margin: 0 0 4px 0;
+        color: #262626;
+        font-weight: 600;
+      }
+
+      .page-subtitle {
+        margin: 0;
+        font-size: 14px;
+        color: #8c8c8c;
+      }
+    }
+
+    .header-actions {
+      .ant-btn {
+        height: 40px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: $transition;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+      }
+
+      .search-btn {
+        background: linear-gradient(135deg, #050a2c, #0a1a4e);
+        border: none;
+      }
+
+      .columns-btn {
+        border-color: linear-gradient(135deg, #050a2c, #0a1a4e);
+        background: linear-gradient(135deg, #050a2c, #0a1a4e);
+        color: $white;
+      
+      }
+
+      .export-btn {
+        background: linear-gradient(135deg, #050a2c, #0a1a4e);
+        border: none;
+        color: $white;
+      }
+    }
+  }
+
+  .campaign-table-card {
+    @include card-style;
+    
+    .ant-card-body {
+      padding: 0;
+    }
+
+    .table-container {
+      .campaign-table {
+        .ant-table-thead > tr > th {
+          background: #fafafa;
+          font-weight: 600;
+          color: #262626;
+          border-bottom: 2px solid #f0f0f0;
+          padding: 16px 12px;
+        }
+
+        .campaign-row {
+          transition: $transition;
+
+          &:hover {
+            background: #f5f5f5;
+            transform: translateX(2px);
+          }
+
+          td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+          }
+        }
+
+        .campaign-id-column {
+          font-weight: 600;
+          color: $primary-color;
+        }
+
+        .campaign-title-column {
+          .campaign-title {
+            font-weight: 500;
+            color: #262626;
+            cursor: pointer;
+
+            &:hover {
+              color: $primary-color;
+            }
+          }
+        }
+
+        .status-tag {
+          font-weight: 500;
+          border: none;
+          border-radius: 4px;
+        }
+
+        .payout-column {
+          font-weight: 600;
+          color: $success-color;
+        }
+
+        .revenue-column {
+          font-weight: 600;
+          color: $warning-color;
+        }
+
+        .conversion-count {
+          background: linear-gradient(135deg, #e6f7ff, #bae7ff);
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-weight: 500;
+          color: $primary-color;
+        }
+      }
+
+      .table-pagination {
+        padding: 16px 24px;
+        border-top: 1px solid #f0f0f0;
+        background: #fafafa;
+
+        .ant-pagination-item {
+          border-radius: 4px;
+        }
+
+        .ant-pagination-item-active {
+          background: $white;
+          border-color: $primary-color;
+        }
+      }
+    }
+  }
+}
+
+// Search Modal Styles
+.search-modal {
+  .modal-header {
+    @include flex-center;
+    gap: 8px;
+
+    .modal-icon {
+      color: linear-gradient(135deg, #050a2c, #0a1a4e) ;
+          
+      font-size: 16px;
+    }
+  }
+
+  .ant-modal-body {
+    padding: 24px;
+  }
+
+  .search-form {
+    .ant-form-item-label > label {
+      font-weight: 500;
+      color: #262626;
+    }
+
+    .ant-input,
+    .ant-select-selector,
+    .ant-input-number {
+      border-radius: 6px;
+      border-color: $border-color;
+      transition: $transition;
+
+      &:hover {
+        border-color: $primary-color;
+      }
+
+      &:focus,
+      &.ant-select-focused .ant-select-selector {
+        border-color: $primary-color;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+      }
+    }
+
+    .search-actions {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #f0f0f0;
+      text-align: center;
+
+      .ant-btn {
+        height: 40px;
+        min-width: 80px;
+        border-radius: 6px;
+        font-weight: 500;
+
+        &.clear-btn {
+         background:linear-gradient(135deg, #050a2c, #0a1a4e) ;
+          border: none;
+          color: white;
+
+         
+        }
+
+        &.search-submit-btn {
+          background:linear-gradient(135deg, #050a2c, #0a1a4e) ;
+          border: none;
+        }
+
+        &.close-btn {
+         background:linear-gradient(135deg, #050a2c, #0a1a4e) ;
+          border: none;
+          color: white
+        
+        }
+      }
+    }
+  }
+}
+
+// Column Settings Drawer
+.column-settings-drawer {
+  .drawer-header {
+    @include flex-center;
+    gap: 8px;
+
+    .drawer-icon {
+      color: $primary-color;
+      font-size: 16px;
+    }
+  }
+
+  .column-controls {
+    margin-bottom: 16px;
+
+    .ant-btn {
+      height: 32px;
+      border-radius: 4px;
+      font-size: 12px;
+
+      &.select-all-btn {
+        background: linear-gradient(135deg, $success-color, #73d13d);
+        border: none;
+        color: $white;
+      }
+
+      &.clear-all-btn {
+        background: linear-gradient(135deg, $error-color, #ff7875);
+        border: none;
+        color: $white;
+      }
+    }
+  }
+
+  .column-checkboxes {
+    .column-checkbox-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .column-checkbox {
+        width: 100%;
+
+        .ant-checkbox-wrapper {
+          font-weight: 500;
+          color: #262626;
+          transition: $transition;
+
+          &:hover {
+            color: $primary-color;
+          }
+        }
+
+        .ant-checkbox-checked .ant-checkbox-inner {
+          background: $primary-color;
+          border-color: $primary-color;
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1200px) {
+  .campaign-management {
+    padding: 16px;
+
+    .campaign-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+
+      .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .campaign-management {
+    padding: 12px;
+
+    .campaign-header {
+      padding: 16px;
+
+      .header-actions {
+        justify-content: space-between;
+        width: 100%;
+
+        .ant-btn {
+          flex: 1;
+          margin: 0 4px;
+        }
+      }
+    }
+
+    .search-modal {
+      .ant-modal {
+        margin: 16px;
+        max-width: calc(100vw - 32px);
+      }
+    }
+
+    .column-settings-drawer {
+      .ant-drawer-content-wrapper {
+        width: 300px !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .campaign-management {
+    .campaign-header {
+      .header-actions {
+        flex-direction: column;
+        gap: 8px;
+
+        .ant-btn {
+          width: 100%;
+          margin: 0;
+        }
+      }
+    }
+
+    .search-modal {
+      .search-form {
+        .search-actions {
+          .ant-space {
+            width: 100%;
+            flex-direction: column;
+
+            .ant-btn {
+              width: 100%;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Loading and Animation States
+.ant-table-loading {
+  .ant-spin-container {
+    opacity: 0.7;
+  }
+}
+
+.ant-btn-loading {
+  pointer-events: none;
+}
+
+// Custom scrollbar for table
+.table-container {
+  .ant-table-body {
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f0f0f0;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #d9d9d9;
+      border-radius: 4px;
+
+      &:hover {
+        background: #bfbfbf;
+      }
+    }
+  }
+}
+
+// Tag animations
+.ant-tag {
+  transition: $transition;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// Form focus states
+.ant-form-item-has-feedback .ant-input:focus {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+// Button hover effects
+.ant-btn:not(.ant-btn-disabled):not(.ant-btn-loading) {
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}

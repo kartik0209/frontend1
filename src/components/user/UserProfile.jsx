@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { ROLES } from '../utils/rbac';
+import { ROLES } from '../../utils/rbac';
 
 const UserProfile = () => {
   const { user, role, permissions } = useSelector(state => state.auth);

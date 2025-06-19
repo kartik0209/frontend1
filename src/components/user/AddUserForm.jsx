@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import {
   Form,
   Input,
   Select,
-  DatePicker,
   Button,
   Space,
   message,
@@ -19,7 +17,6 @@ import {
   LockOutlined,
   PhoneOutlined,
   TeamOutlined,
-  CalendarOutlined,
   SkypeOutlined
 } from '@ant-design/icons';
 
@@ -38,9 +35,14 @@ const AddUserForm = ({
   const handleSubmit = async (values) => {
     try {
       const formData = {
-        ...values,
-        notifyByEmail,
-        joinDate: values.joinDate?.format('YYYY-MM-DD'),
+        name: values.name,
+        email: values.email,
+        role: values.role,
+        number: values.number, // Changed from phone to number to match API
+        status: values.status,
+        notify: notifyByEmail.toString(), // Convert boolean to string as API expects
+        ...(values.password && { password: values.password }), // Only include password if provided
+        ...(values.skype && { skype: values.skype }), // Only include skype if provided
       };
       
       if (onSubmit) {
@@ -60,21 +62,16 @@ const AddUserForm = ({
     }
   };
 
-  // Role options
+  // Role options - matching your API structure
   const roleOptions = [
-    { value: 'admin', label: 'Admin', color: '#f50' },
-    { value: 'sub_admin', label: 'Sub Admin', color: '#2db7f5' },
     { value: 'advertiser', label: 'Advertiser', color: '#87d068' },
     { value: 'publisher', label: 'Publisher', color: '#108ee9' },
-  
   ];
 
-  // Status options
+  // Status options - matching your API (Active/Inactive)
   const statusOptions = [
-    { value: 'active', label: 'Active', color: '#52c41a' },
-    { value: 'inactive', label: 'Inactive', color: '#d9d9d9' },
-    // { value: 'pending', label: 'Pending', color: '#faad14' },
-    // { value: 'suspended', label: 'Suspended', color: '#ff4d4f' },
+    { value: 'Active', label: 'Active', color: '#52c41a' },
+    { value: 'Inactive', label: 'Inactive', color: '#d9d9d9' },
   ];
 
   return (
@@ -83,8 +80,8 @@ const AddUserForm = ({
       layout="vertical"
       onFinish={handleSubmit}
       initialValues={{
-        status: 'active',
-        role: 'employee',
+        status: 'Active', // Changed to match API expectation
+        role: 'publisher',
         ...initialValues
       }}
       requiredMark={false}
@@ -214,7 +211,7 @@ const AddUserForm = ({
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="phone"
+                name="number" // Changed from "phone" to "number" to match API
                 label="Phone Number"
                 rules={[
                   { required: true, message: 'Please enter phone number' },
@@ -239,8 +236,6 @@ const AddUserForm = ({
               </Form.Item>
             </Col>
           </Row>
-
-        
         </>
       )}
 
@@ -279,4 +274,4 @@ const AddUserForm = ({
   );
 };
 
-export default AddUserForm; 
+export default AddUserForm;

@@ -13,6 +13,9 @@ import {
   message,
   Row,
   Col,
+  Dropdown,
+  Tooltip,
+  Switch,
   Modal,
 } from "antd";
 import {
@@ -22,13 +25,14 @@ import {
   UserOutlined,
   DeleteOutlined,
   EyeOutlined,
+  MoreOutlined,
+  PoweroffOutlined,
 } from "@ant-design/icons";
 import apiClient from "../services/apiServices";
 import AddUserForm from "../components/AddUserForm";
 import "../styles/Users.scss";
 
 const { Title, Text } = Typography;
-const { confirm } = Modal;
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -38,31 +42,28 @@ const Users = () => {
   const [submitting, setSubmitting] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
+  const [statusLoading, setStatusLoading] = useState({});
 
   // Fetch users from API
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get("/admin/company/company-users");
-      // Ensure we always set an array
-      const userData = response.data;
-      if (Array.isArray(userData)) {
-        setUsers(userData);
-      } else if (userData && Array.isArray(userData.users)) {
-        setUsers(userData.users);
-      } else if (userData && Array.isArray(userData.data)) {
-        setUsers(userData.data);
+      const response = await apiClient.get("/admin/user/company-users");
+      console.log("Fetched users response:", response);
+      
+      // Handle the API response structure based on your provided data
+      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+        setUsers(response.data.data);
+      } else if (Array.isArray(response.data)) {
+        setUsers(response.data);
       } else {
         setUsers([]);
-        console.warn(
-          "API response does not contain a valid users array:",
-          userData
-        );
+        console.warn("API response does not contain a valid users array:", response.data);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
       message.error("Failed to fetch users");
-      setUsers([]); // Set empty array on error
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -75,24 +76,35 @@ const Users = () => {
       if (editMode && selectedUser) {
         // Update existing user
         const response = await apiClient.put(
-          `/admin/company/users/${selectedUser.id}`,
+          `/admin/user/${selectedUser.id}`,
           values
         );
+        console.log("User updated response:", response);
         message.success("User updated successfully");
       } else {
         // Create new user
         const response = await apiClient.post(
-          "/admin/company/createEmployee",
+          "/admin/user/createEmployee",
           values
         );
-        message.success("User created successfully");
+        console.log("User created response:", response);
+
+        // Check if the response indicates success
+        if (response.data && response.data.success) {
+          message.success(response.data.message || "User created successfully");
+        } else {
+          message.success("User created successfully");
+        }
       }
 
       handleCloseDrawer();
-      fetchUsers(); // Refresh the list
+      fetchUsers();
     } catch (error) {
       console.error("Error saving user:", error);
-      message.error(`Failed to ${editMode ? "update" : "create"} user`);
+      const errorMessage =
+        error.response?.data?.message ||
+        `Failed to ${editMode ? "update" : "create"} user`;
+      message.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -120,79 +132,100 @@ const Users = () => {
   };
 
   // Handle delete user
-  const handleDeleteUser = (user) => {
-    confirm({
-      title: "Delete User",
-      content: `Are you sure you want to delete ${user.name}? This action cannot be undone.`,
-      okText: "Yes, Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: async () => {
-        try {
-          await apiClient.delete(`/admin/company/users/${user.id}`);
-          message.success("User deleted successfully");
-          fetchUsers();
-        } catch (error) {
-          console.error("Error deleting user:", error);
-          message.error("Failed to delete user");
-        }
-      },
-    });
+  const handleDeleteUser =  async(user) => {
+  
+    try {
+     const res= await apiClient.delete(`/admin/user/${user.id}`);
+     console.log("Delete user response:", res);
+      message.success("User deleted successfully");
+      fetchUsers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to delete user";
+      message.error(errorMessage);
+    }
+  };
+
+  // Handle status toggle
+  const handleStatusToggle = async (user, newStatus) => {
+    const userId = user.id;
+    setStatusLoading((prev) => ({ ...prev, [userId]: true }));
+    console.log(`Toggling status for user ${userId} to ${newStatus}`);
+
+    try {
+      const res = await apiClient.put(`/admin/user/${userId}/status`, {
+        status: newStatus,
+      });
+      console.log("Status update response:", res);
+
+      message.success(
+        `User ${
+          newStatus === "Active" ? "activated" : "deactivated"
+        } successfully`
+      );
+      fetchUsers();
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to update user status";
+      message.error(errorMessage);
+    } finally {
+      setStatusLoading((prev) => ({ ...prev, [userId]: false }));
+    }
   };
 
   // Handle view user details
   const handleViewUser = (user) => {
+    const formatDate = (dateString) => {
+      if (!dateString) return "Never";
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+
     Modal.info({
-      title: "User Details",
-      width: 600,
+      title: 'User Details',
+      width: 500,
       content: (
-        <div style={{ marginTop: 16 }}>
-          <Row gutter={[16, 16]}>
-            <Col span={8}>
-              <strong>Name:</strong>
-            </Col>
-            <Col span={16}>{user.name}</Col>
-
-            <Col span={8}>
-              <strong>Email:</strong>
-            </Col>
-            <Col span={16}>{user.email}</Col>
-
-            <Col span={8}>
-              <strong>Role:</strong>
-            </Col>
-            <Col span={16}>
+        <div className="user-details-modal">
+          <div className="user-avatar-section">
+            <Avatar size={64} icon={<UserOutlined />} className="user-avatar">
+              {user.name?.charAt(0)?.toUpperCase()}
+            </Avatar>
+          </div>
+          <div className="user-info-section">
+            <div className="info-item">
+              <span className="info-label">Name:</span> 
+              <span className="info-value">{user.name}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Email:</span> 
+              <span className="info-value">{user.email}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Role:</span> 
               <Tag color="blue">{user.role?.toUpperCase()}</Tag>
-            </Col>
-
-            <Col span={8}>
-              <strong>Status:</strong>
-            </Col>
-            <Col span={16}>
-              <Tag color={user.status === "active" ? "success" : "default"}>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Status:</span> 
+              <Tag color={user.status === 'Active' ? 'success' : 'default'}>
                 {user.status?.toUpperCase()}
               </Tag>
-            </Col>
-
-            <Col span={8}>
-              <strong>Department:</strong>
-            </Col>
-            <Col span={16}>{user.department || "N/A"}</Col>
-
-            <Col span={8}>
-              <strong>Phone:</strong>
-            </Col>
-            <Col span={16}>{user.phone || "N/A"}</Col>
-
-            <Col span={8}>
-              <strong>Join Date:</strong>
-            </Col>
-            <Col span={16}>
-              {user.joinDate
-                ? new Date(user.joinDate).toLocaleDateString()
-                : "N/A"}
-            </Col>
-          </Row>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Created:</span> 
+              <span className="info-value">{formatDate(user.created_at)}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Last Login:</span> 
+              <span className="info-value">{formatDate(user.last_login)}</span>
+            </div>
+          </div>
         </div>
       ),
     });
@@ -206,11 +239,80 @@ const Users = () => {
   const filteredUsers = Array.isArray(users)
     ? users.filter(
         (user) =>
-          user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.department?.toLowerCase().includes(searchTerm.toLowerCase())
+          (user.name &&
+            user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (user.email &&
+            user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (user.role &&
+            typeof user.role === "string" &&
+            user.role.toLowerCase().includes(searchTerm.toLowerCase()))
       )
     : [];
+
+  // Create action menu for each user
+  const getActionMenu = (record) => {
+    const items = [
+      {
+        key: "view",
+        label: (
+          <Space>
+            <EyeOutlined />
+            View Details
+          </Space>
+        ),
+        onClick: () => handleViewUser(record),
+      },
+      {
+        key: "edit",
+        label: (
+          <Space>
+            <EditOutlined />
+            Edit User
+          </Space>
+        ),
+        onClick: () => handleEditUser(record),
+      },
+      {
+        key: "status",
+        label: (
+          <Space>
+            <PoweroffOutlined />
+            {record.status === "Active" ? "Deactivate" : "Activate"}
+          </Space>
+        ),
+        onClick: () => {
+          const newStatus = record.status === "Active" ? "Inactive" : "Active";
+          handleStatusToggle(record, newStatus);
+        },
+      },
+      {
+        type: "divider",
+      },
+      {
+        key: "delete",
+        label: (
+          <Space style={{ color: "#ff4d4f" }}>
+            <DeleteOutlined />
+            Delete User
+          </Space>
+        ),
+        onClick: () => handleDeleteUser(record),
+        danger: true,
+      },
+    ];
+
+    return { items };
+  };
+
+  // Format date for table display
+  const formatTableDate = (dateString) => {
+    if (!dateString) return <Text type="secondary">Never</Text>;
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   // Table columns configuration
   const columns = [
@@ -218,16 +320,18 @@ const Users = () => {
       title: "User",
       dataIndex: "name",
       key: "name",
+      fixed: "left",
+      width: 280,
       render: (text, record) => (
         <div className="user-info">
           <Avatar
-            size={40}
+            size={44}
             icon={<UserOutlined />}
-            style={{ backgroundColor: "#1890ff", marginRight: 12 }}
+            className="user-avatar-table"
           >
             {text?.charAt(0)?.toUpperCase()}
           </Avatar>
-          <div>
+          <div className="user-details">
             <div className="user-name">{text}</div>
             <Text type="secondary" className="user-email">
               {record.email}
@@ -240,6 +344,7 @@ const Users = () => {
       title: "Role",
       dataIndex: "role",
       key: "role",
+      width: 120,
       render: (role) => {
         const roleColors = {
           admin: "red",
@@ -249,71 +354,80 @@ const Users = () => {
           manager: "orange",
           employee: "purple",
         };
+
+        const roleString = role && typeof role === "string" ? role : "unknown";
+        const roleLower = roleString.toLowerCase();
+
         return (
-          <Tag color={roleColors[role?.toLowerCase()] || "default"}>
-            {role?.toUpperCase()}
+          <Tag color={roleColors[roleLower] || "default"} className="role-tag">
+            {roleString.toUpperCase()}
           </Tag>
         );
       },
-    },
-    {
-      title: "Department",
-      dataIndex: "department",
-      key: "department",
-      render: (department) => department || "N/A",
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => {
-        const statusColors = {
-          active: "success",
-          inactive: "default",
-          pending: "warning",
-          suspended: "error",
-        };
+      width: 150,
+      render: (status, record) => {
+        const statusString = status && typeof status === "string" ? status : "Unknown";
+        const isActive = statusString === "Active" || statusString === "active";
+
         return (
-          <Tag color={statusColors[status?.toLowerCase()] || "default"}>
-            {status?.toUpperCase()}
-          </Tag>
+          <div className="status-column">
+            <Tag 
+              color={isActive ? "success" : "default"} 
+              className="status-tag"
+            >
+              {statusString.toUpperCase()}
+            </Tag>
+            <Tooltip title={`${isActive ? "Deactivate" : "Activate"} user`}>
+              <Switch
+                size="small"
+                checked={isActive}
+                loading={statusLoading[record.id]}
+                onChange={(checked) =>
+                  handleStatusToggle(record, checked ? "Active" : "Inactive")
+                }
+                className="status-switch"
+              />
+            </Tooltip>
+          </div>
         );
       },
     },
     {
-      title: "Join Date",
-      dataIndex: "joinDate",
-      key: "joinDate",
-      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
+      title: "Created",
+      dataIndex: "created_at",
+      key: "created_at",
+      width: 140,
+      render: (date) => formatTableDate(date),
+    },
+    {
+      title: "Last Login",
+      dataIndex: "last_login",
+      key: "last_login",
+      width: 140,
+      render: (date) => formatTableDate(date),
     },
     {
       title: "Actions",
       key: "actions",
+      fixed: "right",
+      width: 80,
       render: (_, record) => (
-        <Space size="small">
+        <Dropdown
+          menu={getActionMenu(record)}
+          trigger={["click"]}
+          placement="bottomRight"
+        >
           <Button
             type="text"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewUser(record)}
-            className="action-btn view"
-            title="View Details"
+            icon={<MoreOutlined />}
+            className="actions-button"
           />
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEditUser(record)}
-            className="action-btn edit"
-            title="Edit User"
-          />
-          <Button
-            type="text"
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteUser(record)}
-            className="action-btn delete"
-            danger
-            title="Delete User"
-          />
-        </Space>
+        </Dropdown>
       ),
     },
   ];
@@ -336,7 +450,7 @@ const Users = () => {
               icon={<UserAddOutlined />}
               size="large"
               onClick={handleAddUser}
-              className="add-user-btn"
+              className="add-user-button"
             >
               Add User
             </Button>
@@ -345,16 +459,15 @@ const Users = () => {
       </Card>
 
       <Card className="users-content-card">
-        <div className="users-toolbar">
+        <div className="search-section">
           <Input
-            placeholder="Search users by name, email, or department..."
-            prefix={<SearchOutlined />}
+            placeholder="Search users by name, email, or role..."
+            prefix={<SearchOutlined className="search-icon" />}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
             size="large"
             allowClear
-            style={{ maxWidth: 400 }}
+            className="search-input"
           />
         </div>
 
@@ -364,25 +477,34 @@ const Users = () => {
           loading={loading}
           rowKey="id"
           pagination={{
-            pageSize: 10,
+            pageSize: 15,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
               `${range[0]}-${range[1]} of ${total} users`,
+            className: "table-pagination",
           }}
-          className="users-table"
           scroll={{ x: 1000 }}
+          className="users-table"
+          rowClassName="users-table-row"
         />
       </Card>
 
       {/* Add/Edit User Drawer */}
       <Drawer
-        title={editMode ? "Edit User" : "Add New User"}
-        width={500}
+        title={
+          <div className="drawer-title">
+            <UserOutlined />
+            {editMode ? "Edit User" : "Add New User"}
+          </div>
+        }
+        width={520}
         onClose={handleCloseDrawer}
         open={drawerVisible}
         bodyStyle={{ paddingBottom: 80 }}
         destroyOnClose={true}
+        maskClosable={false}
+        className="user-drawer"
       >
         <AddUserForm
           onSubmit={handleFormSubmit}

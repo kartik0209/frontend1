@@ -6,12 +6,12 @@ import {
   GlobalOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
-import apiClient from "../services/apiServices";
-import ApproveConfirmModal from "./model/ApproveConfirmModal";
-import RejectConfirmModal from "./model/RejectConfirmModal";
-import ExtendDaysModal from "./model/ExtendDaysModal";
-import FailModal from "./model/FailModal";
-import SuccessModal from "./model/SuccessModal";
+import apiClient from "../../services/apiServices";
+import ApproveConfirmModal from "../model/ApproveConfirmModal";
+import RejectConfirmModal from "../model/RejectConfirmModal";
+import ExtendDaysModal from "../model/ExtendDaysModal";
+import FailModal from "../model/FailModal";
+import SuccessModal from "../model/SuccessModal";
 
 const { Text } = Typography;
 
