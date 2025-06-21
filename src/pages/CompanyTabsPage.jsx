@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, Divider, Typography, Alert, Tabs } from "antd";
 import apiClient from "../services/apiServices";
-import CompanyStatsCards from "../components/CompanyStatsCards";
-import CompanyTable from "../components/CompanyTable";
+import CompanyStatsCards from "../components/company/CompanyStatsCards";
+import CompanyTable from "../components/company/CompanyTable";
 import "../styles/CompanyTabsPage.scss";
 
 const { Title, Text } = Typography;

@@ -7,7 +7,7 @@ import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,
 } from '@ant-design/icons';
-import '../styles/CompanyStatsCards.scss'; // We'll add some custom CSS here
+import '../../styles/CompanyStatsCards.scss'; // We'll add some custom CSS here
 
 const CompanyStatsCards = ({ stats }) => {
   return (

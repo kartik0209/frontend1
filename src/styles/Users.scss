@@ -25,6 +25,7 @@
     }
 
     .add-user-button {
+      background: linear-gradient(135deg, #050a2c, #0a1a4e);
       height: 44px;
       padding: 0 24px;
       border-radius: 8px;
@@ -32,6 +33,7 @@
       box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
       
       &:hover {
+         background: linear-gradient(135deg, #050a2c, #0a1a4e);
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
       }
@@ -193,11 +195,11 @@
       }
 
       .ant-pagination-item-active {
-        background: linear-gradient(135deg, #1890ff, #36cfc9);
+      //  background: linear-gradient(135deg, #1890ff, #36cfc9);
         border-color: #1890ff;
 
         a {
-          color: white;
+          color: black;
         }
       }
     }

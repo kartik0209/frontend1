@@ -29,7 +29,7 @@ import {
   PoweroffOutlined,
 } from "@ant-design/icons";
 import apiClient from "../services/apiServices";
-import AddUserForm from "../components/AddUserForm";
+import AddUserForm from "../components/user/AddUserForm";
 import "../styles/Users.scss";
 
 const { Title, Text } = Typography;
