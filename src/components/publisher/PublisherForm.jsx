@@ -16,13 +16,25 @@ const PublisherForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =>
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
           <Form.Item
-            label="Full Name"
-            name="full_name"
-            rules={[{ required: true, message: "Please enter full name" }]}
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Please enter name" }]}
           >
-            <Input placeholder="Enter full name" />
+            <Input placeholder="Enter name" />
           </Form.Item>
         </Col>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="Username"
+            name="username"
+            rules={[{ required: true, message: "Please enter username" }]}
+          >
+            <Input placeholder="Enter username" />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
           <Form.Item
             label="Email"
@@ -33,6 +45,15 @@ const PublisherForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =>
             ]}
           >
             <Input placeholder="Enter email address" />
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Please enter password" }]}
+          >
+            <Input.Password placeholder="Enter password" />
           </Form.Item>
         </Col>
       </Row>
@@ -62,8 +83,8 @@ const PublisherForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =>
             rules={[{ required: true, message: "Please enter country" }]}
           >
             <Select placeholder="Select country">
+              <Option value="USA">United States</Option>
               <Option value="IN">India</Option>
-              <Option value="US">United States</Option>
               <Option value="UK">United Kingdom</Option>
               <Option value="AU">Australia</Option>
               <Option value="CA">Canada</Option>
@@ -168,20 +189,70 @@ const PublisherForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
-          <Form.Item label="Company Name" name="signup_company_name">
-            <Input placeholder="Enter company name" />
+          <Form.Item label="Tax ID" name="tax_id">
+            <Input placeholder="Enter tax ID" />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12}>
-          <Form.Item label="Notify by Email" name="notify_by_email" valuePropName="checked">
+          <Form.Item label="Referred By" name="referred_by">
+            <Input placeholder="Enter who referred this publisher" />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12}>
+          <Form.Item label="Managers" name="managers">
+            <Input placeholder="Enter managers (comma separated)" />
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Form.Item label="Currency" name="currency">
+            <Select placeholder="Select currency">
+              <Option value="USD">USD - US Dollar</Option>
+              <Option value="EUR">EUR - Euro</Option>
+              <Option value="GBP">GBP - British Pound</Option>
+              <Option value="INR">INR - Indian Rupee</Option>
+              <Option value="CAD">CAD - Canadian Dollar</Option>
+              <Option value="AUD">AUD - Australian Dollar</Option>
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12}>
+          <Form.Item label="Tags" name="tags">
+            <Select 
+              mode="tags" 
+              placeholder="Enter tags"
+              tokenSeparators={[',']}
+            >
+              <Option value="social">social</Option>
+              <Option value="top-publisher">top-publisher</Option>
+              <Option value="premium">premium</Option>
+              <Option value="new">new</Option>
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Form.Item label="Notify" name="notify" valuePropName="checked">
             <Switch checkedChildren="Yes" unCheckedChildren="No" />
           </Form.Item>
         </Col>
       </Row>
 
       <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12}>
+          <Form.Item label="Company Name" name="companyName">
+            <Input placeholder="Enter company name" />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]}>
         <Col xs={24}>
-          <Form.Item label="Company Address" name="signup_company_address">
+          <Form.Item label="Company Address" name="companyAddress">
             <TextArea rows={3} placeholder="Enter company address" />
           </Form.Item>
         </Col>

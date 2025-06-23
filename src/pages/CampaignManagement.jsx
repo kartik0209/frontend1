@@ -23,7 +23,6 @@ const CampaignManagement = () => {
     advertiser: true,
     category: false,
     visibility: true,
-    assignedPubs: true,
     objective: true,
     geo: true,
     payout: true,
@@ -34,21 +33,19 @@ const CampaignManagement = () => {
     device: false,
     operatingSystem: false,
     primaryTrackingDomain: false,
-    todayConversion: false,
-    trackMultipleConversions: false,
-    dailyConversionCap: false,
     trackingMethod: false,
-    blockedPublisher: false,
     conversionTrackingDomain: false,
     createdDate: false,
+    startDate: false,
     expiryDate: false,
     redirectType: false,
   };
 
   const [visibleColumns, setVisibleColumns] = useState(defaultVisibleColumns);
 
-  // Create allColumns with render functions
+  // Create allColumns with enhanced render functions for API data structure
   const allColumns = baseColumns.map(column => {
+    // Status column with campaignStatus field
     if (column.key === 'status') {
       return {
         ...column,
@@ -63,47 +60,156 @@ const CampaignManagement = () => {
             }
             className="status-tag"
           >
-            {status.toUpperCase()}
+            {status ? status.toUpperCase() : 'N/A'}
           </Tag>
         ),
       };
     }
     
+    // Title column
     if (column.key === 'title') {
       return {
         ...column,
-        render: (text) => <span className="campaign-title">{text}</span>,
+        render: (text) => <span className="campaign-title">{text || 'N/A'}</span>,
       };
     }
 
+    // Visibility column
     if (column.key === 'visibility') {
       return {
         ...column,
         render: (visibility) => (
           <Tag color={visibility === "private" ? "red" : "blue"}>
-            {visibility.toUpperCase()}
+            {visibility ? visibility.toUpperCase() : 'N/A'}
           </Tag>
         ),
       };
     }
 
-    if (column.key === 'todayConversion') {
+    // Category column - handle array
+    if (column.key === 'category') {
       return {
         ...column,
-        render: (value) => <span className="conversion-count">{value}</span>,
+        render: (categories) => {
+          if (Array.isArray(categories)) {
+            return categories.map((cat, index) => (
+              <Tag key={index} color="blue">{cat}</Tag>
+            ));
+          }
+          return categories ? <Tag color="blue">{categories}</Tag> : 'N/A';
+        },
       };
     }
 
-    if (column.key === 'trackMultipleConversions') {
+    // Geo column - handle array
+    if (column.key === 'geo') {
       return {
         ...column,
-        render: (value) => (
-          <Tag color={value ? "green" : "red"}>{value ? "Yes" : "No"}</Tag>
-        ),
+        render: (geoCoverage) => {
+          if (Array.isArray(geoCoverage)) {
+            return geoCoverage.join(', ');
+          }
+          return geoCoverage || 'N/A';
+        },
       };
     }
-    
-    return column;
+
+    // Device column - handle array
+    if (column.key === 'device') {
+      return {
+        ...column,
+        render: (devices) => {
+          if (Array.isArray(devices)) {
+            return devices.map((device, index) => (
+              <Tag key={index} color="cyan">{device}</Tag>
+            ));
+          }
+          return devices ? <Tag color="cyan">{devices}</Tag> : 'N/A';
+        },
+      };
+    }
+
+    // Operating System column - handle array
+    if (column.key === 'operatingSystem') {
+      return {
+        ...column,
+        render: (os) => {
+          if (Array.isArray(os)) {
+            return os.map((system, index) => (
+              <Tag key={index} color="purple">{system}</Tag>
+            ));
+          }
+          return os ? <Tag color="purple">{os}</Tag> : 'N/A';
+        },
+      };
+    }
+
+    // Payout column with currency formatting
+    if (column.key === 'payout') {
+      return {
+        ...column,
+        render: (payout, record) => {
+          const currency = record.currency || 'USD';
+          return payout ? `${payout} ${currency}` : 'N/A';
+        },
+      };
+    }
+
+    // Revenue column with currency formatting
+    if (column.key === 'revenue') {
+      return {
+        ...column,
+        render: (revenue, record) => {
+          const currency = record.currency || 'USD';
+          return revenue ? `${revenue} ${currency}` : 'N/A';
+        },
+      };
+    }
+
+    // Created Date formatting
+    if (column.key === 'createdDate') {
+      return {
+        ...column,
+        render: (date) => {
+          if (date) {
+            return new Date(date).toLocaleDateString();
+          }
+          return 'N/A';
+        },
+      };
+    }
+
+    // Start Date formatting
+    if (column.key === 'startDate') {
+      return {
+        ...column,
+        render: (date) => {
+          if (date) {
+            return new Date(date).toLocaleDateString();
+          }
+          return 'N/A';
+        },
+      };
+    }
+
+    // End Date formatting
+    if (column.key === 'expiryDate') {
+      return {
+        ...column,
+        render: (date) => {
+          if (date) {
+            return new Date(date).toLocaleDateString();
+          }
+          return 'N/A';
+        },
+      };
+    }
+
+    // Default render for other columns
+    return {
+      ...column,
+      render: (value) => value || 'N/A',
+    };
   });
 
   // Fetch campaigns from API
@@ -112,12 +218,22 @@ const CampaignManagement = () => {
     try {
       const response = await apiClient.post('/admin/campaign/list', {
         // Add any required parameters here
-        // For example: page: 1, limit: 100, etc.
       });
       
+      console.log('API Response:', response.data);
+      
       if (response.data && response.data.success) {
-        setCampaigns(response.data.data || response.data.campaigns || []);
-        message.success('Campaigns loaded successfully!');
+        const campaignData = response.data.data || response.data.campaigns || [];
+        console.log('Campaign Data:', campaignData);
+        
+        // Ensure each campaign has a unique key for the table
+        const campaignsWithKeys = campaignData.map(campaign => ({
+          ...campaign,
+          key: campaign.id || Math.random().toString(36).substr(2, 9)
+        }));
+        
+        setCampaigns(campaignsWithKeys);
+        message.success(`${campaignsWithKeys.length} campaigns loaded successfully!`);
       } else {
         throw new Error(response.data?.message || 'Failed to fetch campaigns');
       }
@@ -139,42 +255,74 @@ const CampaignManagement = () => {
   );
 
   const handleSearch = async (values) => {
-  setLoading(true);
-  try {
-    // If you need to transform or filter the values before sending
-    const searchParams = Object.keys(values).reduce((acc, key) => {
-      if (values[key] !== undefined && values[key] !== null && values[key] !== '') {
-        acc[key] = values[key];
+    setLoading(true);
+    try {
+      // Clean up search parameters
+      const searchParams = Object.keys(values).reduce((acc, key) => {
+        if (values[key] !== undefined && values[key] !== null && values[key] !== '') {
+          acc[key] = values[key];
+        }
+        return acc;
+      }, {});
+      
+      console.log('Search params:', searchParams);
+      
+      const response = await apiClient.post('/admin/campaign/list', searchParams);
+      
+      console.log('Search response:', response.data);
+      
+      if (response.data && response.data.success) {
+        const campaignData = response.data.data || response.data.campaigns || [];
+        const campaignsWithKeys = campaignData.map(campaign => ({
+          ...campaign,
+          key: campaign.id || Math.random().toString(36).substr(2, 9)
+        }));
+        
+        setCampaigns(campaignsWithKeys);
+        message.success(`Search completed! Found ${campaignsWithKeys.length} campaigns.`);
+      } else {
+        throw new Error(response.data?.message || 'Search failed');
       }
-      return acc;
-    }, {});
-    
-    const response = await apiClient.post('/admin/campaign/list', searchParams);
-    
-    console.log('Search response:', response);
-    console.log('Search values:', values);
-    console.log('Filtered search params:', searchParams);
-           
-    if (response.data && response.data.success) {
-      setCampaigns(response.data.data || response.data.campaigns || []);
-      message.success("Search completed successfully!");
-    } else {
-      throw new Error(response.data?.message || 'Search failed');
+    } catch (error) {
+      console.error('Search error:', error);
+      message.error(error.response?.data?.message || 'Search failed');
+    } finally {
+      setLoading(false);
+      setSearchVisible(false);
     }
-  } catch (error) {
-    console.error('Search error:', error);
-    message.error(error.response?.data?.message || 'Search failed');
-  } finally {
-    setLoading(false);
-    setSearchVisible(false);
-  }
-};
+  };
 
   const handleExport = () => {
+    if (campaigns.length === 0) {
+      message.warning('No data to export');
+      return;
+    }
+
     const headers = visibleTableColumns.map((col) => col.title).join(",");
     const rows = campaigns.map((campaign) =>
-      visibleTableColumns.map((col) => campaign[col.dataIndex] || "").join(",")
+      visibleTableColumns.map((col) => {
+        let value = '';
+        if (col.dataIndex && Array.isArray(col.dataIndex)) {
+          // Handle nested properties like ['company', 'name']
+          value = col.dataIndex.reduce((obj, key) => obj?.[key], campaign) || '';
+        } else if (col.dataIndex) {
+          value = campaign[col.dataIndex] || '';
+        }
+        
+        // Handle arrays
+        if (Array.isArray(value)) {
+          value = value.join('; ');
+        }
+        
+        // Escape commas and quotes for CSV
+        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+          value = `"${value.replace(/"/g, '""')}"`;
+        }
+        
+        return value;
+      }).join(",")
     );
+    
     const csvContent = [headers, ...rows].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -227,7 +375,7 @@ const CampaignManagement = () => {
         onSearchClick={() => setSearchVisible(true)}
         onColumnsClick={() => setColumnSettingsVisible(true)}
         onExport={handleExport}
-        onRefresh={fetchCampaigns} // Add refresh functionality
+        onRefresh={fetchCampaigns}
       />
 
       <Card className="campaign-table-card">

@@ -9,10 +9,17 @@ export const baseColumns = [
     sorter: true,
   },
   {
-    title: 'Full Name',
-    dataIndex: 'full_name',
-    key: 'full_name',
+    title: 'Name',
+    dataIndex: 'name',
+    key: 'name',
     width: 150,
+    sorter: true,
+  },
+  {
+    title: 'Username',
+    dataIndex: 'username',
+    key: 'username',
+    width: 130,
     sorter: true,
   },
   {
@@ -31,6 +38,7 @@ export const baseColumns = [
     filters: [
       { text: 'Active', value: 'Active' },
       { text: 'Pending', value: 'Pending' },
+      { text: 'Inactive', value: 'Inactive' },
       { text: 'Suspended', value: 'Suspended' },
       { text: 'Disabled', value: 'Disabled' },
       { text: 'Rejected', value: 'Rejected' },
@@ -81,6 +89,7 @@ export const baseColumns = [
     filters: [
       { text: 'Individual', value: 'Individual' },
       { text: 'Company', value: 'Company' },
+      { text: 'Partnership', value: 'Partnership' },
     ],
   },
   {
@@ -112,29 +121,72 @@ export const baseColumns = [
     sorter: true,
   },
   {
-    title: 'Signup Company Name',
-    dataIndex: 'signup_company_name',
-    key: 'signup_company_name',
+    title: 'Tax ID',
+    dataIndex: 'tax_id',
+    key: 'tax_id',
+    width: 120,
+    sorter: true,
+  },
+  {
+    title: 'Referred By',
+    dataIndex: 'referred_by',
+    key: 'referred_by',
+    width: 150,
+    sorter: true,
+  },
+  {
+    title: 'Managers',
+    dataIndex: 'managers',
+    key: 'managers',
     width: 180,
     sorter: true,
   },
   {
-    title: 'Signup Company Address',
-    dataIndex: 'signup_company_address',
-    key: 'signup_company_address',
-    width: 200,
+    title: 'Currency',
+    dataIndex: 'currency',
+    key: 'currency',
+    width: 100,
+    sorter: true,
+    filters: [
+      { text: 'USD', value: 'USD' },
+      { text: 'EUR', value: 'EUR' },
+      { text: 'GBP', value: 'GBP' },
+      { text: 'INR', value: 'INR' },
+      { text: 'CAD', value: 'CAD' },
+      { text: 'AUD', value: 'AUD' },
+    ],
+  },
+  {
+    title: 'Tags',
+    dataIndex: 'tags',
+    key: 'tags',
+    width: 150,
     sorter: true,
   },
   {
-    title: 'Notify by Email',
-    dataIndex: 'notify_by_email',
-    key: 'notify_by_email',
-    width: 120,
+    title: 'Notify',
+    dataIndex: 'notify',
+    key: 'notify',
+    width: 100,
     sorter: true,
     filters: [
       { text: 'Yes', value: true },
       { text: 'No', value: false },
     ],
+  },
+  {
+    title: 'Company Name',
+    dataIndex: 'companyName',
+    key: 'companyName',
+    width: 180,
+    sorter: true,
+  },
+  {
+    title: 'Company Address',
+    dataIndex: 'companyAddress',
+    key: 'companyAddress',
+    width: 200,
+    sorter: true,
   },
   {
     title: 'Created At',
@@ -154,7 +206,8 @@ export const baseColumns = [
 
 export const columnOptions = [
   { key: 'id', label: 'ID', defaultVisible: true },
-  { key: 'full_name', label: 'Full Name', defaultVisible: true },
+  { key: 'name', label: 'Name', defaultVisible: true },
+  { key: 'username', label: 'Username', defaultVisible: true },
   { key: 'email', label: 'Email', defaultVisible: true },
   { key: 'status', label: 'Status', defaultVisible: true },
   { key: 'country', label: 'Country', defaultVisible: true },
@@ -167,9 +220,14 @@ export const columnOptions = [
   { key: 'im_username', label: 'IM Username', defaultVisible: false },
   { key: 'promotion_method', label: 'Promotion Method', defaultVisible: false },
   { key: 'reference_id', label: 'Reference ID', defaultVisible: false },
-  { key: 'signup_company_name', label: 'Signup Company Name', defaultVisible: false },
-  { key: 'signup_company_address', label: 'Signup Company Address', defaultVisible: false },
-  { key: 'notify_by_email', label: 'Notify by Email', defaultVisible: false },
+  { key: 'tax_id', label: 'Tax ID', defaultVisible: false },
+  { key: 'referred_by', label: 'Referred By', defaultVisible: false },
+  { key: 'managers', label: 'Managers', defaultVisible: false },
+  { key: 'currency', label: 'Currency', defaultVisible: true },
+  { key: 'tags', label: 'Tags', defaultVisible: false },
+  { key: 'notify', label: 'Notify', defaultVisible: false },
+  { key: 'companyName', label: 'Company Name', defaultVisible: false },
+  { key: 'companyAddress', label: 'Company Address', defaultVisible: false },
   { key: 'created_at', label: 'Created At', defaultVisible: true },
   { key: 'updated_at', label: 'Updated At', defaultVisible: false },
 ];
@@ -183,10 +241,16 @@ export const searchFormFields = [
     placeholder: 'Enter Publisher ID',
   },
   {
-    name: 'full_name',
+    name: 'name',
     label: 'Name',
     type: 'input',
     placeholder: 'Enter Publisher Name',
+  },
+  {
+    name: 'username',
+    label: 'Username',
+    type: 'input',
+    placeholder: 'Enter Username',
   },
   {
     name: 'email',
@@ -201,6 +265,7 @@ export const searchFormFields = [
     options: [
       { label: 'Active', value: 'Active' },
       { label: 'Pending', value: 'Pending' },
+      { label: 'Inactive', value: 'Inactive' },
       { label: 'Suspended', value: 'Suspended' },
       { label: 'Disabled', value: 'Disabled' },
       { label: 'Rejected', value: 'Rejected' },
@@ -238,6 +303,7 @@ export const searchFormFields = [
     options: [
       { label: 'Individual', value: 'Individual' },
       { label: 'Company', value: 'Company' },
+      { label: 'Partnership', value: 'Partnership' },
     ],
   },
   {
@@ -245,6 +311,37 @@ export const searchFormFields = [
     label: 'Reference ID',
     type: 'input',
     placeholder: 'Enter Reference ID',
+  },
+  {
+    name: 'tax_id',
+    label: 'Tax ID',
+    type: 'input',
+    placeholder: 'Enter Tax ID',
+  },
+  {
+    name: 'referred_by',
+    label: 'Referred By',
+    type: 'input',
+    placeholder: 'Enter Referrer Name',
+  },
+  {
+    name: 'currency',
+    label: 'Currency',
+    type: 'select',
+    options: [
+      { label: 'USD', value: 'USD' },
+      { label: 'EUR', value: 'EUR' },
+      { label: 'GBP', value: 'GBP' },
+      { label: 'INR', value: 'INR' },
+      { label: 'CAD', value: 'CAD' },
+      { label: 'AUD', value: 'AUD' },
+    ],
+  },
+  {
+    name: 'companyName',
+    label: 'Company Name',
+    type: 'input',
+    placeholder: 'Enter Company Name',
   },
   {
     name: 'created_at',
@@ -258,6 +355,7 @@ export const searchFormFields = [
 export const statusColors = {
   Active: 'green',
   Pending: 'orange',
+  Inactive: 'gray',
   Suspended: 'purple',
   Disabled: 'red',
   Rejected: 'red',
@@ -268,12 +366,25 @@ export const statusColors = {
 export const entityTypeColors = {
   Individual: 'blue',
   Company: 'purple',
+  Partnership: 'green',
+};
+
+// Currency color mapping
+export const currencyColors = {
+  USD: 'green',
+  EUR: 'blue',
+  GBP: 'purple',
+  INR: 'orange',
+  CAD: 'cyan',
+  AUD: 'gold',
 };
 
 // Default form values for new publisher
 export const defaultPublisherFormValues = {
-  full_name: '',
+  name: '',
+  username: '',
   email: '',
+  password: '',
   phone: '',
   country: '',
   city: '',
@@ -283,21 +394,36 @@ export const defaultPublisherFormValues = {
   im_type: '',
   im_username: '',
   promotion_method: '',
-  signup_company_name: '',
-  signup_company_address: '',
-  notify_by_email: false,
+  reference_id: '',
+  tax_id: '',
+  referred_by: '',
+  managers: '',
+  currency: 'USD',
+  tags: [],
+  notify: false,
+  companyName: '',
+  companyAddress: '',
   status: 'Pending',
 };
 
 // Form validation rules
 export const formValidationRules = {
-  full_name: [
-    { required: true, message: 'Please enter full name!' },
+  name: [
+    { required: true, message: 'Please enter name!' },
     { min: 2, message: 'Name must be at least 2 characters!' },
+  ],
+  username: [
+    { required: true, message: 'Please enter username!' },
+    { min: 3, message: 'Username must be at least 3 characters!' },
+    { pattern: /^[a-zA-Z0-9._-]+$/, message: 'Username can only contain letters, numbers, dots, hyphens and underscores!' },
   ],
   email: [
     { required: true, message: 'Please enter email!' },
     { type: 'email', message: 'Please enter a valid email!' },
+  ],
+  password: [
+    { required: true, message: 'Please enter password!' },
+    { min: 6, message: 'Password must be at least 6 characters!' },
   ],
   phone: [
     { required: true, message: 'Please enter phone number!' },
@@ -306,7 +432,19 @@ export const formValidationRules = {
   country: [
     { required: true, message: 'Please enter country!' },
   ],
+  city: [
+    { required: true, message: 'Please enter city!' },
+  ],
+  state: [
+    { required: true, message: 'Please enter state!' },
+  ],
+  zip_code: [
+    { required: true, message: 'Please enter ZIP code!' },
+  ],
   entity_type: [
     { required: true, message: 'Please select entity type!' },
+  ],
+  status: [
+    { required: true, message: 'Please select status!' },
   ],
 };

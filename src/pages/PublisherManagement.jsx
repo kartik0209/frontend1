@@ -113,7 +113,7 @@ const PublisherManagement = () => {
   const fetchPublishers = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.post('/admin/publisher/list', {
+      const response = await apiClient.post('/common/publisher/list', {
         // Add any required parameters here
         // For example: page: 1, limit: 100, etc.
       });
@@ -152,7 +152,7 @@ const PublisherManagement = () => {
         return acc;
       }, {});
       
-      const response = await apiClient.post('/admin/publisher/list', searchParams);
+      const response = await apiClient.post('/common/publisher/list', searchParams);
       
       console.log('Search response:', response);
       console.log('Search values:', values);
@@ -193,7 +193,7 @@ const PublisherManagement = () => {
   const handleDeletePublisher = async (publisherId) => {
     try {
       setLoading(true);
-      const response = await apiClient.delete(`/admin/publisher/${publisherId}`);
+      const response = await apiClient.delete(`/common/publisher/${publisherId}`);
       
       if (response.data && response.data.success) {
         message.success('Publisher deleted successfully!');
@@ -212,7 +212,7 @@ const PublisherManagement = () => {
   const handleStatusChange = async (publisherId, newStatus) => {
     try {
       setLoading(true);
-      const response = await apiClient.put(`/admin/publisher/${publisherId}/status`, {
+      const response = await apiClient.put(`/common/publisher/${publisherId}/status`, {
         status: newStatus
       });
       
@@ -236,10 +236,11 @@ const PublisherManagement = () => {
       let response;
       
       if (isEditMode && editingPublisher) {
-        response = await apiClient.put(`/admin/publisher/${editingPublisher.id}`, values);
+        response = await apiClient.put(`/common/publisher/${editingPublisher.id}`, values);
       } else {
-        response = await apiClient.post('/admin/publisher/create', values);
+        response = await apiClient.post('/common/publisher', values);
       }
+      console.log('Publisher submit response:', response);
       
       if (response.data && response.data.success) {
         message.success(`Publisher ${isEditMode ? 'updated' : 'created'} successfully!`);
