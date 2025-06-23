@@ -1,7 +1,7 @@
 // src/components/RoleGuard.jsx
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { hasPermission, hasAnyPermission, hasAllPermissions } from '../utils/rbac';
+import { hasPermission, hasAnyPermission, hasAllPermissions } from '../../utils/rbac';
 
 const RoleGuard = ({ 
   children, 

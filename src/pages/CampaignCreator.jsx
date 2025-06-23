@@ -96,91 +96,140 @@ const CampaignForm = () => {
     },
   ];
 
-  const handleFinish = async (values) => {
-    try {
-      setLoading(true);
-      
-      const payload = {
-        companyId: values.companyId,
-        objective: values.objective,
-        title: values.title,
-        description: values.description,
-        previewUrl: values.previewUrl,
-        defaultCampaignUrl: values.defaultCampaignUrl,
-        defaultLandingPageName: values.defaultLandingPageName || "Default",
-        enableTimeTargeting: enableTimeTargeting,
-        timezone: values.timezone,
-        startHour: values.startHour,
-        endHour: values.endHour,
-        enableInactiveHours: values.enableInactiveHours,
-        activeDays: values.targetingDays || [],
-        uniqueClickSessionDuration: values.uniqueClickDuration || 24,
-        enableDuplicateClickAction: duplicateClickAction,
-        duplicateClickAction: values.duplicateClickActionType || "blank_page",
-        enableCampaignSchedule: values.campaignDateRange,
-        campaignStartDate: values.campaignStartDate,
-        campaignEndDate: values.campaignEndDate,
-        campaignStatus: "active",
-        enableScheduleStatusChange: enableScheduleStatus,
-        statusToBeSet: values.statusToSet,
-        scheduleDate: values.scheduleDate,
-        enablePublisherEmailNotify: values.publisherNotifyManual,
-        publisherNotifyTime: values.publisherNotifyTime,
-        appName: values.appName,
-        appId: values.appId,
-        erid: values.erid,
-        conversionFlow: values.conversionFlow,
-        conversionFlowLanguages: languages,
-        unsubscribeUrl: values.unsubscribeUrl,
-        suppressionUrl: values.suppressionUrl,
-        enableDeepLink: deepLink,
-        conversionHoldPeriod: values.conversionHoldPeriod,
-        conversionStatusAfterHold: values.conversionStatus || "approved",
-        revenueModel: revenueType,
-        currency: values.currency || "INR",
-        defaultGoalName: values.defaultGoalName,
-        revenue: values.revenue,
-        payout: values.payout,
-        geoCoverage: values.geoCoverage || [],
-        category: values.category ? [values.category] : [],
-        devices: values.devices || [],
-        operatingSystem: values.operatingSystem ? [values.operatingSystem] : [],
-        carrierTargeting: values.carrierTargeting ? [values.carrierTargeting] : [],
-        allowedTrafficChannels: values.allowedTrafficChannels ? [values.allowedTrafficChannels] : [],
-        note: values.note,
-        termsAndConditions: values.termsConditions,
-        requireTermsAcceptance: requireTerms,
-        conversionTracking: conversionTracking,
-        primaryTrackingDomain: values.primaryTrackingDomain,
-        status: status,
-        redirectType: values.redirectType || "302",
-        visibility: visibility,
-        kpi: values.kpi,
-        externalOfferId: values.externalOfferId,
-      };
 
-      const response = await apiclient.post("/admin/campaign", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      console.log("paylod",payload);
-      console.log("response",response);
-
-      if (response.ok) {
-        message.success("Campaign created successfully!");
-        form.resetFields();
-      } else {
-        throw new Error("Failed to create campaign");
+const handleFinish = async (values) => {
+  try {
+    setLoading(true);
+    
+    // Helper function to validate URLs
+    const isValidUrl = (string) => {
+      try {
+        new URL(string);
+        return true;
+      } catch (_) {
+        return false;
       }
-    } catch (error) {
-      message.error("Error creating campaign: " + error.message);
-    } finally {
-      setLoading(false);
+    };
+
+    // Build payload matching the working Postman structure
+    const payload = {
+      company_id: parseInt(values.companyId) || 1,
+      objective: values.objective || "conversions",
+      title: values.title || "Default Campaign",
+      description: values.description || "",
+      preview_url: values.previewUrl && isValidUrl(values.previewUrl) ? values.previewUrl : undefined,
+      defaultCampaignUrl: values.defaultCampaignUrl && isValidUrl(values.defaultCampaignUrl) ? values.defaultCampaignUrl : undefined,
+      defaultLandingPageName: values.defaultLandingPageName || "Default",
+      enableTimeTargeting: Boolean(enableTimeTargeting),
+      timezone: values.timezone || "GMT+05:30",
+      startHour: parseInt(values.startHour) || 0,
+      endHour: parseInt(values.endHour) || 23,
+      enableInactiveHours: false,
+      activeDays: Array.isArray(values.targetingDays) ? values.targetingDays : [],
+      uniqueClickSessionDuration: parseInt(values.uniqueClickSessionDuration) || 12,
+      enableDuplicateClickAction: Boolean(duplicateClickAction),
+      duplicateClickAction: duplicateClickAction ? "redirect_to_url" : "",
+      enableCampaignSchedule: Boolean(values.enableCampaignSchedule),
+      campaignStartDate: values.campaignStartDate ? values.campaignStartDate.toISOString() : "",
+      campaignEndDate: values.campaignEndDate ? values.campaignEndDate.toISOString() : "",
+      campaignStatus: values.campaignStatus || "active",
+      enableScheduleStatusChange: Boolean(enableScheduleStatus),
+      statusToBeSet: values.statusToSet || "",
+      scheduleDate: values.scheduleDate ? values.scheduleDate.toISOString() : "",
+      enablePublisherEmailNotify: Boolean(values.publisherNotifyManual),
+      publisherNotifyTime: values.publisherNotifyTime ? values.publisherNotifyTime.toISOString() : "",
+      appName: values.appName || "",
+      appId: values.appId || "",
+      erid: values.erid || "",
+      conversionFlow: values.conversionFlow || "",
+      conversionFlowLanguages: Array.isArray(values.conversionFlowLanguages) ? values.conversionFlowLanguages : ["en"],
+      unsubscribeUrl: values.unsubscribeUrl && isValidUrl(values.unsubscribeUrl) ? values.unsubscribeUrl : undefined,
+      suppressionUrl: values.suppressionUrl && isValidUrl(values.suppressionUrl) ? values.suppressionUrl : undefined,
+      enableDeepLink: Boolean(deepLink),
+      conversionHoldPeriod: parseInt(values.conversionHoldPeriod) || 0,
+      conversionStatusAfterHold: values.conversionStatusAfterHold || "approved",
+      revenueModel: values.revenueModel || "fixed",
+      currency: values.currency || "USD",
+      defaultGoalName: values.defaultGoalName || "Conversion",
+      revenue: parseFloat(values.revenue) || 0,
+      payout: parseFloat(values.payout) || 0,
+      geoCoverage: Array.isArray(values.geoCoverage) ? values.geoCoverage : ["ALL"],
+      category: Array.isArray(values.category) ? values.category : (values.category ? [values.category] : []),
+      devices: Array.isArray(values.devices) ? values.devices : (values.devices ? [values.devices] : ["ALL"]),
+      operatingSystem: Array.isArray(values.operatingSystem) ? values.operatingSystem : (values.operatingSystem ? [values.operatingSystem] : ["ALL"]),
+      carrierTargeting: Array.isArray(values.carrierTargeting) ? values.carrierTargeting : (values.carrierTargeting ? [values.carrierTargeting] : []),
+      allowedTrafficChannels: Array.isArray(values.allowedTrafficChannels) ? values.allowedTrafficChannels : (values.allowedTrafficChannels ? [values.allowedTrafficChannels] : []),
+      note: values.note || "",
+      termsAndConditions: values.termsConditions || "",
+      requireTermsAcceptance: Boolean(requireTerms),
+      conversionTracking: values.conversionTracking || "server_postback",
+      primaryTrackingDomain: values.primaryTrackingDomain || undefined,
+      status: values.status || "active",
+      redirectType: values.redirectType || "302",
+      visibility: values.visibility || "public",
+      kpi: values.kpi || "",
+      externalOfferId: values.externalOfferId || "",
+      thumbnail: values.thumbnail || "",
+      trackingDomain: values.primaryTrackingDomain || undefined,
+      trackingSlug: values.title ? values.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : "default-campaign"
+    };
+
+    // Remove empty strings, null values, and undefined values
+    const cleanPayload = Object.fromEntries(
+      Object.entries(payload).filter(([key, value]) => {
+        if (value === "" || value === null || value === undefined) return false;
+        if (Array.isArray(value) && value.length === 0) return false;
+        return true;
+      })
+    );
+
+    console.log("Clean payload before API call:", cleanPayload);
+    
+    const response = await apiclient.post("/admin/campaign", cleanPayload);
+    
+    console.log("response", response);
+
+    if (response.status === 200 || response.status === 201) {
+      message.success("Campaign created successfully!");
+      form.resetFields();
+      // Reset state variables if needed
+      setEnableTimeTargeting(false);
+      setDuplicateClickAction(false);
+      setEnableScheduleStatus(false);
+      setDeepLink(false);
+      setRequireTerms(false);
+    } else {
+      throw new Error(`API returned status: ${response.status}`);
     }
-  };
+  } catch (error) {
+    console.error("API Error:", error);
+    console.error("Response data:", error.response?.data);
+    console.error("Response status:", error.response?.status);
+    
+    // Better error handling
+    let errorMessage = "Error creating campaign";
+    
+    if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+      // Handle validation errors array
+      const validationErrors = error.response.data.errors.map(err => 
+        typeof err === 'string' ? err : err.message || JSON.stringify(err)
+      ).join(', ');
+      errorMessage = `Validation errors: ${validationErrors}`;
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.data) {
+      errorMessage = JSON.stringify(error.response.data);
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    message.error(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const addLanguage = () => {
     const newLang = form.getFieldValue("newLanguage");
