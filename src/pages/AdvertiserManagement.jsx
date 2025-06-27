@@ -100,13 +100,14 @@ const AdvertiserManagement = () => {
   const fetchAdvertisers = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.post('/admin/advertiser/list', {
+      const response = await apiClient.post('/common/advertiser/list', {
         // Add any required parameters here
         // For example: page: 1, limit: 100, etc.
       });
-      
-      if (response.data && response.data.success) {
+      console.log('Fetch advertisers response:1', response.data.data);
+      if (response.data.data && response.data.success) {
         setAdvertisers(response.data.data || response.data.advertisers || []);
+      
         message.success('Advertisers loaded successfully!');
       } else {
         throw new Error(response.data?.message || 'Failed to fetch advertisers');
@@ -118,8 +119,9 @@ const AdvertiserManagement = () => {
     } finally {
       setLoading(false);
     }
+   
   };
-
+ console.log('Advertisers after fetch:', advertisers);
   useEffect(() => {
     fetchAdvertisers();
   }, []);
@@ -139,7 +141,7 @@ const AdvertiserManagement = () => {
         return acc;
       }, {});
       
-      const response = await apiClient.post('/admin/advertiser/list', searchParams);
+      const response = await apiClient.post('/common/advertiser/list', searchParams);
       
       console.log('Search response:', response);
       console.log('Search values:', values);
@@ -180,7 +182,7 @@ const AdvertiserManagement = () => {
   const handleDeleteAdvertiser = async (advertiserId) => {
     try {
       setLoading(true);
-      const response = await apiClient.delete(`/admin/advertiser/${advertiserId}`);
+      const response = await apiClient.delete(`/common/advertiser/${advertiserId}`);
       
       if (response.data && response.data.success) {
         message.success('Advertiser deleted successfully!');
@@ -199,7 +201,7 @@ const AdvertiserManagement = () => {
   const handleStatusChange = async (advertiserId, newStatus) => {
     try {
       setLoading(true);
-      const response = await apiClient.put(`/admin/advertiser/${advertiserId}/status`, {
+      const response = await apiClient.put(`/common/advertiser/${advertiserId}/status`, {
         status: newStatus
       });
       
@@ -223,11 +225,11 @@ const AdvertiserManagement = () => {
       let response;
       
       if (isEditMode && editingAdvertiser) {
-        response = await apiClient.put(`/admin/advertiser/${editingAdvertiser.id}`, values);
+        response = await apiClient.put(`/common/advertiser/${editingAdvertiser.id}`, values);
       } else {
-        response = await apiClient.post('/admin/advertiser/create', values);
+        response = await apiClient.post('/common/advertiser', values);
       }
-      
+      console.log('Advertiser submit response:', response);
       if (response.data && response.data.success) {
         message.success(`Advertiser ${isEditMode ? 'updated' : 'created'} successfully!`);
         setAdvertiserModalVisible(false);
