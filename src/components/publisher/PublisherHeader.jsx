@@ -59,13 +59,7 @@ const PublisherHeader = ({
         >
           Export
         </Button>
-        <Button
-          icon={<ReloadOutlined />}
-          onClick={onRefresh}
-          className="refresh-btn"
-        >
-          Refresh
-        </Button>
+      
       </Space>
     </div>
   );

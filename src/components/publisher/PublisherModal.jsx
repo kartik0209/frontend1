@@ -1,6 +1,6 @@
 // src/components/publisher/PublisherModal.jsx
 import React from "react";
-import { Modal, Form } from "antd";
+import { Drawer, Form } from "antd";
 import { UserAddOutlined, EditOutlined } from "@ant-design/icons";
 import PublisherForm from "./PublisherForm";
 
@@ -27,19 +27,35 @@ const PublisherModal = ({
   };
 
   return (
-    <Modal
+    <Drawer
       title={
-        <div className="modal-header">
-          {isEdit ? <EditOutlined className="modal-icon" /> : <UserAddOutlined className="modal-icon" />}
+        <div className="drawer-header">
+          {isEdit ? <EditOutlined className="drawer-icon" /> : <UserAddOutlined className="drawer-icon" />}
           <span>{isEdit ? "Edit Publisher" : "Add New Publisher"}</span>
         </div>
       }
+      placement="right"
+      onClose={onClose}
       open={visible}
-      onCancel={onClose}
-      footer={null}
-      width={900}
-      className="publisher-modal"
+      width={500}
+      className="publisher-drawer"
       destroyOnClose
+      maskClosable={false}
+      headerStyle={{
+        padding: '16px 24px',
+        borderBottom: '1px solid #f0f0f0',
+        background: '#fafafa'
+      }}
+      bodyStyle={{
+        padding: '24px',
+        height: 'calc(100vh - 108px)',
+        overflow: 'auto'
+      }}
+      footerStyle={{
+        padding: '16px 24px',
+        borderTop: '1px solid #f0f0f0',
+        background: '#fafafa'
+      }}
     >
       <PublisherForm
         form={form}
@@ -48,7 +64,7 @@ const PublisherModal = ({
         loading={loading}
         isEdit={isEdit}
       />
-    </Modal>
+    </Drawer>
   );
 };
 
