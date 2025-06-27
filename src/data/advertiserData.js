@@ -1,0 +1,93 @@
+// src/data/advertiserData.js
+
+export const columnOptions = [
+  { key: "id", label: "ID" },
+  { key: "full_name", label: "Full Name" },
+  { key: "email", label: "Email" },
+  { key: "status", label: "Status" },
+  { key: "reference_id", label: "Reference ID" },
+  { key: "account_manager", label: "Account Manager" },
+  { key: "notes", label: "Notes" },
+  { key: "created_at", label: "Created Date" },
+  { key: "updated_at", label: "Last Updated" },
+];
+
+export const baseColumns = [
+  {
+    title: "ID",
+    dataIndex: "id",
+    key: "id",
+    width: 80,
+    sorter: true,
+    fixed: "left",
+  },
+  {
+    title: "Full Name",
+    dataIndex: "full_name",
+    key: "full_name",
+    width: 180,
+    sorter: true,
+    ellipsis: true,
+  },
+  {
+    title: "Email",
+    dataIndex: "email",
+    key: "email",
+    width: 200,
+    sorter: true,
+    ellipsis: true,
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+    width: 100,
+    sorter: true,
+    filters: [
+      { text: "Active", value: "Active" },
+      { text: "Pending", value: "Pending" },
+      { text: "Inactive", value: "Inactive" },
+      { text: "Suspended", value: "Suspended" },
+      { text: "Disabled", value: "Disabled" },
+      { text: "Rejected", value: "Rejected" },
+      { text: "Banned", value: "Banned" },
+    ],
+  },
+  {
+    title: "Reference ID",
+    dataIndex: "reference_id",
+    key: "reference_id",
+    width: 150,
+    sorter: true,
+    ellipsis: true,
+  },
+  {
+    title: "Account Manager",
+    dataIndex: "account_manager",
+    key: "account_manager",
+    width: 180,
+    sorter: true,
+    ellipsis: true,
+  },
+  {
+    title: "Notes",
+    dataIndex: "notes",
+    key: "notes",
+    width: 200,
+    ellipsis: true,
+  },
+  {
+    title: "Created Date",
+    dataIndex: "created_at",
+    key: "created_at",
+    width: 120,
+    sorter: true,
+  },
+  {
+    title: "Last Updated",
+    dataIndex: "updated_at",
+    key: "updated_at",
+    width: 120,
+    sorter: true,
+  },
+];
