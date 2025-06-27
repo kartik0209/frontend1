@@ -100,3 +100,9 @@ const PublisherViewModal = ({ visible, onClose, publisherData }) => {
         <Descriptions.Item label="Last Updated">
           {publisherData.updated_at ? new Date(publisherData.updated_at).toLocaleDateString() : "N/A"}
         </Descriptions.Item>
+      </Descriptions>
+    </Modal>
+  );
+};
+
+export default PublisherViewModal;

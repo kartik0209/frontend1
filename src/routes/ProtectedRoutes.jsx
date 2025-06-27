@@ -14,16 +14,7 @@ const CompanyList = lazy(() => import('../pages/CompanyList')); // Fixed typo: C
 const CompanyTabsPage = lazy(() => import('../pages/CompanyTabsPage'));
 const CampaignCreator = lazy(() => import('../pages/CampaignCreator'));
 const CampaignManagement = lazy(() => import('../pages/CampaignManagement'));
-
-// Lazy loaded placeholder components
-const PublishersPage = lazy(() => Promise.resolve({
-  default: () => (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
-      <h2>Publishers Page</h2>
-      <p>Manage Publishers</p>
-    </div>
-  )
-}));
+const PublisherManagement=lazy(() => import('../pages/PublisherManagement'));
 
 const AdvertisersPage = lazy(() => Promise.resolve({
   default: () => (
@@ -94,7 +85,7 @@ const ProtectedRoutes = () => {
             path="/publishers"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.PUBLISHERS_VIEW}>
-                <PublishersPage />
+                <PublisherManagement/>
               </ProtectedRoute>
             }
           />
