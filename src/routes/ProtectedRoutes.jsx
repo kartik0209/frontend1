@@ -6,6 +6,7 @@ import Layout from '../layouts/ProtectedLayout';
 import ProtectedRoute from '../components/authguards/ProtectedRoute';
 import { PERMISSIONS } from '../utils/rbac';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import AdvertiserManagement from '../pages/AdvertiserManagement';
 
 // Lazy load components for better performance
 const Dashboard = lazy(() => import('../pages/Dashboard'));
@@ -16,14 +17,6 @@ const CampaignCreator = lazy(() => import('../pages/CampaignCreator'));
 const CampaignManagement = lazy(() => import('../pages/CampaignManagement'));
 const PublisherManagement=lazy(() => import('../pages/PublisherManagement'));
 
-const AdvertisersPage = lazy(() => Promise.resolve({
-  default: () => (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
-      <h2>Advertisers Page</h2>
-      <p>Manage Advertisers</p>
-    </div>
-  )
-}));
 
 const ConversionReportsPage = lazy(() => Promise.resolve({
   default: () => (
@@ -94,7 +87,7 @@ const ProtectedRoutes = () => {
             path="/advertisers"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.ADVERTISERS_VIEW}>
-                <AdvertisersPage />
+            <AdvertiserManagement/>
               </ProtectedRoute>
             }
           />
