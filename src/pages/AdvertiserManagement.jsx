@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { Card, message, Tag } from "antd";
-import PublisherHeader from "../components/publisher/PublisherHeader";
-import PublisherTable from "../components/publisher/PublisherTable";
-import PublisherSearchModal from "../components/publisher/PublisherSearchModal";
-import PublisherColumnSettings from "../components/publisher/PublisherColumnSettings";
-import PublisherModal from "../components/publisher/PublisherModal";
-import PublisherViewModal from "../components/publisher/PublisherViewModal";
-import { columnOptions, baseColumns } from "../data/publisherData";
+import AdvertiserHeader from "../components/advertiser/AdvertiserHeader";
+import AdvertiserTable from "../components/advertiser/AdvertiserTable";
+import AdvertiserSearchModal from "../components/advertiser/AdvertiserSearchModal";
+import AdvertiserColumnSettings from "../components/advertiser/AdvertiserColumnSettings";
+import AdvertiserModal from "../components/advertiser/AdvertiserModal";
+import AdvertiserViewModal from "../components/advertiser/AdvertiserViewModal";
+import { columnOptions, baseColumns } from "../data/advertiserData";
 import apiClient from "../services/apiServices";
-import "../styles/PublisherManagement.scss";
+import "../styles/AdvertiserManagement.scss";
 
-const PublisherManagement = () => {
+const AdvertiserManagement = () => {
   const [searchVisible, setSearchVisible] = useState(false);
   const [columnSettingsVisible, setColumnSettingsVisible] = useState(false);
-  const [publisherModalVisible, setPublisherModalVisible] = useState(false);
+  const [advertiserModalVisible, setAdvertiserModalVisible] = useState(false);
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [publishers, setPublishers] = useState([]);
+  const [advertisers, setAdvertisers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editingPublisher, setEditingPublisher] = useState(null);
-  const [viewingPublisher, setViewingPublisher] = useState(null);
+  const [editingAdvertiser, setEditingAdvertiser] = useState(null);
+  const [viewingAdvertiser, setViewingAdvertiser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
   const defaultVisibleColumns = {
@@ -27,19 +27,9 @@ const PublisherManagement = () => {
     full_name: true,
     email: true,
     status: true,
-    country: true,
-    city: false,
-    state: false,
-    zip_code: false,
-    phone: true,
-    entity_type: true,
-    im_type: false,
-    im_username: false,
-    promotion_method: false,
-    reference_id: false,
-    signup_company_name: false,
-    signup_company_address: false,
-    notify_by_email: false,
+    reference_id: true,
+    account_manager: true,
+    notes: false,
     created_at: true,
     updated_at: false,
   };
@@ -75,27 +65,7 @@ const PublisherManagement = () => {
     if (column.key === 'full_name') {
       return {
         ...column,
-        render: (text) => <span className="publisher-name">{text}</span>,
-      };
-    }
-
-    if (column.key === 'entity_type') {
-      return {
-        ...column,
-        render: (entityType) => (
-          <Tag color={entityType === "Individual" ? "blue" : "purple"}>
-            {entityType}
-          </Tag>
-        ),
-      };
-    }
-
-    if (column.key === 'notify_by_email') {
-      return {
-        ...column,
-        render: (value) => (
-          <Tag color={value ? "green" : "red"}>{value ? "Yes" : "No"}</Tag>
-        ),
+        render: (text) => <span className="advertiser-name">{text}</span>,
       };
     }
 
@@ -105,40 +75,55 @@ const PublisherManagement = () => {
         render: (date) => date ? new Date(date).toLocaleDateString() : "N/A",
       };
     }
+
+    if (column.key === 'notes') {
+      return {
+        ...column,
+        render: (notes) => (
+          <span style={{ 
+            maxWidth: '200px', 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis', 
+            whiteSpace: 'nowrap',
+            display: 'inline-block'
+          }}>
+            {notes || "No notes"}
+          </span>
+        ),
+      };
+    }
     
     return column;
   });
 
-  // Fetch publishers from API
-  const fetchPublishers = async () => {
+  // Fetch advertisers from API
+  const fetchAdvertisers = async () => {
     setLoading(true);
     try {
-<<<<<<< HEAD
-      const response = await apiClient.post('/admin/publisher/list', {
-=======
-      const response = await apiClient.post('/common/publisher/list', {
->>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
+      const response = await apiClient.post('/common/advertiser/list', {
         // Add any required parameters here
         // For example: page: 1, limit: 100, etc.
       });
+      console.log('Fetch advertisers response:1', response.data.data);
+      if (response.data.data && response.data.success) {
+        setAdvertisers(response.data.data || response.data.advertisers || []);
       
-      if (response.data && response.data.success) {
-        setPublishers(response.data.data || response.data.publishers || []);
-        message.success('Publishers loaded successfully!');
+        message.success('Advertisers loaded successfully!');
       } else {
-        throw new Error(response.data?.message || 'Failed to fetch publishers');
+        throw new Error(response.data?.message || 'Failed to fetch advertisers');
       }
     } catch (error) {
-      console.error('Error fetching publishers:', error);
-      message.error(error.response?.data?.message || 'Failed to load publishers');
-      setPublishers([]); // Set empty array on error
+      console.error('Error fetching advertisers:', error);
+      message.error(error.response?.data?.message || 'Failed to load advertisers');
+      setAdvertisers([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
+   
   };
-
+ console.log('Advertisers after fetch:', advertisers);
   useEffect(() => {
-    fetchPublishers();
+    fetchAdvertisers();
   }, []);
 
   const visibleTableColumns = allColumns.filter(
@@ -156,18 +141,14 @@ const PublisherManagement = () => {
         return acc;
       }, {});
       
-<<<<<<< HEAD
-      const response = await apiClient.post('/admin/publisher/list', searchParams);
-=======
-      const response = await apiClient.post('/common/publisher/list', searchParams);
->>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
+      const response = await apiClient.post('/common/advertiser/list', searchParams);
       
       console.log('Search response:', response);
       console.log('Search values:', values);
       console.log('Filtered search params:', searchParams);
              
       if (response.data && response.data.success) {
-        setPublishers(response.data.data || response.data.publishers || []);
+        setAdvertisers(response.data.data || response.data.advertisers || []);
         message.success("Search completed successfully!");
       } else {
         throw new Error(response.data?.message || 'Search failed');
@@ -181,60 +162,52 @@ const PublisherManagement = () => {
     }
   };
 
-  const handleAddPublisher = () => {
-    setEditingPublisher(null);
+  const handleAddAdvertiser = () => {
+    setEditingAdvertiser(null);
     setIsEditMode(false);
-    setPublisherModalVisible(true);
+    setAdvertiserModalVisible(true);
   };
 
-  const handleEditPublisher = (publisher) => {
-    setEditingPublisher(publisher);
+  const handleEditAdvertiser = (advertiser) => {
+    setEditingAdvertiser(advertiser);
     setIsEditMode(true);
-    setPublisherModalVisible(true);
+    setAdvertiserModalVisible(true);
   };
 
-  const handleViewPublisher = (publisher) => {
-    setViewingPublisher(publisher);
+  const handleViewAdvertiser = (advertiser) => {
+    setViewingAdvertiser(advertiser);
     setViewModalVisible(true);
   };
 
-  const handleDeletePublisher = async (publisherId) => {
+  const handleDeleteAdvertiser = async (advertiserId) => {
     try {
       setLoading(true);
-<<<<<<< HEAD
-      const response = await apiClient.delete(`/admin/publisher/${publisherId}`);
-=======
-      const response = await apiClient.delete(`/common/publisher/${publisherId}`);
->>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
+      const response = await apiClient.delete(`/common/advertiser/${advertiserId}`);
       
       if (response.data && response.data.success) {
-        message.success('Publisher deleted successfully!');
-        fetchPublishers(); // Refresh the list
+        message.success('Advertiser deleted successfully!');
+        fetchAdvertisers(); // Refresh the list
       } else {
-        throw new Error(response.data?.message || 'Failed to delete publisher');
+        throw new Error(response.data?.message || 'Failed to delete advertiser');
       }
     } catch (error) {
-      console.error('Error deleting publisher:', error);
-      message.error(error.response?.data?.message || 'Failed to delete publisher');
+      console.error('Error deleting advertiser:', error);
+      message.error(error.response?.data?.message || 'Failed to delete advertiser');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusChange = async (publisherId, newStatus) => {
+  const handleStatusChange = async (advertiserId, newStatus) => {
     try {
       setLoading(true);
-<<<<<<< HEAD
-      const response = await apiClient.put(`/admin/publisher/${publisherId}/status`, {
-=======
-      const response = await apiClient.put(`/common/publisher/${publisherId}/status`, {
->>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
+      const response = await apiClient.put(`/common/advertiser/${advertiserId}/status`, {
         status: newStatus
       });
       
       if (response.data && response.data.success) {
-        message.success(`Publisher status updated to ${newStatus}!`);
-        fetchPublishers(); // Refresh the list
+        message.success(`Advertiser status updated to ${newStatus}!`);
+        fetchAdvertisers(); // Refresh the list
       } else {
         throw new Error(response.data?.message || 'Failed to update status');
       }
@@ -246,35 +219,27 @@ const PublisherManagement = () => {
     }
   };
 
-  const handlePublisherSubmit = async (values) => {
+  const handleAdvertiserSubmit = async (values) => {
     try {
       setLoading(true);
       let response;
       
-      if (isEditMode && editingPublisher) {
-<<<<<<< HEAD
-        response = await apiClient.put(`/admin/publisher/${editingPublisher.id}`, values);
+      if (isEditMode && editingAdvertiser) {
+        response = await apiClient.put(`/common/advertiser/${editingAdvertiser.id}`, values);
       } else {
-        response = await apiClient.post('/admin/publisher/create', values);
+        response = await apiClient.post('/common/advertiser', values);
       }
-=======
-        response = await apiClient.put(`/common/publisher/${editingPublisher.id}`, values);
-      } else {
-        response = await apiClient.post('/common/publisher', values);
-      }
-      console.log('Publisher submit response:', response);
->>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
-      
+      console.log('Advertiser submit response:', response);
       if (response.data && response.data.success) {
-        message.success(`Publisher ${isEditMode ? 'updated' : 'created'} successfully!`);
-        setPublisherModalVisible(false);
-        fetchPublishers(); // Refresh the list
+        message.success(`Advertiser ${isEditMode ? 'updated' : 'created'} successfully!`);
+        setAdvertiserModalVisible(false);
+        fetchAdvertisers(); // Refresh the list
       } else {
-        throw new Error(response.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} publisher`);
+        throw new Error(response.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} advertiser`);
       }
     } catch (error) {
-      console.error('Error submitting publisher:', error);
-      message.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} publisher`);
+      console.error('Error submitting advertiser:', error);
+      message.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} advertiser`);
     } finally {
       setLoading(false);
     }
@@ -282,18 +247,18 @@ const PublisherManagement = () => {
 
   const handleExport = () => {
     const headers = visibleTableColumns.map((col) => col.title).join(",");
-    const rows = publishers.map((publisher) =>
+    const rows = advertisers.map((advertiser) =>
       visibleTableColumns.map((col) => {
-        const value = publisher[col.dataIndex];
+        const value = advertiser[col.dataIndex];
         // Handle special cases for export
-        if (col.key === 'status' || col.key === 'entity_type') {
+        if (col.key === 'status') {
           return value || "";
-        }
-        if (col.key === 'notify_by_email') {
-          return value ? "Yes" : "No";
         }
         if (col.key === 'created_at' || col.key === 'updated_at') {
           return value ? new Date(value).toLocaleDateString() : "";
+        }
+        if (col.key === 'notes') {
+          return value ? value.replace(/,/g, ';') : ""; // Replace commas to avoid CSV issues
         }
         return value || "";
       }).join(",")
@@ -306,14 +271,14 @@ const PublisherManagement = () => {
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `publishers_${new Date().toISOString().split("T")[0]}.csv`
+      `advertisers_${new Date().toISOString().split("T")[0]}.csv`
     );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    message.success("Publisher data exported successfully!");
+    message.success("Advertiser data exported successfully!");
   };
 
   const handleColumnChange = (columnKey, checked) => {
@@ -345,36 +310,36 @@ const PublisherManagement = () => {
   };
 
   return (
-    <div className="publisher-management">
-      <PublisherHeader
+    <div className="advertiser-management">
+      <AdvertiserHeader
         onSearchClick={() => setSearchVisible(true)}
         onColumnsClick={() => setColumnSettingsVisible(true)}
         onExport={handleExport}
-        onAddPublisher={handleAddPublisher}
-        onRefresh={fetchPublishers}
+        onAddAdvertiser={handleAddAdvertiser}
+        onRefresh={fetchAdvertisers}
       />
 
-      <Card className="publisher-table-card">
-        <PublisherTable
-          publishers={publishers}
+      <Card className="advertiser-table-card">
+        <AdvertiserTable
+          advertisers={advertisers}
           columns={visibleTableColumns}
           loading={loading}
           rowSelection={rowSelection}
-          onEdit={handleEditPublisher}
-          onDelete={handleDeletePublisher}
-          onView={handleViewPublisher}
+          onEdit={handleEditAdvertiser}
+          onDelete={handleDeleteAdvertiser}
+          onView={handleViewAdvertiser}
           onStatusChange={handleStatusChange}
         />
       </Card>
 
-      <PublisherSearchModal
+      <AdvertiserSearchModal
         visible={searchVisible}
         onClose={() => setSearchVisible(false)}
         onSearch={handleSearch}
         loading={loading}
       />
 
-      <PublisherColumnSettings
+      <AdvertiserColumnSettings
         visible={columnSettingsVisible}
         onClose={() => setColumnSettingsVisible(false)}
         visibleColumns={visibleColumns}
@@ -384,22 +349,22 @@ const PublisherManagement = () => {
         onClearAll={handleClearAll}
       />
 
-      <PublisherModal
-        visible={publisherModalVisible}
-        onClose={() => setPublisherModalVisible(false)}
-        onSubmit={handlePublisherSubmit}
+      <AdvertiserModal
+        visible={advertiserModalVisible}
+        onClose={() => setAdvertiserModalVisible(false)}
+        onSubmit={handleAdvertiserSubmit}
         loading={loading}
-        editData={editingPublisher}
+        editData={editingAdvertiser}
         isEdit={isEditMode}
       />
 
-      <PublisherViewModal
+      <AdvertiserViewModal
         visible={viewModalVisible}
         onClose={() => setViewModalVisible(false)}
-        publisherData={viewingPublisher}
+        advertiserData={viewingAdvertiser}
       />
     </div>
   );
 };
 
-export default PublisherManagement;
+export default AdvertiserManagement;
