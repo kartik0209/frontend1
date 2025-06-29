@@ -6,8 +6,6 @@ import SearchModal from "../components/campaign/SearchModal";
 import ColumnSettings from "../components/campaign/ColumnSettings";
 import { columnOptions, baseColumns } from "../data/campaignData";
 import apiClient from "../services/apiServices";
-import { columnOptions, baseColumns } from "../data/campaignData";
-import apiClient from "../services/apiServices";
 import "../styles/CampaignManagement.scss";
 
 const CampaignManagement = () => {
@@ -39,7 +37,6 @@ const CampaignManagement = () => {
     conversionTrackingDomain: false,
     createdDate: false,
     startDate: false,
-    startDate: false,
     expiryDate: false,
     redirectType: false,
   };
@@ -47,9 +44,7 @@ const CampaignManagement = () => {
   const [visibleColumns, setVisibleColumns] = useState(defaultVisibleColumns);
 
   // Create allColumns with enhanced render functions for API data structure
-  // Create allColumns with enhanced render functions for API data structure
   const allColumns = baseColumns.map(column => {
-    // Status column with campaignStatus field
     // Status column with campaignStatus field
     if (column.key === 'status') {
       return {
@@ -66,23 +61,19 @@ const CampaignManagement = () => {
             className="status-tag"
           >
             {status ? status.toUpperCase() : 'N/A'}
-            {status ? status.toUpperCase() : 'N/A'}
           </Tag>
         ),
       };
     }
     
     // Title column
-    // Title column
     if (column.key === 'title') {
       return {
         ...column,
         render: (text) => <span className="campaign-title">{text || 'N/A'}</span>,
-        render: (text) => <span className="campaign-title">{text || 'N/A'}</span>,
       };
     }
 
-    // Visibility column
     // Visibility column
     if (column.key === 'visibility') {
       return {
@@ -90,7 +81,6 @@ const CampaignManagement = () => {
         render: (visibility) => (
           <Tag color={visibility === "private" ? "red" : "blue"}>
             {visibility ? visibility.toUpperCase() : 'N/A'}
-            {visibility ? visibility.toUpperCase() : 'N/A'}
           </Tag>
         ),
       };
@@ -191,88 +181,6 @@ const CampaignManagement = () => {
 
     // Start Date formatting
     if (column.key === 'startDate') {
-    // Category column - handle array
-    if (column.key === 'category') {
-      return {
-        ...column,
-        render: (categories) => {
-          if (Array.isArray(categories)) {
-            return categories.map((cat, index) => (
-              <Tag key={index} color="blue">{cat}</Tag>
-            ));
-          }
-          return categories ? <Tag color="blue">{categories}</Tag> : 'N/A';
-        },
-      };
-    }
-
-    // Geo column - handle array
-    if (column.key === 'geo') {
-      return {
-        ...column,
-        render: (geoCoverage) => {
-          if (Array.isArray(geoCoverage)) {
-            return geoCoverage.join(', ');
-          }
-          return geoCoverage || 'N/A';
-        },
-      };
-    }
-
-    // Device column - handle array
-    if (column.key === 'device') {
-      return {
-        ...column,
-        render: (devices) => {
-          if (Array.isArray(devices)) {
-            return devices.map((device, index) => (
-              <Tag key={index} color="cyan">{device}</Tag>
-            ));
-          }
-          return devices ? <Tag color="cyan">{devices}</Tag> : 'N/A';
-        },
-      };
-    }
-
-    // Operating System column - handle array
-    if (column.key === 'operatingSystem') {
-      return {
-        ...column,
-        render: (os) => {
-          if (Array.isArray(os)) {
-            return os.map((system, index) => (
-              <Tag key={index} color="purple">{system}</Tag>
-            ));
-          }
-          return os ? <Tag color="purple">{os}</Tag> : 'N/A';
-        },
-      };
-    }
-
-    // Payout column with currency formatting
-    if (column.key === 'payout') {
-      return {
-        ...column,
-        render: (payout, record) => {
-          const currency = record.currency || 'USD';
-          return payout ? `${payout} ${currency}` : 'N/A';
-        },
-      };
-    }
-
-    // Revenue column with currency formatting
-    if (column.key === 'revenue') {
-      return {
-        ...column,
-        render: (revenue, record) => {
-          const currency = record.currency || 'USD';
-          return revenue ? `${revenue} ${currency}` : 'N/A';
-        },
-      };
-    }
-
-    // Created Date formatting
-    if (column.key === 'createdDate') {
       return {
         ...column,
         render: (date) => {
@@ -284,27 +192,6 @@ const CampaignManagement = () => {
       };
     }
 
-    // Start Date formatting
-    if (column.key === 'startDate') {
-      return {
-        ...column,
-        render: (date) => {
-          if (date) {
-            return new Date(date).toLocaleDateString();
-          }
-          return 'N/A';
-        },
-        render: (date) => {
-          if (date) {
-            return new Date(date).toLocaleDateString();
-          }
-          return 'N/A';
-        },
-      };
-    }
-
-    // End Date formatting
-    if (column.key === 'expiryDate') {
     // End Date formatting
     if (column.key === 'expiryDate') {
       return {
@@ -361,7 +248,6 @@ const CampaignManagement = () => {
 
   useEffect(() => {
     fetchCampaigns();
-    fetchCampaigns();
   }, []);
 
   const visibleTableColumns = allColumns.filter(
@@ -412,11 +298,6 @@ const CampaignManagement = () => {
       return;
     }
 
-    if (campaigns.length === 0) {
-      message.warning('No data to export');
-      return;
-    }
-
     const headers = visibleTableColumns.map((col) => col.title).join(",");
     const rows = campaigns.map((campaign) =>
       visibleTableColumns.map((col) => {
@@ -440,29 +321,7 @@ const CampaignManagement = () => {
         
         return value;
       }).join(",")
-      visibleTableColumns.map((col) => {
-        let value = '';
-        if (col.dataIndex && Array.isArray(col.dataIndex)) {
-          // Handle nested properties like ['company', 'name']
-          value = col.dataIndex.reduce((obj, key) => obj?.[key], campaign) || '';
-        } else if (col.dataIndex) {
-          value = campaign[col.dataIndex] || '';
-        }
-        
-        // Handle arrays
-        if (Array.isArray(value)) {
-          value = value.join('; ');
-        }
-        
-        // Escape commas and quotes for CSV
-        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-          value = `"${value.replace(/"/g, '""')}"`;
-        }
-        
-        return value;
-      }).join(",")
     );
-    
     
     const csvContent = [headers, ...rows].join("\n");
 
