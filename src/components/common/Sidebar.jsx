@@ -16,10 +16,10 @@ import {
 } from "@ant-design/icons";
 import { Menu } from "antd";
 import { toast } from "react-toastify";
-import { logout } from "../store/authSlice";
-import { PERMISSIONS } from "../utils/rbac";
-import logo from "../assets/logo.png";
-import "../styles/Sidebar.scss";
+import { logout } from "../../store/authSlice";
+import { PERMISSIONS } from "../../utils/rbac";
+import logo from "../../assets/logo.png";
+import "../../styles/Sidebar.scss";
 
 const { SubMenu } = Menu;
 

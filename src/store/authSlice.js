@@ -1,8 +1,11 @@
 // src/store/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { jwtDecode } from 'jwt-decode';
+import { authAPI } from '../services/authService';
 import apiClient from '../services/apiServices';
 import { getRolePermissions } from '../utils/rbac';
+import { secureStorage } from '../utils/helpers';
+import { logError } from '../utils/errorHandler';
 
 // Initial state
 const initialState = {
@@ -17,44 +20,13 @@ const initialState = {
   companyData: null,
 };
 
-// Secure token storage
-const secureStorage = {
-  setItem: (key, value) => {
-    try {
-      localStorage.setItem(key, value);
-    } catch (error) {
-      console.error('Storage error:', error);
-    }
-  },
-  getItem: (key) => {
-    try {
-      return localStorage.getItem(key);
-    } catch (error) {
-      console.error('Storage error:', error);
-      return null;
-    }
-  },
-  removeItem: (key) => {
-    try {
-      localStorage.removeItem(key);
-    } catch (error) {
-      console.error('Storage error:', error);
-    }
-  }
-};
-
-// Enhanced login with better error handling
+// Enhanced login with centralized auth service
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/common/auth/login', {
-        email: credentials.email.trim().toLowerCase(),
-        password: credentials.password,
-        subdomain: credentials.subdomain || 'afftrex',
-      });
-
-      const { data: token } = response.data;
+      const response = await authAPI.login(credentials);
+      const { data: token } = response;
       
       if (!token) {
         throw new Error('No token received');
@@ -83,28 +55,8 @@ export const loginUser = createAsyncThunk(
         subdomain: subdomain || credentials.subdomain || 'afftrex',
       };
     } catch (error) {
-      let errorMessage = 'Login failed. Please try again.';
-      
-      if (error.response) {
-        const { status, data } = error.response;
-        const errorMap = {
-          400: data?.message || 'Invalid email or password.',
-          401: 'Invalid credentials.',
-          403: 'Access denied. Contact support.',
-          404: 'Service not found.',
-          429: 'Too many attempts. Try again later.',
-          500: 'Server error. Try again later.',
-        };
-        errorMessage = errorMap[status] || `Error: ${status}`;
-      } else if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Request timeout. Please try again.';
-      } else if (error.code === 'ERR_NETWORK') {
-        errorMessage = 'Network error. Check connection.';
-      } else if (error.name === 'InvalidTokenError') {
-        errorMessage = 'Invalid token format.';
-      }
-      
-      return rejectWithValue(errorMessage);
+      logError(error, 'loginUser', { email: credentials.email });
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -142,6 +94,7 @@ export const initializeAuth = createAsyncThunk(
       };
     } catch (error) {
       secureStorage.removeItem('authToken');
+      logError(error, 'initializeAuth');
       return rejectWithValue('Invalid token');
     }
   }
@@ -162,9 +115,45 @@ export const fetchCompanyData = createAsyncThunk(
         throw new Error(response.data.message || 'Failed to fetch company data');
       }
     } catch (error) {
+      logError(error, 'fetchCompanyData', { subdomain });
       return rejectWithValue(
         error.response?.data?.message || 'Failed to fetch company data'
       );
+    }
+  }
+);
+
+// Refresh token
+export const refreshToken = createAsyncThunk(
+  'auth/refreshToken',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const { token } = getState().auth;
+      const response = await authAPI.refreshToken(token);
+      
+      const { data: newToken } = response;
+      if (!newToken) {
+        throw new Error('No token received');
+      }
+
+      // Validate and decode new token
+      const decoded = jwtDecode(newToken);
+      secureStorage.setItem('authToken', newToken);
+
+      const { name, role, email, id, subdomain } = decoded;
+      const user = { id, name, email, role };
+      const permissions = decoded.permissions || getRolePermissions(role);
+
+      return {
+        token: newToken,
+        user,
+        permissions,
+        role,
+        subdomain,
+      };
+    } catch (error) {
+      logError(error, 'refreshToken');
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -191,6 +180,9 @@ const authSlice = createSlice({
     },
     setCompanyData: (state, action) => {
       state.companyData = action.payload;
+    },
+    setLoading: (state, action) => {
+      state.loading = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -245,9 +237,26 @@ const authSlice = createSlice({
         state.subdomain = null;
         state.error = null;
       })
+      // Refresh token cases
+      .addCase(refreshToken.fulfilled, (state, action) => {
+        state.token = action.payload.token;
+        state.user = action.payload.user;
+        state.permissions = action.payload.permissions;
+        state.role = action.payload.role;
+        state.subdomain = action.payload.subdomain;
+      })
+      .addCase(refreshToken.rejected, (state) => {
+        // Force logout on refresh token failure
+        secureStorage.removeItem('authToken');
+        return { ...initialState };
+      })
       // Company data cases
       .addCase(fetchCompanyData.fulfilled, (state, action) => {
         state.companyData = action.payload;
+      })
+      .addCase(fetchCompanyData.rejected, (state, action) => {
+        // Don't clear company data on failure, just log the error
+        console.warn('Failed to fetch company data:', action.payload);
       });
   },
 });
@@ -257,7 +266,8 @@ export const {
   clearError, 
   updateUserProfile, 
   setUserPermissions,
-  setCompanyData 
+  setCompanyData,
+  setLoading
 } = authSlice.actions;
 
 export default authSlice.reducer;
