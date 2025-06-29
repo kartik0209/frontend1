@@ -113,7 +113,11 @@ const PublisherManagement = () => {
   const fetchPublishers = async () => {
     setLoading(true);
     try {
+<<<<<<< HEAD
       const response = await apiClient.post('/admin/publisher/list', {
+=======
+      const response = await apiClient.post('/common/publisher/list', {
+>>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
         // Add any required parameters here
         // For example: page: 1, limit: 100, etc.
       });
@@ -152,7 +156,11 @@ const PublisherManagement = () => {
         return acc;
       }, {});
       
+<<<<<<< HEAD
       const response = await apiClient.post('/admin/publisher/list', searchParams);
+=======
+      const response = await apiClient.post('/common/publisher/list', searchParams);
+>>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
       
       console.log('Search response:', response);
       console.log('Search values:', values);
@@ -193,7 +201,11 @@ const PublisherManagement = () => {
   const handleDeletePublisher = async (publisherId) => {
     try {
       setLoading(true);
+<<<<<<< HEAD
       const response = await apiClient.delete(`/admin/publisher/${publisherId}`);
+=======
+      const response = await apiClient.delete(`/common/publisher/${publisherId}`);
+>>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
       
       if (response.data && response.data.success) {
         message.success('Publisher deleted successfully!');
@@ -212,7 +224,11 @@ const PublisherManagement = () => {
   const handleStatusChange = async (publisherId, newStatus) => {
     try {
       setLoading(true);
+<<<<<<< HEAD
       const response = await apiClient.put(`/admin/publisher/${publisherId}/status`, {
+=======
+      const response = await apiClient.put(`/common/publisher/${publisherId}/status`, {
+>>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
         status: newStatus
       });
       
@@ -236,10 +252,18 @@ const PublisherManagement = () => {
       let response;
       
       if (isEditMode && editingPublisher) {
+<<<<<<< HEAD
         response = await apiClient.put(`/admin/publisher/${editingPublisher.id}`, values);
       } else {
         response = await apiClient.post('/admin/publisher/create', values);
       }
+=======
+        response = await apiClient.put(`/common/publisher/${editingPublisher.id}`, values);
+      } else {
+        response = await apiClient.post('/common/publisher', values);
+      }
+      console.log('Publisher submit response:', response);
+>>>>>>> 74f676f61720dd1cf91294d438002f09adf66eda
       
       if (response.data && response.data.success) {
         message.success(`Publisher ${isEditMode ? 'updated' : 'created'} successfully!`);
