@@ -29,9 +29,9 @@ const AdvertiserTable = ({
     const currentStatus = record.status;
     const statusOptions = [
       { key: 'Active', label: 'Active', icon: <CheckCircleOutlined />, color: 'green' },
-   ,
+      { key: 'Inactive', label: 'Inactive', icon: <CloseCircleOutlined />, color: 'red' },
       { key: 'Pending', label: 'Pending', icon: <ExclamationCircleOutlined />, color: 'orange' },
-     
+      { key: 'Suspended', label: 'Suspended', icon: <PauseCircleOutlined />, color: 'purple' },
       { key: 'Disabled', label: 'Disabled', icon: <StopOutlined />, color: 'gray' },
       { key: 'Rejected', label: 'Rejected', icon: <CloseCircleOutlined />, color: 'red' },
       { key: 'Banned', label: 'Banned', icon: <StopOutlined />, color: 'red' }
