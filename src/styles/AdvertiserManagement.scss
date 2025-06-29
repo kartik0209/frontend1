@@ -1,0 +1,720 @@
+// Variables
+$primary-color: #1890ff;
+$success-color: #52c41a;
+$warning-color: #faad14;
+$error-color: #ff4d4f;
+$background-color: #f0f2f5;
+$white: #ffffff;
+$border-color: #d9d9d9;
+$border-radius: 8px;
+$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$transition: all 0.3s ease;
+$dark-gradient: linear-gradient(135deg, #050a2c, #0a1a4e);
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin card-style {
+  background: $white;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  border: 1px solid $border-color;
+}
+
+// Main advertiser management container
+.advertiser-management {
+  min-height: 100vh;
+  background: $background-color;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+
+  .advertiser-header {
+    @include flex-between;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    @include card-style;
+
+    .header-title {
+      .page-title {
+        margin: 0 0 4px 0;
+        color: #262626;
+        font-weight: 600;
+      }
+
+      .page-subtitle {
+        margin: 0;
+        font-size: 14px;
+        color: #8c8c8c;
+      }
+    }
+
+    .header-actions {
+      .ant-btn {
+        height: 40px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: $transition;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+      }
+
+      .add-btn,
+      .search-btn,
+      .columns-btn,
+      .export-btn,
+      .refresh-btn {
+        background: $dark-gradient;
+        border: none;
+        color: $white;
+
+        &:hover {
+          background: $dark-gradient;
+          opacity: 0.9;
+        }
+      }
+    }
+  }
+
+  .advertiser-table-card {
+    @include card-style;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    .ant-card-body {
+      padding: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .table-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      .advertiser-table {
+        flex: 1;
+        
+        .ant-table {
+          height: 100%;
+          
+          .ant-table-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .ant-table-header {
+            flex-shrink: 0;
+          }
+          
+          .ant-table-body {
+            flex: 1;
+            overflow-y: auto;
+          }
+        }
+
+        .ant-table-thead > tr > th {
+          background: #fafafa;
+          font-weight: 600;
+          color: #262626;
+          border-bottom: 2px solid #f0f0f0;
+          padding: 16px 12px;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+
+        .advertiser-row {
+          transition: $transition;
+
+          &:hover {
+            background: #f5f5f5;
+            transform: translateX(2px);
+          }
+
+          td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+          }
+        }
+
+        .advertiser-name {
+          font-weight: 500;
+          color: #262626;
+          cursor: pointer;
+
+          &:hover {
+            color: $primary-color;
+          }
+        }
+
+        .status-tag {
+          font-weight: 500;
+          border: none;
+          border-radius: 4px;
+        }
+
+        .ant-table-expanded-row {
+          .ant-table-expanded-row-fixed {
+            margin: 0 -16px -16px -16px;
+          }
+        }
+      }
+
+      .table-pagination {
+        padding: 16px 24px;
+        border-top: 1px solid #f0f0f0;
+        background: #fafafa;
+        flex-shrink: 0;
+
+        .ant-pagination-item {
+          border-radius: 4px;
+        }
+
+        .ant-pagination-item-active {
+          background: $primary-color;
+          border-color: $primary-color;
+        }
+      }
+    }
+  }
+}
+
+// Advertiser Modal/Drawer Styles (Right Sidebar)
+.advertiser-modal,
+.advertiser-drawer {
+  .ant-modal-content,
+  .ant-drawer-content {
+    height: 100%;
+  }
+
+  .modal-header,
+  .drawer-header {
+    @include flex-center;
+    gap: 8px;
+
+    .modal-icon,
+    .drawer-icon {
+      color: $primary-color;
+      font-size: 16px;
+    }
+  }
+
+  .advertiser-form {
+    .ant-form-item-label > label {
+      font-weight: 500;
+      color: #262626;
+    }
+
+    .ant-input,
+    .ant-select-selector,
+    .ant-input-number,
+    .ant-checkbox-wrapper {
+      border-radius: 6px;
+      transition: $transition;
+    }
+
+    .ant-input,
+    .ant-select-selector,
+    .ant-input-number {
+      border-color: $border-color;
+
+      &:hover {
+        border-color: $primary-color;
+      }
+
+      &:focus,
+      &.ant-select-focused .ant-select-selector {
+        border-color: $primary-color;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+      }
+    }
+
+    .form-actions {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #f0f0f0;
+      text-align: right;
+
+      .ant-btn {
+        height: 40px;
+        min-width: 100px;
+        border-radius: 6px;
+        font-weight: 500;
+        margin-left: 8px;
+
+        &.cancel-btn {
+          background: $white;
+          border-color: $border-color;
+          color: #8c8c8c;
+
+          &:hover {
+            border-color: $primary-color;
+            color: $primary-color;
+          }
+        }
+
+        &.submit-btn {
+          background: $dark-gradient;
+          border: none;
+          color: $white;
+
+          &:hover {
+            background: $dark-gradient;
+            opacity: 0.9;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Right Sidebar Drawer specific styles
+.ant-drawer-right {
+  .ant-drawer-content-wrapper {
+    width: 500px !important;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .ant-drawer-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+
+    .ant-drawer-title {
+      font-weight: 600;
+      color: #262626;
+    }
+  }
+
+  .ant-drawer-body {
+    padding: 24px;
+    overflow-y: auto;
+  }
+}
+
+// Search Modal Styles
+.search-modal {
+  .modal-header {
+    @include flex-center;
+    gap: 8px;
+
+    .modal-icon {
+      color: $primary-color;
+      font-size: 16px;
+    }
+  }
+
+  .ant-modal-body {
+    padding: 24px;
+  }
+
+  .search-form {
+    .ant-form-item-label > label {
+      font-weight: 500;
+      color: #262626;
+    }
+
+    .ant-input,
+    .ant-select-selector,
+    .ant-input-number {
+      border-radius: 6px;
+      border-color: $border-color;
+      transition: $transition;
+
+      &:hover {
+        border-color: $primary-color;
+      }
+
+      &:focus,
+      &.ant-select-focused .ant-select-selector {
+        border-color: $primary-color;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+      }
+    }
+
+    .search-actions {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #f0f0f0;
+      text-align: center;
+
+      .ant-btn {
+        height: 40px;
+        min-width: 80px;
+        border-radius: 6px;
+        font-weight: 500;
+        margin: 0 4px;
+
+        &.clear-btn,
+        &.search-submit-btn,
+        &.close-btn {
+          background: $dark-gradient;
+          border: none;
+          color: $white;
+
+          &:hover {
+            background: $dark-gradient;
+            opacity: 0.9;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Column Settings Drawer
+.column-settings-drawer {
+  .ant-drawer-content-wrapper {
+    width: 400px !important;
+  }
+
+  .drawer-header {
+    @include flex-center;
+    gap: 8px;
+
+    .drawer-icon {
+      color: $primary-color;
+      font-size: 16px;
+    }
+  }
+
+  .column-controls {
+    margin-bottom: 16px;
+
+    .ant-btn {
+      height: 32px;
+      border-radius: 4px;
+      font-size: 12px;
+
+      &.select-all-btn {
+        background: linear-gradient(135deg, $success-color, #73d13d);
+        border: none;
+        color: $white;
+      }
+
+      &.clear-all-btn {
+        background: linear-gradient(135deg, $error-color, #ff7875);
+        border: none;
+        color: $white;
+      }
+    }
+  }
+
+  .column-checkboxes {
+    .column-checkbox-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .column-checkbox {
+        width: 100%;
+
+        .ant-checkbox-wrapper {
+          font-weight: 500;
+          color: #262626;
+          transition: $transition;
+
+          &:hover {
+            color: $primary-color;
+          }
+        }
+
+        .ant-checkbox-checked .ant-checkbox-inner {
+          background: $primary-color;
+          border-color: $primary-color;
+        }
+      }
+    }
+  }
+}
+
+// Advertiser View Modal
+.advertiser-view-modal {
+  .ant-descriptions-bordered {
+    .ant-descriptions-item-label {
+      background: #fafafa;
+      font-weight: 600;
+      color: #262626;
+    }
+
+    .ant-descriptions-item-content {
+      background: $white;
+    }
+  }
+
+  .ant-tag {
+    border-radius: 4px;
+    font-weight: 500;
+  }
+}
+
+// Custom scrollbar for all scrollable areas
+.table-container,
+.ant-drawer-body,
+.ant-modal-body {
+  .ant-table-body,
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .ant-table-body::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+  }
+
+  .ant-table-body::-webkit-scrollbar-thumb,
+  &::-webkit-scrollbar-thumb {
+    background: #d9d9d9;
+    border-radius: 4px;
+
+    &:hover {
+      background: #bfbfbf;
+    }
+  }
+}
+
+// Loading and Animation States
+.ant-table-loading {
+  .ant-spin-container {
+    opacity: 0.7;
+  }
+}
+
+.ant-btn-loading {
+  pointer-events: none;
+}
+
+// Tag animations
+.ant-tag {
+  transition: $transition;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// Button hover effects
+.ant-btn:not(.ant-btn-disabled):not(.ant-btn-loading) {
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Responsive Design
+@media (max-width: 1200px) {
+  .publisher-management {
+    padding: 16px;
+
+    .publisher-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+
+      .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+
+    .ant-drawer-right .ant-drawer-content-wrapper {
+      width: 450px !important;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .publisher-management {
+    padding: 12px;
+
+    .publisher-header {
+      padding: 16px;
+
+      .header-actions {
+        justify-content: space-between;
+        width: 100%;
+
+        .ant-btn {
+          flex: 1;
+          margin: 0 4px;
+        }
+      }
+    }
+
+    .search-modal {
+      .ant-modal {
+        margin: 16px;
+        max-width: calc(100vw - 32px);
+      }
+    }
+
+    .column-settings-drawer,
+    .ant-drawer-right {
+      .ant-drawer-content-wrapper {
+        width: 320px !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .publisher-management {
+    padding: 8px;
+
+    .publisher-header {
+      .header-actions {
+        flex-direction: column;
+        gap: 8px;
+
+        .ant-btn {
+          width: 100%;
+          margin: 0;
+        }
+      }
+    }
+
+    .search-modal {
+      .search-form {
+        .search-actions {
+          .ant-space {
+            width: 100%;
+            flex-direction: column;
+
+            .ant-btn {
+              width: 100%;
+            }
+          }
+        }
+      }
+    }
+
+    .ant-drawer-right .ant-drawer-content-wrapper {
+      width: 100vw !important;
+    }
+  }
+}
+
+// Full height table adjustments
+.publisher-table-card .table-container .publisher-table {
+  .ant-table-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ant-table {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .ant-table-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ant-table-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .ant-table-scroll {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ant-table-header {
+      flex-shrink: 0;
+    }
+
+    .ant-table-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+  }
+
+  .ant-table-pagination {
+    flex-shrink: 0;
+    margin: 0;
+  }
+}
+
+// Action buttons in expanded rows
+.ant-table-expanded-row-fixed {
+  background: #fafafa;
+  border-radius: 4px;
+  margin: 8px 0;
+
+  .ant-btn {
+    border-radius: 4px;
+    font-weight: 500;
+    transition: $transition;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    &.ant-btn-primary {
+      background: $dark-gradient;
+      border: none;
+    }
+
+    &.ant-btn-danger {
+      background: linear-gradient(135deg, $error-color, #ff7875);
+      border: none;
+    }
+  }
+}
+
+// Dropdown menu styles
+.ant-dropdown-menu {
+  border-radius: 6px;
+  box-shadow: $box-shadow;
+
+  .ant-dropdown-menu-item {
+    padding: 8px 12px;
+    transition: $transition;
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
