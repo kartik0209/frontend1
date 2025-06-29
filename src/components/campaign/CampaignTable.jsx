@@ -9,7 +9,7 @@ const CampaignTable = ({ campaigns, columns, loading, rowSelection }) => {
         columns={columns}
         dataSource={campaigns}
         loading={loading}
-        // scroll={{ x: 1500, y: 600 }}
+         scroll={{ x: 1500, y: 'calc(100vh - 280px)' }}
         pagination={{
           showSizeChanger: true,
           showQuickJumper: true,

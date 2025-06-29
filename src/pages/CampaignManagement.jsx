@@ -4,7 +4,8 @@ import CampaignHeader from "../components/campaign/CampaignHeader";
 import CampaignTable from "../components/campaign/CampaignTable";
 import SearchModal from "../components/campaign/SearchModal";
 import ColumnSettings from "../components/campaign/ColumnSettings";
-import { sampleCampaigns, columnOptions, baseColumns } from "../data/campaignData";
+import { columnOptions, baseColumns } from "../data/campaignData";
+import apiClient from "../services/apiServices";
 import "../styles/CampaignManagement.scss";
 
 const CampaignManagement = () => {
@@ -105,23 +106,69 @@ const CampaignManagement = () => {
     return column;
   });
 
+  // Fetch campaigns from API
+  const fetchCampaigns = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.post('/admin/campaign/list', {
+        // Add any required parameters here
+        // For example: page: 1, limit: 100, etc.
+      });
+      
+      if (response.data && response.data.success) {
+        setCampaigns(response.data.data || response.data.campaigns || []);
+        message.success('Campaigns loaded successfully!');
+      } else {
+        throw new Error(response.data?.message || 'Failed to fetch campaigns');
+      }
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      message.error(error.response?.data?.message || 'Failed to load campaigns');
+      setCampaigns([]); // Set empty array on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setCampaigns(sampleCampaigns);
+    fetchCampaigns();
   }, []);
 
   const visibleTableColumns = allColumns.filter(
     (col) => visibleColumns[col.key]
   );
 
-  const handleSearch = (values) => {
-    setLoading(true);
-    console.log("Search values:", values);
-    setTimeout(() => {
-      setLoading(false);
-      setSearchVisible(false);
+  const handleSearch = async (values) => {
+  setLoading(true);
+  try {
+    // If you need to transform or filter the values before sending
+    const searchParams = Object.keys(values).reduce((acc, key) => {
+      if (values[key] !== undefined && values[key] !== null && values[key] !== '') {
+        acc[key] = values[key];
+      }
+      return acc;
+    }, {});
+    
+    const response = await apiClient.post('/admin/campaign/list', searchParams);
+    
+    console.log('Search response:', response);
+    console.log('Search values:', values);
+    console.log('Filtered search params:', searchParams);
+           
+    if (response.data && response.data.success) {
+      setCampaigns(response.data.data || response.data.campaigns || []);
       message.success("Search completed successfully!");
-    }, 1000);
-  };
+    } else {
+      throw new Error(response.data?.message || 'Search failed');
+    }
+  } catch (error) {
+    console.error('Search error:', error);
+    message.error(error.response?.data?.message || 'Search failed');
+  } finally {
+    setLoading(false);
+    setSearchVisible(false);
+  }
+};
 
   const handleExport = () => {
     const headers = visibleTableColumns.map((col) => col.title).join(",");
@@ -180,6 +227,7 @@ const CampaignManagement = () => {
         onSearchClick={() => setSearchVisible(true)}
         onColumnsClick={() => setColumnSettingsVisible(true)}
         onExport={handleExport}
+        onRefresh={fetchCampaigns} // Add refresh functionality
       />
 
       <Card className="campaign-table-card">

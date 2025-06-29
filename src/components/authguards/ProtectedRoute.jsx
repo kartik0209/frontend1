@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Navigate, useLocation } from 'react-router-dom';
-import { hasPermission, hasAnyPermission } from '../utils/rbac';
+import { hasPermission, hasAnyPermission } from '../../utils/rbac';
 
 const ProtectedRoute = ({ 
   children, 

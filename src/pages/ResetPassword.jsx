@@ -1,74 +1,130 @@
 // src/pages/ResetPassword.jsx
-import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Typography, message } from "antd";
-import axios from "axios";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Form, Input, Button, Typography, message, Progress } from "antd";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import "../styles/Login.scss"; // your shared styles
-import BottomGraphic from "../assets/bottom_deco.png"; // optional bottom graphic
-import { useMemo } from "react"; // for brand name extraction
-const { Title, Paragraph } = Typography;
+import { LockOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { authAPI } from "../services/authService";
+import { getBrandFromHostname, validatePassword } from "../utils/helpers";
+import { handleFormErrors, logError } from "../utils/errorHandler";
+import "../styles/Login.scss";
+import BottomGraphic from "../assets/bottom_deco.png";
+
+const { Title, Paragraph, Text } = Typography;
 
 const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Grab token & email from query string:
+  // Extract token and email from URL params
   const token = searchParams.get("token");
   const email = searchParams.get("email");
+  const companyName = searchParams.get("company") || "afftrex";
 
-  const brand = useMemo(() => {
-    const host = window.location.hostname.split(".");
-    return host.length > 2 ? host[0] : "YourBrand";
-  }, []);
+  // Extract brand name from hostname
+  const brand = useMemo(() => getBrandFromHostname(), []);
 
-  // If missing, bail back to login:
+  // Password strength state
+  const [passwordStrength, setPasswordStrength] = useState(null);
+
+  // Validate URL parameters on mount
   useEffect(() => {
     if (!token || !email) {
-      message.error("Invalid or expired reset link.");
-      navigate("/login");
+      message.error("Invalid or expired reset link. Please request a new one.");
+      navigate("/forgot-password");
     }
   }, [token, email, navigate]);
 
-  const onFinish = async ({ password, confirm }) => {
-    // client-side matching
-    if (password !== confirm) {
-      return message.error("Passwords do not match.");
+  // Handle password strength validation
+  const handlePasswordChange = useCallback((e) => {
+    const password = e.target.value;
+    if (password) {
+      const strength = validatePassword(password);
+      setPasswordStrength(strength);
+    } else {
+      setPasswordStrength(null);
+    }
+  }, []);
+
+  // Optimized form submission
+  const handleSubmit = useCallback(async (values) => {
+    const { password, confirmPassword } = values;
+    
+    // Client-side validation
+    if (password !== confirmPassword) {
+      message.error("Passwords do not match.");
+      return;
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      message.error("Password doesn't meet security requirements.");
+      return;
     }
 
     setLoading(true);
-    // payload exactly as your API expects:
-    const payload = {
-      email,
-      token,
-      newPassword: password,
-    };
-
-    console.log("[ResetPassword] POST payload:", payload);
 
     try {
-      const res = await axios.post(
-        "https://afftrex.onrender.com/api/common/auth/reset-password",
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 30000,
-        }
-      );
-      console.log("[ResetPassword] Success response:", res.data);
-      message.success("Your password has been reset. Redirecting to login…");
-      setTimeout(() => navigate("/"), 2000);
-    } catch (err) {
-      console.error("[ResetPassword] Error response body:", err.response?.data);
-      const serverMsg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Reset failed.";
-      message.error(serverMsg);
+      const payload = {
+        email,
+        token,
+        newPassword: password,
+        subdomain: companyName,
+      };
+
+      console.log("[ResetPassword] Resetting password for:", email);
+
+      await authAPI.resetPassword(payload);
+      
+      message.success({
+        content: "Password reset successfully! Redirecting to login...",
+        duration: 3,
+      });
+
+      // Clear form and redirect after success
+      form.resetFields();
+      setTimeout(() => {
+        const queryString = searchParams.toString();
+        const loginPath = queryString ? `/?${queryString}` : "/";
+        navigate(loginPath);
+      }, 2000);
+
+    } catch (error) {
+      console.error("[ResetPassword] Error:", error);
+      logError(error, 'ResetPassword', { email, hasToken: !!token });
+      
+      // Handle form-specific errors
+      if (!handleFormErrors(error, form.setFields)) {
+        const errorMessage = error.message || "Failed to reset password. Please try again.";
+        message.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
+  }, [email, token, companyName, form, navigate, searchParams]);
+
+  // Navigate back to forgot password
+  const handleBackToForgot = useCallback(() => {
+    const queryString = searchParams.toString();
+    const forgotPath = queryString ? `/forgot-password?${queryString}` : "/forgot-password";
+    navigate(forgotPath);
+  }, [navigate, searchParams]);
+
+  // Get password strength color and text
+  const getPasswordStrengthDisplay = () => {
+    if (!passwordStrength) return null;
+    
+    const strengthConfig = {
+      weak: { color: '#ff4d4f', text: 'Weak', percent: 25 },
+      medium: { color: '#faad14', text: 'Medium', percent: 75 },
+      strong: { color: '#52c41a', text: 'Strong', percent: 100 },
+    };
+    
+    return strengthConfig[passwordStrength.strength];
   };
+
+  const strengthDisplay = getPasswordStrengthDisplay();
 
   return (
     <div className="login-container">
@@ -79,33 +135,47 @@ const ResetPassword = () => {
             {brand.charAt(0).toUpperCase() + brand.slice(1)} 👋
           </h1>
           <p className="summary">
-            Access your dashboard at {brand}.<br />
-            Log in to manage your partnerships and track earnings.
+            Secure access to your {brand} dashboard.
+            <br />
+            Create a strong password to protect your account.
           </p>
         </div>
       </aside>
 
       <main className="form-area">
         <div className="form-wrap">
-          <Title level={2} className="title">
-            Reset Password
+          <Title level={2} className="heading">
+            <LockOutlined /> Reset Password
           </Title>
+          
           <Paragraph className="summary">
-            Set a new password for <strong>{email}</strong>.
+            Create a new secure password for <strong>{email}</strong>
           </Paragraph>
 
           <Form
+            form={form}
+            name="reset-password"
             layout="vertical"
-            onFinish={onFinish}
+            onFinish={handleSubmit}
             requiredMark={false}
-            style={{ width: "100%" }}
+            autoComplete="off"
+            className="form"
           >
             <Form.Item
               label="New Password"
               name="password"
               rules={[
                 { required: true, message: "Please enter your new password" },
-                { min: 8, message: "Must be at least 8 characters" },
+                { min: 8, message: "Password must be at least 8 characters" },
+                {
+                  validator: (_, value) => {
+                    if (!value) return Promise.resolve();
+                    const validation = validatePassword(value);
+                    return validation.isValid 
+                      ? Promise.resolve() 
+                      : Promise.reject(new Error('Password must contain uppercase, lowercase, and numbers'));
+                  },
+                },
               ]}
               hasFeedback
             >
@@ -113,27 +183,71 @@ const ResetPassword = () => {
                 placeholder="••••••••"
                 autoComplete="new-password"
                 className="input"
+                size="large"
+                onChange={handlePasswordChange}
               />
             </Form.Item>
 
+            {/* Password Strength Indicator */}
+            {strengthDisplay && (
+              <div className="password-strength" style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <Text type="secondary">Password Strength</Text>
+                  <Text style={{ color: strengthDisplay.color, fontWeight: 500 }}>
+                    {strengthDisplay.text}
+                  </Text>
+                </div>
+                <Progress
+                  percent={strengthDisplay.percent}
+                  strokeColor={strengthDisplay.color}
+                  showInfo={false}
+                  size="small"
+                />
+                
+                {/* Requirements checklist */}
+                {passwordStrength && (
+                  <div className="password-requirements" style={{ marginTop: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '12px' }}>
+                      <Text type={passwordStrength.requirements.minLength ? 'success' : 'secondary'}>
+                        {passwordStrength.requirements.minLength ? <CheckCircleOutlined /> : '○'} 8+ characters
+                      </Text>
+                      <Text type={passwordStrength.requirements.hasUpperCase ? 'success' : 'secondary'}>
+                        {passwordStrength.requirements.hasUpperCase ? <CheckCircleOutlined /> : '○'} Uppercase
+                      </Text>
+                      <Text type={passwordStrength.requirements.hasLowerCase ? 'success' : 'secondary'}>
+                        {passwordStrength.requirements.hasLowerCase ? <CheckCircleOutlined /> : '○'} Lowercase
+                      </Text>
+                      <Text type={passwordStrength.requirements.hasNumbers ? 'success' : 'secondary'}>
+                        {passwordStrength.requirements.hasNumbers ? <CheckCircleOutlined /> : '○'} Numbers
+                      </Text>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <Form.Item
               label="Confirm New Password"
-              name="confirm"
-              dependencies={["password"]}
+              name="confirmPassword"
+              dependencies={['password']}
               hasFeedback
               rules={[
                 { required: true, message: "Please confirm your new password" },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
-                    if (!value || getFieldValue("password") === value) {
+                    if (!value || getFieldValue('password') === value) {
                       return Promise.resolve();
                     }
-                    return Promise.reject(new Error("Passwords do not match"));
+                    return Promise.reject(new Error('Passwords do not match'));
                   },
                 }),
               ]}
             >
-              <Input.Password placeholder="••••••••" className="input" />
+              <Input.Password 
+                placeholder="••••••••" 
+                className="input"
+                size="large"
+              />
             </Form.Item>
 
             <Form.Item>
@@ -143,20 +257,34 @@ const ResetPassword = () => {
                 block
                 loading={loading}
                 className="btn"
+                size="large"
+                disabled={!passwordStrength?.isValid}
               >
-                Reset Password
+                {loading ? "Resetting..." : "Reset Password"}
               </Button>
             </Form.Item>
           </Form>
+
+          <Button
+            type="link"
+            onClick={handleBackToForgot}
+            className="back-link"
+          >
+            Request a new reset link
+          </Button>
+        </div>
+
+        <div className="bottom-deco">
+          <img
+            src={BottomGraphic}
+            alt="Decorative"
+            loading="lazy"
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
         </div>
       </main>
-      <div className="bottom-deco">
-        <img
-          src={BottomGraphic}
-          alt="Decorative"
-          onError={(e) => (e.target.style.display = "none")}
-        />
-      </div>
     </div>
   );
 };

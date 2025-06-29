@@ -1,53 +1,97 @@
 // src/pages/ForgotPassword.jsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Form, Input, Button, Typography, message } from "antd";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import "../styles/Login.scss"; // reuse login styles
-import BottomGraphic from "../assets/bottom_deco.png"; // optional bottom graphic
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { authAPI } from "../services/authService";
+import { getBrandFromHostname, validateEmail } from "../utils/helpers";
+import "../styles/Login.scss";
+import BottomGraphic from "../assets/bottom_deco.png";
+
 const { Title, Paragraph } = Typography;
 
 const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [form] = Form.useForm();
   const navigate = useNavigate();
-  const brand = useMemo(() => {
-    const host = window.location.hostname.split(".");
-    return host.length > 2 ? host[0] : "YourBrand";
-  }, []);
+  const [searchParams] = useSearchParams();
 
-  const onFinish = async ({ email }) => {
+  // Extract brand name from hostname
+  const brand = useMemo(() => getBrandFromHostname(), []);
+
+  // Get company name from URL params for consistency
+  const companyName = useMemo(() => {
+    const rawCompany = searchParams.get("company");
+    return rawCompany?.trim() || "afftrex";
+  }, [searchParams]);
+
+  // Optimized form submission handler
+  const handleSubmit = useCallback(async (values) => {
+    const { email } = values;
     const normalizedEmail = email.trim().toLowerCase();
-    console.log("[ForgotPassword] Sending reset request for:", normalizedEmail);
+
+    // Client-side validation
+    if (!validateEmail(normalizedEmail)) {
+      message.error("Please enter a valid email address");
+      return;
+    }
+
     setLoading(true);
+    
     try {
-      const response = await axios.post(
-        "https://afftrex.onrender.com/api/common/auth/forgot-password",
-        { email: normalizedEmail },
-        { headers: { "Content-Type": "application/json" }, timeout: 30000 }
-      );
-      console.log("[ForgotPassword] Success response:", response.data);
-      message.success(
-        "If that email is registered, you’ll receive a reset link shortly."
-      );
-    } catch (err) {
-      console.error("[ForgotPassword] Error response:", err);
-      const msg =
-        err.response?.data?.message ||
-        (err.code === "ECONNABORTED"
-          ? "Request timed out."
-          : err.code === "ERR_NETWORK"
-          ? "Network error."
-          : "Something went wrong.");
-      message.error(msg);
+      const payload = {
+        email: normalizedEmail,
+        subdomain: companyName,
+      };
+
+      console.log("[ForgotPassword] Sending reset request:", { 
+        email: normalizedEmail, 
+        subdomain: companyName 
+      });
+
+      await authAPI.forgotPassword(payload);
+      
+      setEmailSent(true);
+      message.success({
+        content: "Reset link sent! Check your email and spam folder.",
+        duration: 6,
+      });
+
+      // Clear form after successful submission
+      form.resetFields();
+      
+    } catch (error) {
+      console.error("[ForgotPassword] Error:", error);
+      
+      const errorMessage = error.response?.data?.message || 
+        error.message || 
+        "Failed to send reset email. Please try again.";
+      
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyName, form]);
+
+  // Navigate back to login with preserved query params
+  const handleBackToLogin = useCallback(() => {
+    const queryString = searchParams.toString();
+    const loginPath = queryString ? `/?${queryString}` : "/";
+    navigate(loginPath);
+  }, [navigate, searchParams]);
+
+  // Resend email handler
+  const handleResendEmail = useCallback(() => {
+    setEmailSent(false);
+    const lastEmail = form.getFieldValue('email');
+    if (lastEmail) {
+      handleSubmit({ email: lastEmail });
+    }
+  }, [form, handleSubmit]);
 
   return (
     <div className="login-container">
-      {/* optional left-side hero if you have one in Login */}
-
       <aside className="login-leftside">
         <div className="welcome">
           <h1 className="title">
@@ -55,67 +99,120 @@ const ForgotPassword = () => {
             {brand.charAt(0).toUpperCase() + brand.slice(1)} 👋
           </h1>
           <p className="summary">
-            Access your dashboard at {brand}.<br />
-            Log in to manage your partnerships and track earnings.
+            Secure access to your {brand} dashboard.
+            <br />
+            Reset your password to continue managing partnerships.
           </p>
         </div>
       </aside>
 
       <main className="form-area">
         <div className="form-wrap">
-          <Title level={2} className="title">
-            Forgot Password
+          <Title level={2} className="heading">
+            {emailSent ? "Check Your Email" : "Reset Password"}
           </Title>
-          <Paragraph className="summary">
-            Enter your email, and we’ll send you a link to reset your password.
-          </Paragraph>
+          
+          {emailSent ? (
+            <div className="email-sent-content">
+              <Paragraph className="summary">
+                We've sent a password reset link to your email address.
+                If you don't see it, check your spam folder.
+              </Paragraph>
+              
+              <div className="action-buttons">
+                <Button
+                  type="default"
+                  onClick={handleResendEmail}
+                  loading={loading}
+                  className="btn outline"
+                  style={{ marginBottom: '12px' }}
+                >
+                  Resend Email
+                </Button>
+                
+                <Button
+                  type="link"
+                  onClick={handleBackToLogin}
+                  icon={<ArrowLeftOutlined />}
+                  className="back-link"
+                >
+                  Back to Login
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Paragraph className="summary">
+                Enter your email address and we'll send you a secure link to reset your password.
+              </Paragraph>
 
-          <Form
-            name="forgot"
-            layout="vertical"
-            onFinish={onFinish}
-            requiredMark={false}
-          >
-            <Form.Item
-              label="Email Address"
-              name="email"
-              rules={[
-                { required: true, message: "Email is required" },
-                { type: "email", message: "Please enter a valid email" },
-              ]}
-            >
-              <Input
-                placeholder="you@example.com"
-                autoComplete="email"
-                className="input"
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                loading={loading}
-                className="btn"
+              <Form
+                form={form}
+                name="forgot-password"
+                layout="vertical"
+                onFinish={handleSubmit}
+                requiredMark={false}
+                autoComplete="off"
+                className="form"
               >
-                Send Reset Link
-              </Button>
-            </Form.Item>
-          </Form>
+                <Form.Item
+                  label="Email Address"
+                  name="email"
+                  rules={[
+                    { required: true, message: "Email is required" },
+                    { type: "email", message: "Please enter a valid email address" },
+                    { max: 100, message: "Email is too long" },
+                  ]}
+                  validateTrigger="onBlur"
+                >
+                  <Input
+                    prefix={<MailOutlined />}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    autoCapitalize="none"
+                    spellCheck="false"
+                    className="input"
+                    size="large"
+                  />
+                </Form.Item>
 
-          <Button type="link" onClick={() => navigate("/")} className="link">
-            ← Back to login
-          </Button>
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    block
+                    loading={loading}
+                    className="btn"
+                    size="large"
+                  >
+                    {loading ? "Sending..." : "Send Reset Link"}
+                  </Button>
+                </Form.Item>
+              </Form>
+
+              <Button
+                type="link"
+                onClick={handleBackToLogin}
+                icon={<ArrowLeftOutlined />}
+                className="back-link"
+              >
+                Back to Login
+              </Button>
+            </>
+          )}
+        </div>
+
+        <div className="bottom-deco">
+          <img
+            src={BottomGraphic}
+            alt="Decorative"
+            loading="lazy"
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
         </div>
       </main>
-      <div className="bottom-deco">
-        <img
-          src={BottomGraphic}
-          alt="Decorative"
-          onError={(e) => (e.target.style.display = "none")}
-        />
-      </div>
     </div>
   );
 };
