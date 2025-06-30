@@ -188,11 +188,12 @@ $dark-gradient: linear-gradient(135deg, #050a2c, #0a1a4e);
 
         .ant-pagination-item {
           border-radius: 4px;
+          color: #050a2c;
         }
 
         .ant-pagination-item-active {
-          background: $primary-color;
-          border-color: $primary-color;
+        color: #050a2c;
+          border-color: black;
         }
       }
     }

@@ -4,6 +4,8 @@ import CampaignHeader from "../components/campaign/CampaignHeader";
 import CampaignTable from "../components/campaign/CampaignTable";
 import SearchModal from "../components/campaign/SearchModal";
 import ColumnSettings from "../components/campaign/ColumnSettings";
+import CampaignModal from "../components/campaign/CampaignModal";
+import CampaignViewModal from "../components/campaign/CampaignViewModal";
 import { columnOptions, baseColumns } from "../data/campaignData";
 import apiClient from "../services/apiServices";
 import "../styles/CampaignManagement.scss";
@@ -14,6 +16,9 @@ const CampaignManagement = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+const [selectedCampaign, setSelectedCampaign] = useState(null);
+const [editModalVisible, setEditModalVisible] = useState(false);
 
   const defaultVisibleColumns = {
     id: true,
@@ -44,9 +49,9 @@ const CampaignManagement = () => {
   const [visibleColumns, setVisibleColumns] = useState(defaultVisibleColumns);
 
   // Create allColumns with enhanced render functions for API data structure
-  const allColumns = baseColumns.map(column => {
+  const allColumns = baseColumns.map((column) => {
     // Status column with campaignStatus field
-    if (column.key === 'status') {
+    if (column.key === "status") {
       return {
         ...column,
         render: (status) => (
@@ -60,147 +65,155 @@ const CampaignManagement = () => {
             }
             className="status-tag"
           >
-            {status ? status.toUpperCase() : 'N/A'}
+            {status ? status.toUpperCase() : "N/A"}
           </Tag>
         ),
       };
     }
-    
+
     // Title column
-    if (column.key === 'title') {
+    if (column.key === "title") {
       return {
         ...column,
-        render: (text) => <span className="campaign-title">{text || 'N/A'}</span>,
+        render: (text) => (
+          <span className="campaign-title">{text || "N/A"}</span>
+        ),
       };
     }
 
     // Visibility column
-    if (column.key === 'visibility') {
+    if (column.key === "visibility") {
       return {
         ...column,
         render: (visibility) => (
           <Tag color={visibility === "private" ? "red" : "blue"}>
-            {visibility ? visibility.toUpperCase() : 'N/A'}
+            {visibility ? visibility.toUpperCase() : "N/A"}
           </Tag>
         ),
       };
     }
 
     // Category column - handle array
-    if (column.key === 'category') {
+    if (column.key === "category") {
       return {
         ...column,
         render: (categories) => {
           if (Array.isArray(categories)) {
             return categories.map((cat, index) => (
-              <Tag key={index} color="blue">{cat}</Tag>
+              <Tag key={index} color="blue">
+                {cat}
+              </Tag>
             ));
           }
-          return categories ? <Tag color="blue">{categories}</Tag> : 'N/A';
+          return categories ? <Tag color="blue">{categories}</Tag> : "N/A";
         },
       };
     }
 
     // Geo column - handle array
-    if (column.key === 'geo') {
+    if (column.key === "geo") {
       return {
         ...column,
         render: (geoCoverage) => {
           if (Array.isArray(geoCoverage)) {
-            return geoCoverage.join(', ');
+            return geoCoverage.join(", ");
           }
-          return geoCoverage || 'N/A';
+          return geoCoverage || "N/A";
         },
       };
     }
 
     // Device column - handle array
-    if (column.key === 'device') {
+    if (column.key === "device") {
       return {
         ...column,
         render: (devices) => {
           if (Array.isArray(devices)) {
             return devices.map((device, index) => (
-              <Tag key={index} color="cyan">{device}</Tag>
+              <Tag key={index} color="cyan">
+                {device}
+              </Tag>
             ));
           }
-          return devices ? <Tag color="cyan">{devices}</Tag> : 'N/A';
+          return devices ? <Tag color="cyan">{devices}</Tag> : "N/A";
         },
       };
     }
 
     // Operating System column - handle array
-    if (column.key === 'operatingSystem') {
+    if (column.key === "operatingSystem") {
       return {
         ...column,
         render: (os) => {
           if (Array.isArray(os)) {
             return os.map((system, index) => (
-              <Tag key={index} color="purple">{system}</Tag>
+              <Tag key={index} color="purple">
+                {system}
+              </Tag>
             ));
           }
-          return os ? <Tag color="purple">{os}</Tag> : 'N/A';
+          return os ? <Tag color="purple">{os}</Tag> : "N/A";
         },
       };
     }
 
     // Payout column with currency formatting
-    if (column.key === 'payout') {
+    if (column.key === "payout") {
       return {
         ...column,
         render: (payout, record) => {
-          const currency = record.currency || 'USD';
-          return payout ? `${payout} ${currency}` : 'N/A';
+          const currency = record.currency || "USD";
+          return payout ? `${payout} ${currency}` : "N/A";
         },
       };
     }
 
     // Revenue column with currency formatting
-    if (column.key === 'revenue') {
+    if (column.key === "revenue") {
       return {
         ...column,
         render: (revenue, record) => {
-          const currency = record.currency || 'USD';
-          return revenue ? `${revenue} ${currency}` : 'N/A';
+          const currency = record.currency || "USD";
+          return revenue ? `${revenue} ${currency}` : "N/A";
         },
       };
     }
 
     // Created Date formatting
-    if (column.key === 'createdDate') {
+    if (column.key === "createdDate") {
       return {
         ...column,
         render: (date) => {
           if (date) {
             return new Date(date).toLocaleDateString();
           }
-          return 'N/A';
+          return "N/A";
         },
       };
     }
 
     // Start Date formatting
-    if (column.key === 'startDate') {
+    if (column.key === "startDate") {
       return {
         ...column,
         render: (date) => {
           if (date) {
             return new Date(date).toLocaleDateString();
           }
-          return 'N/A';
+          return "N/A";
         },
       };
     }
 
     // End Date formatting
-    if (column.key === 'expiryDate') {
+    if (column.key === "expiryDate") {
       return {
         ...column,
         render: (date) => {
           if (date) {
             return new Date(date).toLocaleDateString();
           }
-          return 'N/A';
+          return "N/A";
         },
       };
     }
@@ -208,7 +221,7 @@ const CampaignManagement = () => {
     // Default render for other columns
     return {
       ...column,
-      render: (value) => value || 'N/A',
+      render: (value) => value || "N/A",
     };
   });
 
@@ -216,30 +229,35 @@ const CampaignManagement = () => {
   const fetchCampaigns = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.post('/admin/campaign/list', {
+      const response = await apiClient.post("/admin/campaign/list", {
         // Add any required parameters here
       });
-      
-      console.log('API Response:', response.data);
-      
+
+      console.log("API Response:", response.data);
+
       if (response.data && response.data.success) {
-        const campaignData = response.data.data || response.data.campaigns || [];
-        console.log('Campaign Data:', campaignData);
-        
+        const campaignData =
+          response.data.data || response.data.campaigns || [];
+        console.log("Campaign Data:", campaignData);
+
         // Ensure each campaign has a unique key for the table
-        const campaignsWithKeys = campaignData.map(campaign => ({
+        const campaignsWithKeys = campaignData.map((campaign) => ({
           ...campaign,
-          key: campaign.id || Math.random().toString(36).substr(2, 9)
+          key: campaign.id || Math.random().toString(36).substr(2, 9),
         }));
-        
+
         setCampaigns(campaignsWithKeys);
-        message.success(`${campaignsWithKeys.length} campaigns loaded successfully!`);
+        message.success(
+          `${campaignsWithKeys.length} campaigns loaded successfully!`
+        );
       } else {
-        throw new Error(response.data?.message || 'Failed to fetch campaigns');
+        throw new Error(response.data?.message || "Failed to fetch campaigns");
       }
     } catch (error) {
-      console.error('Error fetching campaigns:', error);
-      message.error(error.response?.data?.message || 'Failed to load campaigns');
+      console.error("Error fetching campaigns:", error);
+      message.error(
+        error.response?.data?.message || "Failed to load campaigns"
+      );
       setCampaigns([]); // Set empty array on error
     } finally {
       setLoading(false);
@@ -259,33 +277,43 @@ const CampaignManagement = () => {
     try {
       // Clean up search parameters
       const searchParams = Object.keys(values).reduce((acc, key) => {
-        if (values[key] !== undefined && values[key] !== null && values[key] !== '') {
+        if (
+          values[key] !== undefined &&
+          values[key] !== null &&
+          values[key] !== ""
+        ) {
           acc[key] = values[key];
         }
         return acc;
       }, {});
-      
-      console.log('Search params:', searchParams);
-      
-      const response = await apiClient.post('/admin/campaign/list', searchParams);
-      
-      console.log('Search response:', response.data);
-      
+
+      console.log("Search params:", searchParams);
+
+      const response = await apiClient.post(
+        "/admin/campaign/list",
+        searchParams
+      );
+
+      console.log("Search response:", response.data);
+
       if (response.data && response.data.success) {
-        const campaignData = response.data.data || response.data.campaigns || [];
-        const campaignsWithKeys = campaignData.map(campaign => ({
+        const campaignData =
+          response.data.data || response.data.campaigns || [];
+        const campaignsWithKeys = campaignData.map((campaign) => ({
           ...campaign,
-          key: campaign.id || Math.random().toString(36).substr(2, 9)
+          key: campaign.id || Math.random().toString(36).substr(2, 9),
         }));
-        
+
         setCampaigns(campaignsWithKeys);
-        message.success(`Search completed! Found ${campaignsWithKeys.length} campaigns.`);
+        message.success(
+          `Search completed! Found ${campaignsWithKeys.length} campaigns.`
+        );
       } else {
-        throw new Error(response.data?.message || 'Search failed');
+        throw new Error(response.data?.message || "Search failed");
       }
     } catch (error) {
-      console.error('Search error:', error);
-      message.error(error.response?.data?.message || 'Search failed');
+      console.error("Search error:", error);
+      message.error(error.response?.data?.message || "Search failed");
     } finally {
       setLoading(false);
       setSearchVisible(false);
@@ -294,35 +322,41 @@ const CampaignManagement = () => {
 
   const handleExport = () => {
     if (campaigns.length === 0) {
-      message.warning('No data to export');
+      message.warning("No data to export");
       return;
     }
 
     const headers = visibleTableColumns.map((col) => col.title).join(",");
     const rows = campaigns.map((campaign) =>
-      visibleTableColumns.map((col) => {
-        let value = '';
-        if (col.dataIndex && Array.isArray(col.dataIndex)) {
-          // Handle nested properties like ['company', 'name']
-          value = col.dataIndex.reduce((obj, key) => obj?.[key], campaign) || '';
-        } else if (col.dataIndex) {
-          value = campaign[col.dataIndex] || '';
-        }
-        
-        // Handle arrays
-        if (Array.isArray(value)) {
-          value = value.join('; ');
-        }
-        
-        // Escape commas and quotes for CSV
-        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-          value = `"${value.replace(/"/g, '""')}"`;
-        }
-        
-        return value;
-      }).join(",")
+      visibleTableColumns
+        .map((col) => {
+          let value = "";
+          if (col.dataIndex && Array.isArray(col.dataIndex)) {
+            // Handle nested properties like ['company', 'name']
+            value =
+              col.dataIndex.reduce((obj, key) => obj?.[key], campaign) || "";
+          } else if (col.dataIndex) {
+            value = campaign[col.dataIndex] || "";
+          }
+
+          // Handle arrays
+          if (Array.isArray(value)) {
+            value = value.join("; ");
+          }
+
+          // Escape commas and quotes for CSV
+          if (
+            typeof value === "string" &&
+            (value.includes(",") || value.includes('"'))
+          ) {
+            value = `"${value.replace(/"/g, '""')}"`;
+          }
+
+          return value;
+        })
+        .join(",")
     );
-    
+
     const csvContent = [headers, ...rows].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -369,6 +403,62 @@ const CampaignManagement = () => {
     onChange: setSelectedRowKeys,
   };
 
+  const handleView = (campaign) => {
+  setSelectedCampaign(campaign);
+  setViewModalVisible(true);
+};
+
+const handleEdit = (campaign) => {
+  setSelectedCampaign(campaign);
+  setEditModalVisible(true);
+};
+
+const handleDelete = (campaignId) => {
+  // Your delete logic here
+  console.log('Delete campaign:', campaignId);
+};
+
+// API function for updating campaign status
+const updateCampaignStatus = async (campaignId, newStatus) => {
+  try {
+    const response = await apiClient.patch(`/admin/campaign/${campaignId}/status`, {
+      status: newStatus
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Usage in your CampaignManagement component
+const handleStatusChange = async (campaignId, newStatus) => {
+  try {
+    setLoading(true);
+    
+    const response = await updateCampaignStatus(campaignId, newStatus);
+    
+    if (response.success) {
+      // Update the campaigns state to reflect the change
+      setCampaigns(prevCampaigns => 
+        prevCampaigns.map(campaign => 
+          campaign.id === campaignId 
+            ? { ...campaign, status: newStatus }
+            : campaign
+        )
+      );
+      
+      message.success(`Campaign status updated to ${newStatus.toUpperCase()}`);
+    } else {
+      throw new Error(response.message || 'Failed to update status');
+    }
+  } catch (error) {
+    console.error('Error updating campaign status:', error);
+    message.error(error.response?.data?.message || 'Failed to update campaign status');
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
     <div className="campaign-management">
       <CampaignHeader
@@ -384,6 +474,30 @@ const CampaignManagement = () => {
           columns={visibleTableColumns}
           loading={loading}
           rowSelection={rowSelection}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+          onStatusChange={handleStatusChange}
+        />
+       
+        <CampaignViewModal
+          visible={viewModalVisible}
+          onClose={() => {
+            setViewModalVisible(false);
+            setSelectedCampaign(null);
+          }}
+          campaignData={selectedCampaign}
+        />
+        <CampaignModal
+          visible={editModalVisible}
+          onClose={() => {
+            setEditModalVisible(false);
+            setSelectedCampaign(null);
+          }}
+        
+          loading={loading}
+          editData={selectedCampaign}
+          isEdit={true}
         />
       </Card>
 

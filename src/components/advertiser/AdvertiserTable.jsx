@@ -1,52 +1,71 @@
 // src/components/advertiser/AdvertiserTable.jsx
 import React from "react";
 import { Table, Button, Space, Popconfirm, Dropdown, Menu } from "antd";
-import { 
-  EditOutlined, 
-  DeleteOutlined, 
-  EyeOutlined, 
+import {
+  EditOutlined,
+  DeleteOutlined,
+  EyeOutlined,
   MoreOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   PauseCircleOutlined,
   StopOutlined,
   ExclamationCircleOutlined,
-  SwapOutlined
+  SwapOutlined,
 } from "@ant-design/icons";
 
-const AdvertiserTable = ({ 
-  advertisers, 
-  columns, 
-  loading, 
-  rowSelection, 
-  onEdit, 
-  onDelete, 
-  onView, 
-  onStatusChange 
+const AdvertiserTable = ({
+  advertisers,
+  columns,
+  loading,
+  rowSelection,
+  onEdit,
+  onDelete,
+  onView,
+  onStatusChange,
 }) => {
-  
   const getStatusMenuItems = (record) => {
     const currentStatus = record.status;
     const statusOptions = [
-      { key: 'Active', label: 'Active', icon: <CheckCircleOutlined />, color: 'green' },
-      { key: 'Inactive', label: 'Inactive', icon: <CloseCircleOutlined />, color: 'red' },
-      { key: 'Pending', label: 'Pending', icon: <ExclamationCircleOutlined />, color: 'orange' },
-      { key: 'Suspended', label: 'Suspended', icon: <PauseCircleOutlined />, color: 'purple' },
-      { key: 'Disabled', label: 'Disabled', icon: <StopOutlined />, color: 'gray' },
-      { key: 'Rejected', label: 'Rejected', icon: <CloseCircleOutlined />, color: 'red' },
-      { key: 'Banned', label: 'Banned', icon: <StopOutlined />, color: 'red' }
+      {
+        key: "Active",
+        label: "Active",
+        icon: <CheckCircleOutlined />,
+        color: "green",
+      },
+
+      {
+        key: "Pending",
+        label: "Pending",
+        icon: <ExclamationCircleOutlined />,
+        color: "orange",
+      },
+
+      {
+        key: "Disabled",
+        label: "Disabled",
+        icon: <StopOutlined />,
+        color: "gray",
+      },
+      {
+        key: "Rejected",
+        label: "Rejected",
+        icon: <CloseCircleOutlined />,
+        color: "red",
+      },
+      { key: "Banned", label: "Banned", icon: <StopOutlined />, color: "red" },
     ];
 
     return statusOptions
-      .filter(option => option.key !== currentStatus)
-      .map(option => ({
+      .filter((option) => option.key !== currentStatus)
+      .map((option) => ({
         key: option.key,
         label: (
           <span style={{ color: option.color }}>
             {option.icon} {option.label}
           </span>
         ),
-        onClick: () => onStatusChange(record.id, option.key)
+        onClick: () => onStatusChange(record.id, option.key),
       }));
   };
 
@@ -115,17 +134,17 @@ const AdvertiserTable = ({
       return (
         <Dropdown
           overlay={actionMenu}
-          trigger={['click']}
+          trigger={["click"]}
           placement="bottomRight"
         >
           <Button
             type="text"
             icon={<MoreOutlined />}
             size="small"
-            style={{ 
-              padding: '4px 8px',
+            style={{
+              padding: "4px 8px",
               border: "1px solid #d9d9d9",
-              borderRadius: "6px"
+              borderRadius: "6px",
             }}
           />
         </Dropdown>

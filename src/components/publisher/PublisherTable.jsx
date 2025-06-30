@@ -39,18 +39,8 @@ const PublisherTable = ({
         icon: <ExclamationCircleOutlined />,
         color: "orange",
       },
-      {
-        key: "Inactive",
-        label: "Inactive",
-        icon: <PauseCircleOutlined />,
-        color: "gray",
-      },
-      {
-        key: "Suspended",
-        label: "Suspended",
-        icon: <PauseCircleOutlined />,
-        color: "orange",
-      },
+ 
+    
       {
         key: "Disabled",
         label: "Disabled",

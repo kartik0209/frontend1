@@ -211,10 +211,12 @@ const PublisherManagement = () => {
 
   const handleStatusChange = async (publisherId, newStatus) => {
     try {
+      console.log('Changing status for publisher:', publisherId, 'to', newStatus);
       setLoading(true);
-      const response = await apiClient.put(`/common/publisher/${publisherId}/status`, {
+      const response = await apiClient.patch(`/common/publisher/${publisherId}/status`, {
         status: newStatus
       });
+      console.log('Status change response:', response);
       
       if (response.data && response.data.success) {
         message.success(`Publisher status updated to ${newStatus}!`);

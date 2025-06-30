@@ -201,10 +201,10 @@ const AdvertiserManagement = () => {
   const handleStatusChange = async (advertiserId, newStatus) => {
     try {
       setLoading(true);
-      const response = await apiClient.put(`/common/advertiser/${advertiserId}/status`, {
+      const response = await apiClient.patch(`/common/advertiser/${advertiserId}/status`, {
         status: newStatus
       });
-      
+      console.log('Status change response:', response);
       if (response.data && response.data.success) {
         message.success(`Advertiser status updated to ${newStatus}!`);
         fetchAdvertisers(); // Refresh the list
@@ -223,9 +223,16 @@ const AdvertiserManagement = () => {
     try {
       setLoading(true);
       let response;
+ // Add detailed logging
+    console.log('Submitting advertiser:', values);
+    console.log('Is edit mode:', isEditMode);
+    console.log('Editing advertiser:', editingAdvertiser);
+    console.log('Advertiser ID:', editingAdvertiser?.id);
+    
       
       if (isEditMode && editingAdvertiser) {
         response = await apiClient.put(`/common/advertiser/${editingAdvertiser.id}`, values);
+        console.log('Advertiser update response:', response);
       } else {
         response = await apiClient.post('/common/advertiser', values);
       }
