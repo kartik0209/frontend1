@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Card, message, Tag } from "antd";
+import { Card, Tag } from "antd";
 import PublisherHeader from "../components/publisher/PublisherHeader";
 import PublisherTable from "../components/publisher/PublisherTable";
 import PublisherSearchModal from "../components/publisher/PublisherSearchModal";
 import PublisherColumnSettings from "../components/publisher/PublisherColumnSettings";
 import PublisherModal from "../components/publisher/PublisherModal";
 import PublisherViewModal from "../components/publisher/PublisherViewModal";
+import SuccessModal from "../components/model/SuccessModal";
+import FailModal from "../components/model/FailModal";
 import { columnOptions, baseColumns } from "../data/publisherData";
 import apiClient from "../services/apiServices";
 import "../styles/PublisherManagement.scss";
+import TableSkeleton from "../components/skeletons/TableSkeleton";
+import ConfirmModal from "../components/model/ConfirmModal";
 
 const PublisherManagement = () => {
   const [searchVisible, setSearchVisible] = useState(false);
@@ -21,6 +25,18 @@ const PublisherManagement = () => {
   const [editingPublisher, setEditingPublisher] = useState(null);
   const [viewingPublisher, setViewingPublisher] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Success and Fail modal states
+  const [successModal, setSuccessModal] = useState({
+    open: false,
+    title: '',
+    message: ''
+  });
+  const [failModal, setFailModal] = useState({
+    open: false,
+    title: '',
+    message: ''
+  });
 
   const defaultVisibleColumns = {
     id: true,
@@ -45,6 +61,62 @@ const PublisherManagement = () => {
   };
 
   const [visibleColumns, setVisibleColumns] = useState(defaultVisibleColumns);
+
+  // Helper functions for modals
+  const showSuccessModal = (title, message) => {
+    setSuccessModal({
+      open: true,
+      title,
+      message
+    });
+  };
+
+  const showFailModal = (title, message) => {
+    setFailModal({
+      open: true,
+      title,
+      message
+    });
+  };
+
+  const closeSuccessModal = () => {
+    setSuccessModal({
+      open: false,
+      title: '',
+      message: ''
+    });
+  };
+
+  const closeFailModal = () => {
+    setFailModal({
+      open: false,
+      title: '',
+      message: ''
+    });
+  };
+  const [confirmModal, setConfirmModal] = useState({
+  open: false,
+  title: '',
+  message: '',
+  onConfirm: null,
+  danger: false
+});
+
+// Add this helper function with other modal helper functions
+const showConfirm = (title, message, onConfirm, danger = false) => {
+  setConfirmModal({
+    open: true,
+    title,
+    message,
+    onConfirm,
+    danger
+  });
+};
+
+const closeConfirmModal = () => {
+  setConfirmModal(prev => ({ ...prev, open: false, onConfirm: null }));
+};
+
 
   // Create allColumns with render functions
   const allColumns = baseColumns.map(column => {
@@ -120,13 +192,13 @@ const PublisherManagement = () => {
       
       if (response.data && response.data.success) {
         setPublishers(response.data.data || response.data.publishers || []);
-        message.success('Publishers loaded successfully!');
+      //  showSuccessModal('Data Loaded', 'Publishers Added successfully!');
       } else {
         throw new Error(response.data?.message || 'Failed to fetch publishers');
       }
     } catch (error) {
       console.error('Error fetching publishers:', error);
-      message.error(error.response?.data?.message || 'Failed to load publishers');
+      showFailModal('Load Failed', error.response?.data?.message || 'Failed to load publishers');
       setPublishers([]); // Set empty array on error
     } finally {
       setLoading(false);
@@ -160,13 +232,13 @@ const PublisherManagement = () => {
              
       if (response.data && response.data.success) {
         setPublishers(response.data.data || response.data.publishers || []);
-        message.success("Search completed successfully!");
+        showSuccessModal('Search Complete', 'Search completed successfully!');
       } else {
         throw new Error(response.data?.message || 'Search failed');
       }
     } catch (error) {
       console.error('Search error:', error);
-      message.error(error.response?.data?.message || 'Search failed');
+      showFailModal('Search Failed', error.response?.data?.message || 'Search failed');
     } finally {
       setLoading(false);
       setSearchVisible(false);
@@ -190,24 +262,32 @@ const PublisherManagement = () => {
     setViewModalVisible(true);
   };
 
-  const handleDeletePublisher = async (publisherId) => {
-    try {
-      setLoading(true);
-      const response = await apiClient.delete(`/common/publisher/${publisherId}`);
-      
-      if (response.data && response.data.success) {
-        message.success('Publisher deleted successfully!');
-        fetchPublishers(); // Refresh the list
-      } else {
-        throw new Error(response.data?.message || 'Failed to delete publisher');
+ const handleDeletePublisher = async (publisherId) => {
+  showConfirm(
+    'Delete Publisher',
+    'Are you sure you want to delete this publisher? This action cannot be undone.',
+    async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.delete(`/common/publisher/${publisherId}`);
+        
+        if (response.data && response.data.success) {
+          showSuccessModal('Publisher Deleted', 'Publisher deleted successfully!');
+          fetchPublishers(); // Refresh the list
+        } else {
+          throw new Error(response.data?.message || 'Failed to delete publisher');
+        }
+      } catch (error) {
+        console.error('Error deleting publisher:', error);
+        showFailModal('Delete Failed', error.response?.data?.message || 'Failed to delete publisher');
+      } finally {
+        setLoading(false);
+        closeConfirmModal();
       }
-    } catch (error) {
-      console.error('Error deleting publisher:', error);
-      message.error(error.response?.data?.message || 'Failed to delete publisher');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    true // danger = true for delete action
+  );
+};
 
   const handleStatusChange = async (publisherId, newStatus) => {
     try {
@@ -219,14 +299,14 @@ const PublisherManagement = () => {
       console.log('Status change response:', response);
       
       if (response.data && response.data.success) {
-        message.success(`Publisher status updated to ${newStatus}!`);
+        showSuccessModal('Status Updated', `Publisher status updated to ${newStatus}!`);
         fetchPublishers(); // Refresh the list
       } else {
         throw new Error(response.data?.message || 'Failed to update status');
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      message.error(error.response?.data?.message || 'Failed to update status');
+      showFailModal('Status Update Failed', error.response?.data?.message || 'Failed to update status');
     } finally {
       setLoading(false);
     }
@@ -245,7 +325,10 @@ const PublisherManagement = () => {
       console.log('Publisher submit response:', response);
       
       if (response.data && response.data.success) {
-        message.success(`Publisher ${isEditMode ? 'updated' : 'created'} successfully!`);
+        showSuccessModal(
+          `Publisher ${isEditMode ? 'Updated' : 'Created'}`, 
+          `Publisher ${isEditMode ? 'updated' : 'created'} successfully!`
+        );
         setPublisherModalVisible(false);
         fetchPublishers(); // Refresh the list
       } else {
@@ -253,46 +336,54 @@ const PublisherManagement = () => {
       }
     } catch (error) {
       console.error('Error submitting publisher:', error);
-      message.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} publisher`);
+      showFailModal(
+        `Publisher ${isEditMode ? 'Update' : 'Creation'} Failed`,
+        error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} publisher`
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleExport = () => {
-    const headers = visibleTableColumns.map((col) => col.title).join(",");
-    const rows = publishers.map((publisher) =>
-      visibleTableColumns.map((col) => {
-        const value = publisher[col.dataIndex];
-        // Handle special cases for export
-        if (col.key === 'status' || col.key === 'entity_type') {
+    try {
+      const headers = visibleTableColumns.map((col) => col.title).join(",");
+      const rows = publishers.map((publisher) =>
+        visibleTableColumns.map((col) => {
+          const value = publisher[col.dataIndex];
+          // Handle special cases for export
+          if (col.key === 'status' || col.key === 'entity_type') {
+            return value || "";
+          }
+          if (col.key === 'notify_by_email') {
+            return value ? "Yes" : "No";
+          }
+          if (col.key === 'created_at' || col.key === 'updated_at') {
+            return value ? new Date(value).toLocaleDateString() : "";
+          }
           return value || "";
-        }
-        if (col.key === 'notify_by_email') {
-          return value ? "Yes" : "No";
-        }
-        if (col.key === 'created_at' || col.key === 'updated_at') {
-          return value ? new Date(value).toLocaleDateString() : "";
-        }
-        return value || "";
-      }).join(",")
-    );
-    const csvContent = [headers, ...rows].join("\n");
+        }).join(",")
+      );
+      const csvContent = [headers, ...rows].join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `publishers_${new Date().toISOString().split("T")[0]}.csv`
-    );
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `publishers_${new Date().toISOString().split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-    message.success("Publisher data exported successfully!");
+      showSuccessModal('Export Complete', 'Publisher data exported successfully!');
+    } catch (error) {
+      console.error('Export error:', error);
+      showFailModal('Export Failed', 'Failed to export publisher data');
+    }
   };
 
   const handleColumnChange = (columnKey, checked) => {
@@ -334,6 +425,7 @@ const PublisherManagement = () => {
       />
 
       <Card className="publisher-table-card">
+      {loading ? <TableSkeleton/>:
         <PublisherTable
           publishers={publishers}
           columns={visibleTableColumns}
@@ -343,7 +435,7 @@ const PublisherManagement = () => {
           onDelete={handleDeletePublisher}
           onView={handleViewPublisher}
           onStatusChange={handleStatusChange}
-        />
+        />}
       </Card>
 
       <PublisherSearchModal
@@ -377,6 +469,33 @@ const PublisherManagement = () => {
         onClose={() => setViewModalVisible(false)}
         publisherData={viewingPublisher}
       />
+
+      {/* Success Modal */}
+      <SuccessModal
+        open={successModal.open}
+        title={successModal.title}
+        message={successModal.message}
+        onClose={closeSuccessModal}
+      />
+
+      {/* Fail Modal */}
+      <FailModal
+        open={failModal.open}
+        title={failModal.title}
+        message={failModal.message}
+        onOk={closeFailModal}
+      />
+
+      <ConfirmModal
+  open={confirmModal.open}
+  title={confirmModal.title}
+  message={confirmModal.message}
+  onConfirm={confirmModal.onConfirm}
+  onCancel={closeConfirmModal}
+  confirmText="Yes, Delete"
+  cancelText="Cancel"
+  danger={confirmModal.danger}
+/>
     </div>
   );
 };

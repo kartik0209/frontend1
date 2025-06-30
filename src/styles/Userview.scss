@@ -1,0 +1,93 @@
+.user-view-modal {
+    .ant-modal-content {
+        border-radius: 10px;
+        padding: 0;
+    }
+
+    .user-modal__profile {
+        background: #f5f7fa;
+        padding: 24px 32px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .user-modal__profile-container {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .user-modal__profile-avatar {
+        background: #e6f7ff;
+        color: #1890ff;
+        font-size: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .user-modal__profile-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .user-modal__profile-name {
+        margin-bottom: 0;
+    }
+
+    .user-modal__profile-email {
+        font-size: 14px;
+    }
+
+    .user-modal__descriptions {
+        margin: 24px 32px;
+        background: #fff;
+        border-radius: 6px;
+        padding: 16px 0;
+
+        .ant-descriptions-item-label {
+            font-weight: 500;
+        }
+        .ant-descriptions-item-content {
+            font-size: 15px;
+        }
+    }
+
+    .user-modal__role-tag {
+        font-size: 13px;
+        text-transform: capitalize;
+        padding: 0 10px;
+    }
+
+    .user-modal__date-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .user-modal__date-detail {
+        font-size: 12px;
+    }
+
+    .user-modal__additional-info {
+        margin: 24px 32px 16px 32px;
+        background: #fafbfc;
+        border-radius: 6px;
+        padding: 16px;
+    }
+
+    .user-modal__additional-info-title {
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .user-modal__additional-info-content {
+        width: 100%;
+    }
+
+    .user-modal__info-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+    }
+}

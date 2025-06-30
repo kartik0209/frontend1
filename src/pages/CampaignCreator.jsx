@@ -20,6 +20,10 @@ import {
 import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
 import "../styles/CampaignCreator.scss";
 import apiclient from "../services/apiServices"
+import SuccessModal from "../components/model/SuccessModal";
+import FailModal from "../components/model/FailModal";
+import { set } from "zod";
+
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -39,6 +43,49 @@ const CampaignForm = () => {
   const [deepLink, setDeepLink] = useState(true);
   const [languages, setLanguages] = useState(["English"]);
   const [loading, setLoading] = useState(false);
+  const [enableSchedule, setEnableSchedule] = useState(false);
+  const [successModal, setSuccessModal] = useState({
+    open: false,
+    title: '',
+    message: ''
+  });
+  const [failModal, setFailModal] = useState({
+    open: false,
+    title: '',
+    message: ''
+  });
+ const showSuccessModal = (title, message) => {
+    setSuccessModal({
+      open: true,
+      title,
+      message
+    });
+  };
+
+  const showFailModal = (title, message) => {
+    setFailModal({
+      open: true,
+      title,
+      message
+    });
+  };
+
+  const closeSuccessModal = () => {
+    setSuccessModal({
+      open: false,
+      title: '',
+      message: ''
+    });
+  };
+
+  const closeFailModal = () => {
+    setFailModal({
+      open: false,
+      title: '',
+      message: ''
+    });
+  };
+
 
   const objectiveOptions = [
     {
@@ -196,6 +243,7 @@ const handleFinish = async (values) => {
       setEnableTimeTargeting(false);
       setDuplicateClickAction(false);
       setEnableScheduleStatus(false);
+      setSuccessModal("Campaign Created", "Campaign created successfully!");
       setDeepLink(false);
       setRequireTerms(false);
     } else {
@@ -205,6 +253,7 @@ const handleFinish = async (values) => {
     console.error("API Error:", error);
     console.error("Response data:", error.response?.data);
     console.error("Response status:", error.response?.status);
+    setFailModal("Error Creating Campaign", "There was an error creating the campaign. Please check the details and try again.");
     
     // Better error handling
     let errorMessage = "Error creating campaign";
@@ -222,7 +271,7 @@ const handleFinish = async (values) => {
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
+    setFailModal("Error Creating Campaign", errorMessage);
     message.error(errorMessage);
   } finally {
     setLoading(false);
@@ -769,6 +818,21 @@ const handleFinish = async (values) => {
           </Form.Item>
         </Form>
       </Card>
+       {/* Success Modal */}
+      <SuccessModal
+        open={successModal.open}
+        title={successModal.title}
+        message={successModal.message}
+        onClose={closeSuccessModal}
+      />
+
+      {/* Fail Modal */}
+      <FailModal
+        open={failModal.open}
+        title={failModal.title}
+        message={failModal.message}
+        onOk={closeFailModal}
+      />
     </div>
   );
 };

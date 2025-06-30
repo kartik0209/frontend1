@@ -13,7 +13,7 @@ const SuccessModal = ({ open, title, message, onClose }) => {
     if (open) {
       timer = setTimeout(() => {
         onClose();
-      }, 3000); // 3000ms = 3 seconds
+      }, 4000); // 3000ms = 3 seconds
     }
     return () => {
       if (timer) clearTimeout(timer);

@@ -1,6 +1,6 @@
 // src/components/advertiser/AdvertiserTable.jsx
 import React from "react";
-import { Table, Button, Space, Popconfirm, Dropdown, Menu } from "antd";
+import { Table, Button,  Dropdown, Menu } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -106,19 +106,11 @@ const AdvertiserTable = ({
       {
         key: "delete",
         label: (
-          <Popconfirm
-            title="Are you sure you want to delete this advertiser?"
-            description="This action cannot be undone."
-            onConfirm={() => onDelete(record.id)}
-            okText="Yes, Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
-            <span style={{ color: "red" }}>
-              <DeleteOutlined /> Delete Advertiser
-            </span>
-          </Popconfirm>
+          <span style={{ color: "red" }}>
+            <DeleteOutlined /> Delete Advertiser
+          </span>
         ),
+        onClick: () => onDelete(record.id),
       },
     ];
   };

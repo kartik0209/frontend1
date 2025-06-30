@@ -1,4 +1,4 @@
-// src/pages/Users.jsx
+
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -30,6 +30,10 @@ import {
 } from "@ant-design/icons";
 import apiClient from "../services/apiServices";
 import AddUserForm from "../components/user/AddUserForm";
+import UserViewModal from "../components/user/UserViewModal";
+import SuccessModal from "../components/model/SuccessModal";
+import FailModal from "../components/model/FailModal";
+import ConfirmModal from "../components/model/ConfirmModal";
 import "../styles/Users.scss";
 
 const { Title, Text } = Typography;
@@ -43,6 +47,16 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [statusLoading, setStatusLoading] = useState({});
+  
+  // Modal states
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [selectedUserForView, setSelectedUserForView] = useState(null);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [successModalData, setSuccessModalData] = useState({});
+  const [failModalOpen, setFailModalOpen] = useState(false);
+  const [failModalData, setFailModalData] = useState({});
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   // Fetch users from API
   const fetchUsers = async () => {
@@ -51,7 +65,6 @@ const Users = () => {
       const response = await apiClient.get("/admin/user/company-users");
       console.log("Fetched users response:", response);
       
-      // Handle the API response structure based on your provided data
       if (response.data && response.data.success && Array.isArray(response.data.data)) {
         setUsers(response.data.data);
       } else if (Array.isArray(response.data)) {
@@ -62,7 +75,11 @@ const Users = () => {
       }
     } catch (error) {
       console.error("Error fetching users:", error);
-      message.error("Failed to fetch users");
+      setFailModalData({
+        title: "Failed to Load Users",
+        message: "Unable to fetch users from the server. Please try again."
+      });
+      setFailModalOpen(true);
       setUsers([]);
     } finally {
       setLoading(false);
@@ -74,37 +91,37 @@ const Users = () => {
     setSubmitting(true);
     try {
       if (editMode && selectedUser) {
-        // Update existing user
         const response = await apiClient.put(
           `/admin/user/${selectedUser.id}`,
           values
         );
         console.log("User updated response:", response);
-        message.success("User updated successfully");
+        setSuccessModalData({
+          title: "User Updated Successfully",
+          message: `${values.name || selectedUser.name} has been updated successfully.`
+        });
       } else {
-        // Create new user
         const response = await apiClient.post(
           "/admin/user/createEmployee",
           values
         );
         console.log("User created response:", response);
-
-        // Check if the response indicates success
-        if (response.data && response.data.success) {
-          message.success(response.data.message || "User created successfully");
-        } else {
-          message.success("User created successfully");
-        }
+        setSuccessModalData({
+          title: "User Created Successfully",
+          message: `${values.name} has been added to the system successfully.`
+        });
       }
 
+      setSuccessModalOpen(true);
       handleCloseDrawer();
       fetchUsers();
     } catch (error) {
       console.error("Error saving user:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        `Failed to ${editMode ? "update" : "create"} user`;
-      message.error(errorMessage);
+      setFailModalData({
+        title: `Failed to ${editMode ? "Update" : "Create"} User`,
+        message: error.response?.data?.message || `Unable to ${editMode ? "update" : "create"} user. Please try again.`
+      });
+      setFailModalOpen(true);
     } finally {
       setSubmitting(false);
     }
@@ -131,19 +148,40 @@ const Users = () => {
     setDrawerVisible(true);
   };
 
-  // Handle delete user
-  const handleDeleteUser =  async(user) => {
-  
+  // Handle view user - Updated to use modal
+  const handleViewUser = (user) => {
+    setSelectedUserForView(user);
+    setViewModalVisible(true);
+  };
+
+  // Handle delete user - Updated to use confirm modal
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user);
+    setConfirmModalOpen(true);
+  };
+
+  // Confirm delete user
+  const confirmDeleteUser = async () => {
     try {
-     const res= await apiClient.delete(`/admin/user/${user.id}`);
-     console.log("Delete user response:", res);
-      message.success("User deleted successfully");
+      const res = await apiClient.delete(`/admin/user/${userToDelete.id}`);
+      console.log("Delete user response:", res);
+      
+      setSuccessModalData({
+        title: "User Deleted Successfully",
+        message: `${userToDelete.name} has been removed from the system.`
+      });
+      setSuccessModalOpen(true);
       fetchUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to delete user";
-      message.error(errorMessage);
+      setFailModalData({
+        title: "Failed to Delete User",
+        message: error.response?.data?.message || "Unable to delete user. Please try again."
+      });
+      setFailModalOpen(true);
+    } finally {
+      setConfirmModalOpen(false);
+      setUserToDelete(null);
     }
   };
 
@@ -159,76 +197,22 @@ const Users = () => {
       });
       console.log("Status update response:", res);
 
-      message.success(
-        `User ${
-          newStatus === "Active" ? "activated" : "deactivated"
-        } successfully`
-      );
+      setSuccessModalData({
+        title: "Status Updated Successfully",
+        message: `${user.name} has been ${newStatus === "Active" ? "activated" : "deactivated"} successfully.`
+      });
+      setSuccessModalOpen(true);
       fetchUsers();
     } catch (error) {
       console.error("Error updating user status:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to update user status";
-      message.error(errorMessage);
+      setFailModalData({
+        title: "Failed to Update Status",
+        message: error.response?.data?.message || "Unable to update user status. Please try again."
+      });
+      setFailModalOpen(true);
     } finally {
       setStatusLoading((prev) => ({ ...prev, [userId]: false }));
     }
-  };
-
-  // Handle view user details
-  const handleViewUser = (user) => {
-    const formatDate = (dateString) => {
-      if (!dateString) return "Never";
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    };
-
-    Modal.info({
-      title: 'User Details',
-      width: 500,
-      content: (
-        <div className="user-details-modal">
-          <div className="user-avatar-section">
-            <Avatar size={64} icon={<UserOutlined />} className="user-avatar">
-              {user.name?.charAt(0)?.toUpperCase()}
-            </Avatar>
-          </div>
-          <div className="user-info-section">
-            <div className="info-item">
-              <span className="info-label">Name:</span> 
-              <span className="info-value">{user.name}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Email:</span> 
-              <span className="info-value">{user.email}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Role:</span> 
-              <Tag color="blue">{user.role?.toUpperCase()}</Tag>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Status:</span> 
-              <Tag color={user.status === 'Active' ? 'success' : 'default'}>
-                {user.status?.toUpperCase()}
-              </Tag>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Created:</span> 
-              <span className="info-value">{formatDate(user.created_at)}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Last Login:</span> 
-              <span className="info-value">{formatDate(user.last_login)}</span>
-            </div>
-          </div>
-        </div>
-      ),
-    });
   };
 
   useEffect(() => {
@@ -382,17 +366,6 @@ const Users = () => {
             >
               {statusString.toUpperCase()}
             </Tag>
-            <Tooltip title={`${isActive ? "Deactivate" : "Activate"} user`}>
-              <Switch
-                size="small"
-                checked={isActive}
-                loading={statusLoading[record.id]}
-                onChange={(checked) =>
-                  handleStatusToggle(record, checked ? "Active" : "Inactive")
-                }
-                className="status-switch"
-              />
-            </Tooltip>
           </div>
         );
       },
@@ -514,6 +487,50 @@ const Users = () => {
           showAdditionalFields={true}
         />
       </Drawer>
+
+      {/* User View Modal */}
+      <UserViewModal
+        visible={viewModalVisible}
+        onClose={() => {
+          setViewModalVisible(false);
+          setSelectedUserForView(null);
+        }}
+        userData={selectedUserForView}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        open={successModalOpen}
+        title={successModalData.title}
+        message={successModalData.message}
+        onClose={() => setSuccessModalOpen(false)}
+        autoClose={true}
+        autoCloseDelay={4000}
+      />
+
+      {/* Fail Modal */}
+      <FailModal
+        open={failModalOpen}
+        title={failModalData.title}
+        message={failModalData.message}
+        onOk={() => setFailModalOpen(false)}
+        showCancel={false}
+      />
+
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={confirmModalOpen}
+        title="Delete User"
+        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone and will remove all associated data.`}
+        onConfirm={confirmDeleteUser}
+        onCancel={() => {
+          setConfirmModalOpen(false);
+          setUserToDelete(null);
+        }}
+        confirmText="Delete User"
+        cancelText="Cancel"
+        danger={true}
+      />
     </div>
   );
 };

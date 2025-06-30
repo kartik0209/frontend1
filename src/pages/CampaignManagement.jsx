@@ -9,6 +9,7 @@ import CampaignViewModal from "../components/campaign/CampaignViewModal";
 import { columnOptions, baseColumns } from "../data/campaignData";
 import apiClient from "../services/apiServices";
 import "../styles/CampaignManagement.scss";
+import TableSkeleton from "../components/skeletons/TableSkeleton";
 
 const CampaignManagement = () => {
   const [searchVisible, setSearchVisible] = useState(false);
@@ -469,6 +470,7 @@ const handleStatusChange = async (campaignId, newStatus) => {
       />
 
       <Card className="campaign-table-card">
+      {loading ?<TableSkeleton/>:
         <CampaignTable
           campaigns={campaigns}
           columns={visibleTableColumns}
@@ -479,7 +481,7 @@ const handleStatusChange = async (campaignId, newStatus) => {
           onView={handleView}
           onStatusChange={handleStatusChange}
         />
-       
+      }
         <CampaignViewModal
           visible={viewModalVisible}
           onClose={() => {

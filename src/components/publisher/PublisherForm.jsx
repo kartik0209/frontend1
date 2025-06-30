@@ -68,8 +68,7 @@ const PublisherForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =>
             <Select placeholder="Select status">
               <Option value="Pending">Pending</Option>
               <Option value="Active">Active</Option>
-              <Option value="Inactive">Inactive</Option>
-              <Option value="Suspended">Suspended</Option>
+             
               <Option value="Disabled">Disabled</Option>
               <Option value="Rejected">Rejected</Option>
               <Option value="Banned">Banned</Option>
