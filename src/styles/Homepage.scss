@@ -1,0 +1,667 @@
+// Variables
+$primary-color: #4A90E2;
+$dark-bg: #050a2c;
+$dark-bg-light: #0a1a4e;
+$white: #ffffff;
+$text-secondary: rgba(255, 255, 255, 0.8);
+$border-color: rgba(255, 255, 255, 0.1);
+$backdrop-blur: rgba(5, 10, 44, 0.95);
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin transition($property: all, $duration: 0.3s, $easing: ease) {
+  transition: $property $duration $easing;
+}
+
+// Base styles
+.afftrex-homepage {
+  min-height: 100vh;
+  color: $white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+// Header styles
+.afftrex-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: $backdrop-blur;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid $border-color;
+  @include transition();
+
+  &.scrolled {
+    background: rgba(5, 10, 44, 0.98);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+  }
+
+  .logo-link {
+    font-size: 28px;
+    font-weight: 800;
+    color: $white;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+  }
+
+  .nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .nav-link {
+    color: $text-secondary;
+    text-decoration: none;
+    font-weight: 500;
+    @include transition(color);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover {
+      color: $white;
+    }
+  }
+
+  .nav-arrow {
+    font-size: 10px;
+    opacity: 0.6;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .request-demo-btn {
+    color: $text-secondary;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    @include transition();
+
+    &:hover {
+      color: $white;
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .free-trial-btn {
+    background: $white;
+    color: $dark-bg;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 8px;
+    @include transition();
+    border: 2px solid $white;
+
+    &:hover {
+      background: transparent;
+      color: $white;
+    }
+  }
+
+  .mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: $white;
+    font-size: 20px;
+    cursor: pointer;
+  }
+}
+
+// Hero section styles
+.hero-section {
+  background: linear-gradient(135deg, $dark-bg, $dark-bg-light);
+  padding: 120px 0 80px;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  width: 100%;
+
+  .hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    height: 100%;
+  }
+
+  .hero-content {
+    z-index: 2;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 24px;
+  }
+
+  .hero-title {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+  }
+
+  .highlight {
+    color: $primary-color;
+    position: relative;
+  }
+
+  .rotating-text {
+    display: inline-block;
+    animation: fadeInUp 0.5s ease-in-out;
+    min-width: 200px;
+    text-align: left;
+  }
+
+  .hero-description {
+    font-size: 18px;
+    line-height: 1.6;
+    color: $text-secondary;
+    margin-bottom: 40px;
+    max-width: 500px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .book-demo-btn {
+    background: $primary-color;
+    color: $white;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 16px 32px;
+    border-radius: 8px;
+    @include transition();
+    border: 2px solid $primary-color;
+
+    &:hover {
+      background: transparent;
+      color: $primary-color;
+    }
+  }
+
+  .explore-platform-btn {
+    color: $white;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 16px 32px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    @include transition();
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  .hero-visual {
+    position: relative;
+    height: 600px;
+    @include flex-center();
+  }
+
+  .mascot-container {
+    position: relative;
+    z-index: 2;
+    @include flex-center();
+    width: 100%;
+    height: 100%;
+  }
+
+  .mascot-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+// Toolkits Section - UPDATED VERSION
+.toolkits-section {
+  background: linear-gradient(135deg, $dark-bg, $dark-bg-light);
+  padding: 80px 0;
+  position: relative;
+  overflow: hidden;
+
+  .toolkits-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .toolkits-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .toolkits-title {
+    font-size: 42px;
+    font-weight: 700;
+    color: $white;
+    margin-bottom: 40px;
+    letter-spacing: -0.5px;
+  }
+
+  .toolkits-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .toolkit-tab {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: $text-secondary;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    @include transition();
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: $white;
+    }
+
+    &.active {
+      background: $white;
+      color: $dark-bg;
+      border-color: $white;
+    }
+  }
+
+  // CAROUSEL LAYOUT - UPDATED
+  .toolkits-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    padding: 20px 0;
+    position: relative;
+    min-height: 600px;
+  }
+
+  .nav-button {
+    background: $white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    @include flex-center();
+    cursor: pointer;
+    @include transition();
+    z-index: 10;
+    color: $dark-bg;
+    font-size: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.95);
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .toolkit-cards-carousel {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 30px;
+    flex: 1;
+    max-width: 1200px;
+    position: relative;
+  }
+
+  .card-wrapper {
+    @include transition(all, 0.4s, ease);
+    position: relative;
+    display: flex;
+    
+    &.prev, &.next {
+      transform: scale(0.85);
+      opacity: 0.7;
+      z-index: 1;
+    }
+    
+    &.current {
+      transform: scale(1);
+      opacity: 1;
+      z-index: 5;
+    }
+  }
+
+  .toolkit-card {
+    background: $white;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    @include transition(all, 0.3s, ease);
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    &.active {
+      cursor: default;
+      
+      &:hover {
+        transform: translateY(0);
+      }
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, $primary-color, #66B2FF);
+      border-radius: 12px;
+      @include flex-center();
+      color: $white;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: $dark-bg;
+      margin: 0;
+      flex: 1;
+    }
+
+    .card-description {
+      margin-bottom: 20px;
+      
+      p {
+        font-size: 15px;
+        color: #666;
+        line-height: 1.5;
+        margin: 0;
+      }
+    }
+
+    .card-features {
+      margin-bottom: 24px;
+      flex: 1;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.4;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .feature-bullet {
+        color: $primary-color;
+        font-weight: bold;
+        margin-top: 2px;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .feature-text {
+        flex: 1;
+      }
+    }
+
+    .try-free-btn {
+      width: 100%;
+      height: 44px;
+      background: $dark-bg;
+      color: $white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      @include transition();
+      margin-top: auto;
+
+      &:hover {
+        background: lighten($dark-bg, 10%);
+      }
+    }
+
+    // Side cards styling
+    &.prev-card, &.next-card {
+      .card-features {
+        .feature-item {
+          margin-bottom: 10px;
+          font-size: 13px;
+        }
+      }
+      
+      .card-title {
+        font-size: 20px;
+      }
+      
+      .card-description p {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Mobile responsiveness
+@media (max-width: 768px) {
+  .afftrex-header {
+    .nav-menu,
+    .header-actions {
+      display: none;
+    }
+
+    .mobile-menu-toggle {
+      display: block;
+    }
+  }
+
+  .hero-section {
+    padding: 100px 0 60px;
+    min-height: 100vh;
+
+    .hero-container {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-size: 36px;
+    }
+
+    .hero-visual {
+      height: 400px;
+    }
+
+    .cta-buttons {
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+
+      .book-demo-btn,
+      .explore-platform-btn {
+        width: 100%;
+        max-width: 280px;
+        text-align: center;
+      }
+    }
+  }
+
+  .toolkits-section {
+    padding: 60px 0;
+
+    .toolkits-title {
+      font-size: 32px;
+    }
+
+    .toolkits-tabs {
+      gap: 8px;
+      
+      .toolkit-tab {
+        padding: 8px 16px;
+        font-size: 13px;
+      }
+    }
+
+    .toolkits-content {
+      gap: 15px;
+      min-height: 500px;
+    }
+
+    .nav-button {
+      width: 50px;
+      height: 50px;
+      font-size: 16px;
+    }
+
+    .toolkit-cards-carousel {
+      gap: 20px;
+    }
+
+    .card-wrapper {
+      &.prev, &.next {
+        display: none; // Hide side cards on mobile
+      }
+    }
+
+    .toolkit-card {
+      width: 300px;
+      padding: 24px;
+      
+      .card-header {
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .card-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+
+      .card-title {
+        font-size: 20px;
+      }
+
+      .card-description {
+        margin-bottom: 16px;
+        
+        p {
+          font-size: 14px;
+        }
+      }
+
+      .card-features {
+        margin-bottom: 20px;
+        
+        .feature-item {
+          font-size: 13px;
+          margin-bottom: 10px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    .hero-title {
+      font-size: 32px;
+    }
+
+    .hero-description {
+      font-size: 16px;
+    }
+
+    .hero-visual {
+      height: 300px;
+    }
+    .mascot-image {
+      max-width: 80%;
+      height: auto;
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import PublicLayout from '../layouts/PublicLayout';
 import LoginPageSkeleton from '../components/skeletons/LoginPageSkeleton';
+import Homepage from '../pages/Homepage';
 
 // Lazy load public pages
 const Login = lazy(() => import('../pages/Login'));
@@ -40,7 +41,18 @@ const PublicRoutes = () => {
           path="/" 
           element={
             <Suspense fallback={<PublicPageSkeleton pageType="login" />}>
+              {/* <Login /> */}
+              <Homepage />
+            </Suspense>
+          } 
+        />
+
+          <Route 
+          path="/login" 
+          element={
+            <Suspense fallback={<PublicPageSkeleton pageType="login" />}>
               <Login />
+             
             </Suspense>
           } 
         />

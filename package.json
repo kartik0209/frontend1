@@ -10,11 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@reduxjs/toolkit": "^2.8.2",
     "antd": "^5.25.4",
     "axios": "^1.9.0",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.13",
+    "emailjs": "^4.0.3",
     "formik": "^2.4.6",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.513.0",
