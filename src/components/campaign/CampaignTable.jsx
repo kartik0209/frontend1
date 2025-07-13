@@ -20,6 +20,7 @@ const CampaignTable = ({
   loading, 
   rowSelection,
   onEdit,
+  onDetail,
   onDelete,
   onView,
   onStatusChange,
@@ -45,36 +46,21 @@ const CampaignTable = ({
         icon: <ExclamationCircleOutlined />,
         color: "gray",
       },
-      // {
-      //   key: "Completed",
-      //   label: "Completed",
-      //   icon: <CheckCircleOutlined />,
-      //   color: "blue",
-      // },
-      // {
-      //   key: "Cancelled",
-      //   label: "Cancelled",
-      //   icon: <CloseCircleOutlined />,
-      //   color: "red",
-      // },
-      // {
-      //   key: "Scheduled",
-      //   label: "Scheduled",
-      //   icon: <PlayCircleOutlined />,
-      //   color: "purple",
-      // },
     ];
 
     return statusOptions
       .filter((option) => option.key !== currentStatus)
       .map((option) => ({
-        key: option.key,
-        label: (
-          <span style={{ color: option.color }}>
-            {option.icon} {option.label}
-          </span>
-        ),
-        onClick: () => onStatusChange(record.id, option.key),
+      key: option.key,
+      label: (
+        <span style={{ color: option.color }}>
+        {option.icon} {option.label}
+        </span>
+      ),
+      onClick: (event) => {
+        event.domEvent && event.domEvent.stopPropagation();
+        onStatusChange(record.id, option.key);
+      },
       }));
   };
 
@@ -97,7 +83,9 @@ const CampaignTable = ({
             <EyeOutlined /> View Details
           </span>
         ),
-        onClick: () => onView(record),
+        onClick: (event) => {
+         event.domEvent.stopPropagation()
+          onView(record)},
       },
    
       statusSubmenu,
@@ -130,6 +118,7 @@ const CampaignTable = ({
     fixed: "right",
     width: 80,
     render: (_, record) => {
+      
       const actionMenu = <Menu items={getActionMenuItems(record)} />;
 
       return (
@@ -147,6 +136,7 @@ const CampaignTable = ({
               border: "1px solid #d9d9d9",
               borderRadius: "6px"
             }}
+            onClick={e => e.stopPropagation()}
           />
         </Dropdown>
       );
@@ -163,6 +153,14 @@ const CampaignTable = ({
         dataSource={campaigns}
         loading={loading}
         scroll={{ x: 1800 }}
+          onRow={(record) => {
+          return {
+            onClick: () => {
+              onDetail(record); // Use the onView function passed from the parent
+            },
+            style: { cursor: "pointer" }, // Change cursor to indicate it's clickable
+          };
+        }}
         pagination={{
           showSizeChanger: true,
           showQuickJumper: true,

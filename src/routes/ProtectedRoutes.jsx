@@ -7,6 +7,7 @@ import ProtectedRoute from '../components/authguards/ProtectedRoute';
 import { PERMISSIONS } from '../utils/rbac';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AdvertiserManagement from '../pages/AdvertiserManagement';
+import CampaignDetailPage from '../pages/CampaignDetailPage';
 
 // Lazy load components for better performance
 const Dashboard = lazy(() => import('../pages/Dashboard'));
@@ -97,6 +98,15 @@ const ProtectedRoutes = () => {
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.CAMPAIGNS_VIEW}>
                 <CampaignManagement />
+              </ProtectedRoute>
+            }
+          />
+
+             <Route
+            path="/campaign/:id"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS?.CAMPAIGNS_VIEW}>
+                <CampaignDetailPage/>
               </ProtectedRoute>
             }
           />

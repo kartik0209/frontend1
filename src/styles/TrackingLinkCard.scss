@@ -1,0 +1,203 @@
+.tracking-link-card {
+  .ant-card-head {
+    border-bottom: 1px solid #f0f0f0;
+    
+    .ant-card-head-title {
+      font-weight: 600;
+      color: #262626;
+    }
+  }
+
+  .tracking-link-content {
+    .publisher-selection {
+      margin-bottom: 16px;
+
+      .publisher-type-radio {
+        width: 100%;
+        margin-bottom: 16px;
+        
+        .ant-radio-wrapper {
+          margin-right: 24px;
+          font-weight: 500;
+        }
+      }
+
+      .publisher-select {
+        width: 100%;
+        margin-bottom: 12px;
+        
+        .ant-select-selector {
+          border-radius: 6px;
+          border: 1px solid #d9d9d9;
+          
+          &:hover {
+            border-color: #40a9ff;
+          }
+        }
+      }
+
+      .helper-text {
+        font-size: 12px;
+        color: #8c8c8c;
+        line-height: 1.4;
+      }
+    }
+
+    .link-generation {
+      margin-bottom: 16px;
+
+      .ant-typography {
+        margin-bottom: 12px;
+        font-weight: 600;
+        color: #262626;
+      }
+
+      .generated-link-section {
+        .generated-link-textarea {
+          margin-bottom: 12px;
+          
+          .ant-input {
+            resize: none;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            background-color: #fafafa;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            
+            &:focus {
+              border-color: #40a9ff;
+              box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+            }
+          }
+        }
+
+        .link-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          
+          .ant-btn-primary {
+            background-color: #1890ff;
+            border-color: #1890ff;
+            border-radius: 6px;
+            
+            &:hover {
+              background-color: #40a9ff;
+              border-color: #40a9ff;
+            }
+            
+            &:disabled {
+              background-color: #f5f5f5;
+              border-color: #d9d9d9;
+              color: #bfbfbf;
+            }
+          }
+          
+          .ant-btn-icon-only {
+            border-radius: 6px;
+            
+            &:disabled {
+              background-color: #f5f5f5;
+              border-color: #d9d9d9;
+              color: #bfbfbf;
+            }
+          }
+        }
+      }
+    }
+
+    .link-options {
+      .ant-typography {
+        margin-bottom: 16px;
+        font-weight: 600;
+        color: #262626;
+      }
+
+      .ant-checkbox-wrapper {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #595959;
+        
+        &:hover {
+          .ant-checkbox-inner {
+            border-color: #40a9ff;
+          }
+        }
+        
+        .ant-checkbox-checked {
+          .ant-checkbox-inner {
+            background-color: #1890ff;
+            border-color: #1890ff;
+          }
+        }
+      }
+    }
+  }
+
+  .ant-divider {
+    margin: 20px 0;
+    border-color: #f0f0f0;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .tracking-link-card {
+    .tracking-link-content {
+      .publisher-selection {
+        .publisher-type-radio {
+          .ant-radio-wrapper {
+            margin-right: 16px;
+            margin-bottom: 8px;
+          }
+        }
+      }
+      
+      .link-generation {
+        .generated-link-section {
+          .link-actions {
+            flex-direction: column;
+            gap: 8px;
+            
+            .ant-btn {
+              width: 100%;
+            }
+          }
+        }
+      }
+      
+      .link-options {
+        .ant-row {
+          .ant-col {
+            span: 24 !important;
+            margin-bottom: 8px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Custom scrollbar for textarea
+.generated-link-textarea {
+  .ant-input {
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+      
+      &:hover {
+        background: #a1a1a1;
+      }
+    }
+  }
+}

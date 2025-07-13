@@ -10,8 +10,10 @@ import { columnOptions, baseColumns } from "../data/campaignData";
 import apiClient from "../services/apiServices";
 import "../styles/CampaignManagement.scss";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
+import { useNavigate } from "react-router-dom";
 
 const CampaignManagement = () => {
+  const navigate = useNavigate();
   const [searchVisible, setSearchVisible] = useState(false);
   const [columnSettingsVisible, setColumnSettingsVisible] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -20,6 +22,11 @@ const CampaignManagement = () => {
   const [viewModalVisible, setViewModalVisible] = useState(false);
 const [selectedCampaign, setSelectedCampaign] = useState(null);
 const [editModalVisible, setEditModalVisible] = useState(false);
+
+
+
+
+
 
   const defaultVisibleColumns = {
     id: true,
@@ -405,11 +412,17 @@ const [editModalVisible, setEditModalVisible] = useState(false);
   };
 
   const handleView = (campaign) => {
+    console.log('View campaign:', campaign);
   setSelectedCampaign(campaign);
   setViewModalVisible(true);
 };
 
+const handledetails = (campaign) => {
+  navigate(`/campaign/${campaign.id}`);
+}
+
 const handleEdit = (campaign) => {
+ // navigate(`/campaign/edit/${campaign.id}`);
   setSelectedCampaign(campaign);
   setEditModalVisible(true);
 };
@@ -425,6 +438,7 @@ const updateCampaignStatus = async (campaignId, newStatus) => {
     const response = await apiClient.patch(`/admin/campaign/${campaignId}/status`, {
       status: newStatus
     });
+    console.log('Update status response:', response.data);
     return response.data;
   } catch (error) {
     throw error;
@@ -447,7 +461,7 @@ const handleStatusChange = async (campaignId, newStatus) => {
             : campaign
         )
       );
-      
+      fetchCampaigns(); // Refresh campaigns
       message.success(`Campaign status updated to ${newStatus.toUpperCase()}`);
     } else {
       throw new Error(response.message || 'Failed to update status');
@@ -479,6 +493,7 @@ const handleStatusChange = async (campaignId, newStatus) => {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onView={handleView}
+          onDetail={handledetails}
           onStatusChange={handleStatusChange}
         />
       }
