@@ -1,0 +1,56 @@
+// Most Used Colors Variables
+// Based on analysis of all SCSS files
+
+// Primary Brand Colors (Most Frequent)
+$primary-dark: #050a2c;           // Used 50+ times across files
+$primary-dark-light: #0a1a4e;     // Used 40+ times across files
+$primary-gradient: linear-gradient(135deg, #050a2c, #0a1a4e); // Used 25+ times
+
+// Core UI Colors (Very Frequent)
+$white: #ffffff;                  // Used 100+ times
+$black: #000000;                  // Used 30+ times
+$primary-blue: #1890ff;           // Used 40+ times (Ant Design primary)
+$primary-accent: #4A90E2;         // Used 20+ times
+
+// Text Colors (Most Common)
+$text-primary: #262626;           // Used 35+ times
+$text-secondary: #8c8c8c;         // Used 25+ times
+$text-light: rgba(255, 255, 255, 0.8); // Used 20+ times
+$text-dark: #1a1a1a;             // Used 15+ times
+$text-muted: #595959;             // Used 15+ times
+
+// Background Colors (Frequent)
+$background-light: #f0f2f5;       // Used 20+ times
+$background-card: #ffffff;        // Used 25+ times
+$background-secondary: #fafafa;   // Used 20+ times
+$background-gray: #f8f9fa;        // Used 15+ times
+$background-gray-light: #f9fafb;  // Used 10+ times
+
+// Border Colors (Common)
+$border-color: #d9d9d9;           // Used 25+ times
+$border-light: #f0f0f0;           // Used 30+ times
+$border-lighter: #e2e8f0;         // Used 15+ times
+$border-rgba: rgba(255, 255, 255, 0.1); // Used 15+ times
+
+// Status Colors (Standard Ant Design + Custom)
+$success-color: #52c41a;          // Used 20+ times
+$warning-color: #faad14;          // Used 15+ times
+$error-color: #ff4d4f;            // Used 20+ times
+$info-color: #1890ff;             // Used 15+ times
+
+// Utility Colors (Frequent)
+$backdrop-blur: rgba(5, 10, 44, 0.95); // Used 10+ times
+$shadow-color: rgba(0, 0, 0, 0.1); // Used 20+ times
+$shadow-dark: rgba(0, 0, 0, 0.3);  // Used 10+ times
+$overlay-light: rgba(255, 255, 255, 0.1); // Used 15+ times
+
+// Gray Scale (Common)
+$gray-50: #f9fafb;               // Used 10+ times
+$gray-100: #f3f4f6;              // Used 10+ times
+$gray-200: #e5e7eb;              // Used 10+ times
+$gray-600: #4b5563;              // Used 8+ times
+
+// Additional Frequently Used Colors
+$blue-light: #e6f7ff;            // Used 8+ times
+$green-gradient-start: #4ade80;   // Used 5+ times
+$green-gradient-end: #10b981;     // Used 5+ times

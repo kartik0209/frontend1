@@ -1,52 +1,59 @@
 // src/routes/ProtectedRoutes.jsx
-import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import Layout from '../layouts/ProtectedLayout';
-import ProtectedRoute from '../components/authguards/ProtectedRoute';
-import { PERMISSIONS } from '../utils/rbac';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import AdvertiserManagement from '../pages/AdvertiserManagement';
-import CampaignDetailPage from '../pages/CampaignDetailPage';
+import React, { lazy, Suspense } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import Layout from "../layouts/ProtectedLayout";
+import ProtectedRoute from "../components/authguards/ProtectedRoute";
+import { PERMISSIONS } from "../utils/rbac";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import AdvertiserManagement from "../pages/AdvertiserManagement";
+import CampaignDetailPage from "../pages/CampaignDetailPage";
+import PublisherDetailsPage from "../pages/PublisherDetails";
+import AdvertiserDetailsPage from "../pages/AdvertiserDetailsPage";
 
 // Lazy load components for better performance
-const Dashboard = lazy(() => import('../pages/Dashboard'));
-const Users = lazy(() => import('../pages/Users'));
-const CompanyList = lazy(() => import('../pages/CompanyList')); // Fixed typo: CopmpanyList -> CompanyList
-const CompanyTabsPage = lazy(() => import('../pages/CompanyTabsPage'));
-const CampaignCreator = lazy(() => import('../pages/CampaignCreator'));
-const CampaignManagement = lazy(() => import('../pages/CampaignManagement'));
-const PublisherManagement=lazy(() => import('../pages/PublisherManagement'));
+const Dashboard = lazy(() => import("../pages/Dashboard"));
+const Users = lazy(() => import("../pages/Users"));
+const CompanyList = lazy(() => import("../pages/CompanyList")); // Fixed typo: CopmpanyList -> CompanyList
+const CompanyTabsPage = lazy(() => import("../pages/CompanyTabsPage"));
+const CampaignCreator = lazy(() => import("../pages/CampaignCreator"));
+const CampaignManagement = lazy(() => import("../pages/CampaignManagement"));
+const PublisherManagement = lazy(() => import("../pages/PublisherManagement"));
 
+const ConversionReportsPage = lazy(() =>
+  Promise.resolve({
+    default: () => (
+      <div style={{ padding: "2rem", textAlign: "center" }}>
+        <h2>Conversion Reports</h2>
+        <p>View Conversion Data</p>
+      </div>
+    ),
+  })
+);
 
-const ConversionReportsPage = lazy(() => Promise.resolve({
-  default: () => (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
-      <h2>Conversion Reports</h2>
-      <p>View Conversion Data</p>
-    </div>
-  )
-}));
-
-const CampaignReportsPage = lazy(() => Promise.resolve({
-  default: () => (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
-      <h2>Campaign Reports</h2>
-      <p>View Campaign Data</p>
-    </div>
-  )
-}));
+const CampaignReportsPage = lazy(() =>
+  Promise.resolve({
+    default: () => (
+      <div style={{ padding: "2rem", textAlign: "center" }}>
+        <h2>Campaign Reports</h2>
+        <p>View Campaign Data</p>
+      </div>
+    ),
+  })
+);
 
 const ProtectedRoutes = () => {
-  const { isAuthenticated, user, permissions } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, permissions } = useSelector(
+    (state) => state.auth
+  );
 
-  console.log('ProtectedRoutes - isAuthenticated:', isAuthenticated);
-  console.log('ProtectedRoutes - user:', user);
-  console.log('ProtectedRoutes - permissions:', permissions);
+  console.log("ProtectedRoutes - isAuthenticated:", isAuthenticated);
+  console.log("ProtectedRoutes - user:", user);
+  console.log("ProtectedRoutes - permissions:", permissions);
 
   // Redirect unauthenticated users to login
   if (!isAuthenticated) {
-    console.log('User not authenticated, redirecting to /');
+    console.log("User not authenticated, redirecting to /");
     return <Navigate to="/" replace />;
   }
 
@@ -55,7 +62,7 @@ const ProtectedRoutes = () => {
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           {/* Default redirect to dashboard */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          {/* <Route path="/" element={<Navigate to="/dashboard" replace />} /> */}
 
           <Route
             path="/dashboard"
@@ -79,7 +86,15 @@ const ProtectedRoutes = () => {
             path="/publishers"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.PUBLISHERS_VIEW}>
-                <PublisherManagement/>
+                <PublisherManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/publisher/:id"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS?.PUBLISHERS_VIEW}>
+                <PublisherDetailsPage />
               </ProtectedRoute>
             }
           />
@@ -87,8 +102,21 @@ const ProtectedRoutes = () => {
           <Route
             path="/advertisers"
             element={
-              <ProtectedRoute requiredPermission={PERMISSIONS?.ADVERTISERS_VIEW}>
-            <AdvertiserManagement/>
+              <ProtectedRoute
+                requiredPermission={PERMISSIONS?.ADVERTISERS_VIEW}
+              >
+                <AdvertiserManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/advertisers/:id"
+            element={
+              <ProtectedRoute
+                requiredPermission={PERMISSIONS?.ADVERTISERS_VIEW}
+              >
+                <AdvertiserDetailsPage />
               </ProtectedRoute>
             }
           />
@@ -102,11 +130,11 @@ const ProtectedRoutes = () => {
             }
           />
 
-             <Route
+          <Route
             path="/campaign/:id"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.CAMPAIGNS_VIEW}>
-                <CampaignDetailPage/>
+                <CampaignDetailPage />
               </ProtectedRoute>
             }
           />
@@ -114,7 +142,9 @@ const ProtectedRoutes = () => {
           <Route
             path="/campaign/create"
             element={
-              <ProtectedRoute requiredPermission={PERMISSIONS?.CAMPAIGNS_CREATE}>
+              <ProtectedRoute
+                requiredPermission={PERMISSIONS?.CAMPAIGNS_CREATE}
+              >
                 <CampaignCreator />
               </ProtectedRoute>
             }
@@ -157,7 +187,7 @@ const ProtectedRoutes = () => {
           />
 
           {/* Fallback for any unmatched protected routes */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* <Route path="*" element={<Navigate to="/dashboard" replace />} /> */}
         </Routes>
       </Suspense>
     </Layout>

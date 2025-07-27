@@ -13,6 +13,7 @@ import apiClient from "../services/apiServices";
 import "../styles/AdvertiserManagement.scss";
 import AdvertiserTableSkeleton from "../components/skeletons/TableSkeleton";
 import ConfirmModal from "../components/model/ConfirmModal";
+import { useNavigate } from "react-router-dom";
 const AdvertiserManagement = () => {
   const [searchVisible, setSearchVisible] = useState(false);
   const [columnSettingsVisible, setColumnSettingsVisible] = useState(false);
@@ -24,6 +25,9 @@ const AdvertiserManagement = () => {
   const [editingAdvertiser, setEditingAdvertiser] = useState(null);
   const [viewingAdvertiser, setViewingAdvertiser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+
+
+  const navigate=useNavigate();
 
   // Modal states
   const [successModal, setSuccessModal] = useState({
@@ -259,6 +263,12 @@ const AdvertiserManagement = () => {
     setViewModalVisible(true);
   };
 
+
+  const handledetails = (advertiser) => {
+    console.log("navigation")
+  navigate(`/advertisers/${advertiser.id}`);
+}
+
   const handleDeleteAdvertiser = async (advertiserId) => {
     showConfirm(
       "Delete Advertiser",
@@ -461,6 +471,8 @@ const AdvertiserManagement = () => {
             onDelete={handleDeleteAdvertiser}
             onView={handleViewAdvertiser}
             onStatusChange={handleStatusChange}
+            onDetails={handledetails}
+            
           />
         )}
       </Card>

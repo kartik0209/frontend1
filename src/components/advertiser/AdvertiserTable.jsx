@@ -23,6 +23,7 @@ const AdvertiserTable = ({
   onDelete,
   onView,
   onStatusChange,
+  onDetails,
 }) => {
   const getStatusMenuItems = (record) => {
     const currentStatus = record.status;
@@ -164,6 +165,14 @@ const AdvertiserTable = ({
         className="advertiser-table"
         rowClassName={() => "advertiser-row"}
         rowKey="id"
+         onRow={(record) => {
+          return {
+            onClick: () => {
+              onDetails(record); // Use the onDetail function passed from the parent
+            },
+            style: { cursor: "pointer" }, // Change cursor to indicate it's clickable
+          };
+        }}
       />
     </div>
   );

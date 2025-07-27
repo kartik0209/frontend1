@@ -13,6 +13,7 @@ import apiClient from "../services/apiServices";
 import "../styles/PublisherManagement.scss";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
 import ConfirmModal from "../components/model/ConfirmModal";
+import { useNavigate } from "react-router-dom";
 
 const PublisherManagement = () => {
   const [searchVisible, setSearchVisible] = useState(false);
@@ -26,6 +27,8 @@ const PublisherManagement = () => {
   const [viewingPublisher, setViewingPublisher] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
+
+  const navigate=useNavigate();
   // Success and Fail modal states
   const [successModal, setSuccessModal] = useState({
     open: false,
@@ -262,6 +265,10 @@ const closeConfirmModal = () => {
     setViewModalVisible(true);
   };
 
+  const handledetails = (publisher) => {
+  navigate(`/publisher/${publisher.id}`);
+}
+
  const handleDeletePublisher = async (publisherId) => {
   showConfirm(
     'Delete Publisher',
@@ -435,6 +442,7 @@ const closeConfirmModal = () => {
           onDelete={handleDeletePublisher}
           onView={handleViewPublisher}
           onStatusChange={handleStatusChange}
+          onDetail={handledetails}
         />}
       </Card>
 

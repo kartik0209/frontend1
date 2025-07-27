@@ -1,6 +1,5 @@
-// src/components/publisher/PublisherTable.jsx
 import React from "react";
-import { Table, Button, Space, Popconfirm, Dropdown, Menu } from "antd";
+import { Table, Button, Popconfirm, Dropdown, Menu } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -8,10 +7,9 @@ import {
   MoreOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  PauseCircleOutlined,
-  StopOutlined,
   ExclamationCircleOutlined,
   SwapOutlined,
+  StopOutlined,
 } from "@ant-design/icons";
 
 const PublisherTable = ({
@@ -22,43 +20,17 @@ const PublisherTable = ({
   onEdit,
   onDelete,
   onView,
+  onDetail, // Renamed from 'ondetails' for consistency with CampaignTable
   onStatusChange,
 }) => {
   const getStatusMenuItems = (record) => {
     const currentStatus = record.status;
     const statusOptions = [
-      {
-        key: "Active",
-        label: "Active",
-        icon: <CheckCircleOutlined />,
-        color: "green",
-      },
-      {
-        key: "Pending",
-        label: "Pending",
-        icon: <ExclamationCircleOutlined />,
-        color: "orange",
-      },
- 
-    
-      {
-        key: "Disabled",
-        label: "Disabled",
-        icon: <StopOutlined />,
-        color: "gray",
-      },
-      {
-        key: "Rejected",
-        label: "Rejected",
-        icon: <CloseCircleOutlined />,
-        color: "red",
-      },
-      { 
-        key: "Banned", 
-        label: "Banned", 
-        icon: <StopOutlined />, 
-        color: "red" 
-      },
+      { key: "Active", label: "Active", icon: <CheckCircleOutlined />, color: "green" },
+      { key: "Pending", label: "Pending", icon: <ExclamationCircleOutlined />, color: "orange" },
+      { key: "Disabled", label: "Disabled", icon: <StopOutlined />, color: "gray" },
+      { key: "Rejected", label: "Rejected", icon: <CloseCircleOutlined />, color: "red" },
+      { key: "Banned", label: "Banned", icon: <StopOutlined />, color: "red" },
     ];
 
     return statusOptions
@@ -70,7 +42,11 @@ const PublisherTable = ({
             {option.icon} {option.label}
           </span>
         ),
-        onClick: () => onStatusChange(record.id, option.key),
+        // Add event handling to stop propagation
+        onClick: (event) => {
+          event.domEvent && event.domEvent.stopPropagation();
+          onStatusChange(record.id, option.key);
+        },
       }));
   };
 
@@ -93,7 +69,11 @@ const PublisherTable = ({
             <EyeOutlined /> View Details
           </span>
         ),
-        onClick: () => onView(record),
+        // Add event handling to stop propagation
+        onClick: (event) => {
+          event.domEvent.stopPropagation();
+          onView(record);
+        },
       },
       {
         key: "edit",
@@ -102,7 +82,11 @@ const PublisherTable = ({
             <EditOutlined /> Edit Publisher
           </span>
         ),
-        onClick: () => onEdit(record),
+        // Add event handling to stop propagation
+        onClick: (event) => {
+          event.domEvent.stopPropagation();
+          onEdit(record);
+        },
       },
       statusSubmenu,
       {
@@ -114,12 +98,18 @@ const PublisherTable = ({
           <Popconfirm
             title="Are you sure you want to delete this publisher?"
             description="This action cannot be undone."
-            onConfirm={() => onDelete(record.id)}
+            // Stop propagation on confirm to be safe, though internal handling is main
+            onConfirm={(e) => {
+              e.stopPropagation();
+              onDelete(record.id);
+            }}
+            onCancel={(e) => e.stopPropagation()}
             okText="Yes, Delete"
             cancelText="Cancel"
             okButtonProps={{ danger: true }}
           >
-            <span style={{ color: "red" }}>
+            {/* Clicks on this span are handled by Popconfirm */}
+            <span style={{ color: "red" }} onClick={(e) => e.stopPropagation()}>
               <DeleteOutlined /> Delete Publisher
             </span>
           </Popconfirm>
@@ -146,11 +136,13 @@ const PublisherTable = ({
             type="text"
             icon={<MoreOutlined />}
             size="small"
-            style={{ 
+            style={{
               padding: "4px 8px",
               border: "1px solid #d9d9d9",
-              borderRadius: "6px"
+              borderRadius: "6px",
             }}
+            // Stop the row's onClick from firing when the action button is clicked
+            onClick={(e) => e.stopPropagation()}
           />
         </Dropdown>
       );
@@ -167,6 +159,15 @@ const PublisherTable = ({
         dataSource={publishers}
         loading={loading}
         scroll={{ x: 1800 }}
+        // Add the onRow prop to make rows clickable
+        onRow={(record) => {
+          return {
+            onClick: () => {
+              onDetail(record); // Use the onDetail function passed from the parent
+            },
+            style: { cursor: "pointer" }, // Change cursor to indicate it's clickable
+          };
+        }}
         pagination={{
           showSizeChanger: true,
           showQuickJumper: true,

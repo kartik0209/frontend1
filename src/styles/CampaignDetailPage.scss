@@ -1,0 +1,253 @@
+// Campaign Detail Page Styles
+.campaign-detail-page {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100vh;
+
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .page-header {
+    margin-bottom: 24px;
+
+    .back-link {
+      color: rgba(0, 0, 0, 0.85);
+      
+      .back-icon {
+        font-size: 20px;
+        cursor: pointer;
+        transition: color 0.3s ease;
+
+        &:hover {
+          color: #0a1a4e;
+        }
+      }
+    }
+  }
+
+  // Campaign Cards General Styling
+  .campaign-card {
+    .ant-card-head {
+      background-color: #fafafa;
+    }
+  }
+
+  // Button Styling - Universal for all buttons
+  .campaign-button,
+  .ant-btn-primary {
+    background-color: #0a1a4e !important;
+    border-color: #0a1a4e !important;
+    color: white !important;
+
+    &:hover,
+    &:focus {
+      background-color: #081540 !important;
+      border-color: #081540 !important;
+      color: white !important;
+    }
+
+    &:active {
+      background-color: #06112f !important;
+      border-color: #06112f !important;
+    }
+
+    &[disabled] {
+      background-color: #d9d9d9 !important;
+      border-color: #d9d9d9 !important;
+      color: rgba(0, 0, 0, 0.25) !important;
+    }
+  }
+
+  // Override Ant Design Transfer component buttons
+  .ant-transfer-operation {
+    .ant-btn {
+      background-color: #0a1a4e !important;
+      border-color: #0a1a4e !important;
+      color: white !important;
+
+      &:hover,
+      &:focus {
+        background-color: #081540 !important;
+        border-color: #081540 !important;
+        color: white !important;
+      }
+
+      &[disabled] {
+        background-color: #d9d9d9 !important;
+        border-color: #d9d9d9 !important;
+        color: rgba(0, 0, 0, 0.25) !important;
+      }
+    }
+  }
+
+  // Notes Section Styling
+  .notes-toolbar {
+    border: 1px solid #d9d9d9;
+    border-bottom: none;
+    padding: 8px;
+    background-color: #fafafa;
+    border-radius: 6px 6px 0 0;
+
+    .toolbar-button {
+      min-width: 32px;
+      
+      &:hover {
+        background-color: #e6f7ff;
+        border-color: #91d5ff;
+      }
+    }
+  }
+
+  .notes-textarea {
+    border-radius: 0 0 6px 6px !important;
+    border-top: none !important;
+    resize: vertical;
+  }
+
+  .notes-actions {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  // Publisher Selection Styling
+  .publisher-select {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .helper-text {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+  }
+
+  // Generated Link Section
+  .generated-link-section {
+    .generated-link-textarea {
+      margin-bottom: 12px;
+    }
+
+    .link-actions {
+      display: flex;
+      gap: 8px;
+    }
+  }
+
+  // Link Options
+  .link-options {
+    .ant-checkbox-wrapper {
+      margin-bottom: 8px;
+    }
+  }
+
+  // Tags styling for blocked publishers
+  .ant-tag {
+    margin-bottom: 8px;
+    
+    &.ant-tag-red {
+      background-color: #fff2f0;
+      border-color: #ffccc7;
+      color: #a8071a;
+    }
+  }
+
+  // Status tags
+  .ant-tag {
+    &.ant-tag-green {
+      background-color: #f6ffed;
+      border-color: #b7eb8f;
+      color: #389e0d;
+    }
+
+    &.ant-tag-orange {
+      background-color: #fff7e6;
+      border-color: #ffd591;
+      color: #d46b08;
+    }
+
+    &.ant-tag-red {
+      background-color: #fff2f0;
+      border-color: #ffccc7;
+      color: #a8071a;
+    }
+
+    &.ant-tag-yellow {
+      background-color: #fffbe6;
+      border-color: #fff1b8;
+      color: #d48806;
+    }
+  }
+
+  // Descriptions styling
+  .ant-descriptions-item-label {
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  // Transfer component styling
+  .ant-transfer {
+    .ant-transfer-list {
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+    }
+
+    .ant-transfer-list-header {
+      background-color: #fafafa;
+      border-bottom: 1px solid #d9d9d9;
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    .page-header {
+      margin-bottom: 16px;
+    }
+
+    .ant-descriptions {
+      .ant-descriptions-item-label {
+        width: 100% !important;
+      }
+    }
+
+    .notes-actions {
+      flex-direction: column;
+      gap: 12px;
+
+      .campaign-button {
+        width: 100%;
+      }
+    }
+  }
+
+  @media (max-width: 576px) {
+    padding: 12px;
+
+    .ant-card {
+      .ant-card-head {
+        padding: 12px 16px;
+      }
+
+      .ant-card-body {
+        padding: 16px;
+      }
+    }
+
+    .generated-link-section {
+      .link-actions {
+        flex-direction: column;
+        width: 100%;
+
+        .campaign-button {
+          width: 100%;
+        }
+      }
+    }
+  }
+}

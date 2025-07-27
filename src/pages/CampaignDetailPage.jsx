@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Spin,
@@ -12,25 +12,18 @@ import {
   Descriptions,
   Tag,
   Input,
-  Checkbox,
   message,
   Transfer,
-  Table,
   Tooltip,
   Select,
   Divider,
 } from 'antd';
 import {
   ArrowLeftOutlined,
-  EditOutlined,
-  DownloadOutlined,
-  UploadOutlined,
-  CopyOutlined,
   BlockOutlined,
   FileTextOutlined,
   PlusOutlined,
   SaveOutlined,
-  DeleteOutlined,
   BoldOutlined,
   ItalicOutlined,
   UnderlineOutlined,
@@ -49,39 +42,47 @@ import {
 } from '@ant-design/icons';
 import apiClient from '../services/apiServices';
 import TrackingLinkCard from '../components/campaign/TrackingLinkCard';
+import '../styles/CampaignDetailPage.scss'; // Assuming this SCSS file exists
+import CampaignDetailSkeleton from '../components/skeletons/CampaignDetailSkeleton';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { TextArea } = Input;
 
-// Block Publishers Component
+/**
+ * BlockPublishers component allows blocking and unblocking publishers for a specific campaign.
+ * @param {object} props - Component props.
+ * @param {string} props.campaignId - The ID of the campaign.
+ */
 const BlockPublishers = ({ campaignId }) => {
   const [allPublishers, setAllPublishers] = useState([]);
   const [blockedPublishers, setBlockedPublishers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
 
+  // Fetches all publishers and the publishers currently blocked for the campaign
   useEffect(() => {
     const fetchPublishers = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.post('/common/publisher/list', {});
-        if (response.data?.success) {
-          setAllPublishers(response.data.data);
+        // Fetch all publishers
+        const allPublishersResponse = await apiClient.post('/common/publisher/list', {});
+        if (allPublishersResponse.data?.success) {
+          setAllPublishers(allPublishersResponse.data.data);
+        } else {
+          message.error('Failed to load all publishers.');
         }
-        
-        // Fetch blocked publishers for this campaign
-        try {
-          const blockedResponse = await apiClient.get(`/admin/campaign/${campaignId}/blocked-publishers`);
-          if (blockedResponse.data?.success) {
-            setBlockedPublishers(blockedResponse.data.data || []);
-          }
-        } catch (error) {
-          // Handle if endpoint doesn't exist yet
+
+        // Fetch blocked publishers for the current campaign
+        const blockedResponse = await apiClient.get(`/admin/campaign/${campaignId}/blocked-publishers`);
+        if (blockedResponse.data?.success) {
+          setBlockedPublishers(blockedResponse.data.data || []);
+        } else {
+          // If no blocked publishers, or API returns non-success, treat as empty
           setBlockedPublishers([]);
         }
       } catch (error) {
-        message.error('Failed to load publishers');
+        message.error('Failed to load publishers: ' + (error.message || 'An error occurred.'));
+        setBlockedPublishers([]); // Ensure blockedPublishers is an array even on error
       } finally {
         setLoading(false);
       }
@@ -92,45 +93,61 @@ const BlockPublishers = ({ campaignId }) => {
     }
   }, [campaignId]);
 
+  /**
+   * Handles blocking a selected publisher.
+   * @param {string} publisherId - The ID of the publisher to block.
+   */
   const handleBlockPublisher = async (publisherId) => {
     if (!publisherId) return;
-    
+
     setSaveLoading(true);
     try {
       const response = await apiClient.post(`/admin/campaign/${campaignId}/block-publisher`, {
         publisherId: publisherId
       });
-      
+
       if (response.data?.success) {
-        const publisher = allPublishers.find(p => p.id === publisherId);
-        setBlockedPublishers(prev => [...prev, publisher]);
+        // Find the publisher from the allPublishers list and add to blocked
+        const publisherToBlock = allPublishers.find(p => p.id.toString() === publisherId.toString());
+        if (publisherToBlock) {
+          setBlockedPublishers(prev => [...prev, publisherToBlock]);
+        }
         message.success('Publisher blocked successfully');
+      } else {
+        message.error(response.data?.message || 'Failed to block publisher');
       }
     } catch (error) {
-      message.error('Failed to block publisher');
+      message.error('Failed to block publisher: ' + (error.message || 'An error occurred.'));
     } finally {
       setSaveLoading(false);
     }
   };
 
+  /**
+   * Handles unblocking a publisher.
+   * @param {string} publisherId - The ID of the publisher to unblock.
+   */
   const handleUnblockPublisher = async (publisherId) => {
     setSaveLoading(true);
     try {
       const response = await apiClient.delete(`/admin/campaign/${campaignId}/block-publisher/${publisherId}`);
-      
+
       if (response.data?.success) {
-        setBlockedPublishers(prev => prev.filter(p => p.id !== publisherId));
+        setBlockedPublishers(prev => prev.filter(p => p.id.toString() !== publisherId.toString()));
         message.success('Publisher unblocked successfully');
+      } else {
+        message.error(response.data?.message || 'Failed to unblock publisher');
       }
     } catch (error) {
-      message.error('Failed to unblock publisher');
+      message.error('Failed to unblock publisher: ' + (error.message || 'An error occurred.'));
     } finally {
       setSaveLoading(false);
     }
   };
 
+  // Filter out publishers that are already blocked from the available list for selection
   const availablePublishers = allPublishers.filter(
-    pub => !blockedPublishers.some(blocked => blocked.id === pub.id)
+    pub => !blockedPublishers.some(blocked => blocked.id.toString() === pub.id.toString())
   );
 
   return (
@@ -143,6 +160,7 @@ const BlockPublishers = ({ campaignId }) => {
       }
       bordered={false}
       headStyle={{ backgroundColor: '#fafafa' }}
+      className="campaign-card"
     >
       <div style={{ marginBottom: 16 }}>
         <Text strong>Select Publishers</Text>
@@ -152,6 +170,7 @@ const BlockPublishers = ({ campaignId }) => {
           onSelect={handleBlockPublisher}
           loading={loading}
           disabled={saveLoading}
+          value={null} // Reset select value after selection
         >
           {availablePublishers.map(publisher => (
             <Option key={publisher.id} value={publisher.id}>
@@ -163,7 +182,7 @@ const BlockPublishers = ({ campaignId }) => {
 
       <div style={{ marginBottom: 16 }}>
         <Text type="secondary" style={{ fontSize: '12px' }}>
-          <strong>Note:</strong> Publishers added to this block list will no longer be able to see the campaign on their panel or API. 
+          <strong>Note:</strong> Publishers added to this block list will no longer be able to see the campaign on their panel or API.
           No Traffic will be allowed from these publishers on this campaign.
         </Text>
       </div>
@@ -187,11 +206,13 @@ const BlockPublishers = ({ campaignId }) => {
         </div>
       )}
 
-      <Button 
-        type="primary" 
-        style={{ marginTop: 16, backgroundColor: '#17a2b8', borderColor: '#17a2b8' }}
+      {/* The "Save" button here is a bit misleading as actions are immediate */}
+      <Button
+        type="primary"
+        className="campaign-button"
+        style={{ marginTop: 16 }}
         loading={saveLoading}
-        disabled={blockedPublishers.length === 0}
+        disabled={blockedPublishers.length === 0 && availablePublishers.length === allPublishers.length}
       >
         Save
       </Button>
@@ -199,23 +220,42 @@ const BlockPublishers = ({ campaignId }) => {
   );
 };
 
-// Notes Component
+/**
+ * Notes component provides a rich text editor for campaign notes.
+ * @param {object} props - Component props.
+ * @param {string} props.campaignId - The ID of the campaign.
+ */
 const Notes = ({ campaignId }) => {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  const editorRef = useRef(null);
 
+  // Fetches existing notes for the campaign
   useEffect(() => {
     const fetchNotes = async () => {
       setLoading(true);
       try {
         const response = await apiClient.get(`/admin/campaign/${campaignId}/notes`);
         if (response.data?.success) {
-          setNotes(response.data.data?.notes || '');
+          const fetchedNotes = response.data.data?.notes || '';
+          setNotes(fetchedNotes);
+          if (editorRef.current) {
+            editorRef.current.innerHTML = fetchedNotes; // Set HTML content to editor
+          }
+        } else {
+          // If no notes, or API returns non-success, treat as empty
+          setNotes('');
+          if (editorRef.current) {
+            editorRef.current.innerHTML = '';
+          }
         }
       } catch (error) {
-        // Handle if endpoint doesn't exist yet
+        message.error('Failed to load notes: ' + (error.message || 'An error occurred.'));
         setNotes('');
+        if (editorRef.current) {
+          editorRef.current.innerHTML = '';
+        }
       } finally {
         setLoading(false);
       }
@@ -226,40 +266,91 @@ const Notes = ({ campaignId }) => {
     }
   }, [campaignId]);
 
+  /**
+   * Handles saving the notes to the backend.
+   */
   const handleSaveNotes = async () => {
     setSaveLoading(true);
     try {
+      // Get the HTML content from the content editable div
+      const currentNotesContent = editorRef.current ? editorRef.current.innerHTML : '';
       const response = await apiClient.post(`/admin/campaign/${campaignId}/notes`, {
-        notes: notes
+        notes: currentNotesContent
       });
-      
+
       if (response.data?.success) {
         message.success('Notes saved successfully');
+        setNotes(currentNotesContent); // Update state with saved notes
+      } else {
+        message.error(response.data?.message || 'Failed to save notes');
       }
     } catch (error) {
-      message.error('Failed to save notes');
+      message.error('Failed to save notes: ' + (error.message || 'An error occurred.'));
     } finally {
       setSaveLoading(false);
     }
   };
 
+  /**
+   * Applies a formatting command to the selected text in the editor.
+   * @param {string} command - The document.execCommand command (e.g., 'bold', 'italic').
+   * @param {string} [value] - Optional value for the command (e.g., color, font name).
+   */
+  const applyFormatting = (command, value = null) => {
+    if (editorRef.current) {
+      editorRef.current.focus(); // Focus the editor to ensure commands apply
+      document.execCommand(command, false, value);
+    }
+  };
+
   const toolbarButtons = [
-    { icon: <BoldOutlined />, title: 'Bold' },
-    { icon: <ItalicOutlined />, title: 'Italic' },
-    { icon: <UnderlineOutlined />, title: 'Underline' },
-    { icon: <StrikethroughOutlined />, title: 'Strikethrough' },
-    { icon: <FontSizeOutlined />, title: 'Font Size' },
-    { icon: <FontColorsOutlined />, title: 'Font Color' },
-    { icon: <UnorderedListOutlined />, title: 'Bullet List' },
-    { icon: <OrderedListOutlined />, title: 'Numbered List' },
-    { icon: <AlignLeftOutlined />, title: 'Align' },
-    { icon: <TableOutlined />, title: 'Table' },
-    { icon: <LinkOutlined />, title: 'Link' },
-    { icon: <PictureOutlined />, title: 'Image' },
-    { icon: <ScissorOutlined />, title: 'Cut' },
-    { icon: <UndoOutlined />, title: 'Undo' },
-    { icon: <QuestionCircleOutlined />, title: 'Help' },
+    { icon: <BoldOutlined />, title: 'Bold', command: 'bold' },
+    { icon: <ItalicOutlined />, title: 'Italic', command: 'italic' },
+    { icon: <UnderlineOutlined />, title: 'Underline', command: 'underline' },
+    { icon: <StrikethroughOutlined />, title: 'Strikethrough', command: 'strikeThrough' },
+    // Font size and color will need more complex handling or a simpler approach
+    // For now, these are placeholders or could trigger a prompt for value
+    { icon: <FontSizeOutlined />, title: 'Font Size', command: 'fontSize' },
+    { icon: <FontColorsOutlined />, title: 'Font Color', command: 'foreColor' },
+    { icon: <UnorderedListOutlined />, title: 'Bullet List', command: 'insertUnorderedList' },
+    { icon: <OrderedListOutlined />, title: 'Numbered List', command: 'insertOrderedList' },
+    { icon: <AlignLeftOutlined />, title: 'Align Left', command: 'justifyLeft' },
+    { icon: <TableOutlined />, title: 'Table', command: 'insertHTML', html: '<table><tr><td></td><td></td></tr><tr><td></td><td></td></tr></table>' }, // Basic table insertion
+    { icon: <LinkOutlined />, title: 'Link', command: 'createLink' }, // Requires prompt for URL
+    { icon: <PictureOutlined />, title: 'Image', command: 'insertImage' }, // Requires prompt for image URL
+    { icon: <ScissorOutlined />, title: 'Cut', command: 'cut' },
+    { icon: <UndoOutlined />, title: 'Undo', command: 'undo' },
+    { icon: <QuestionCircleOutlined />, title: 'Help', command: null }, // No execCommand for help
   ];
+
+  const handleToolbarButtonClick = (button) => {
+    if (button.command) {
+      let value = null;
+      if (button.command === 'createLink') {
+        value = prompt('Enter URL:');
+        if (!value) return; // Don't execute if no URL provided
+      } else if (button.command === 'insertImage') {
+        value = prompt('Enter Image URL:');
+        if (!value) return; // Don't execute if no URL provided
+      } else if (button.command === 'foreColor') {
+        value = prompt('Enter color (e.g., red, #FF0000):');
+        if (!value) return;
+      } else if (button.command === 'fontSize') {
+        value = prompt('Enter font size (1-7):'); // execCommand uses 1-7 for font size
+        if (!value || isNaN(parseInt(value)) || parseInt(value) < 1 || parseInt(value) > 7) {
+          message.warning('Please enter a valid font size between 1 and 7.');
+          return;
+        }
+      } else if (button.html) {
+        // For commands that insert HTML directly
+        applyFormatting('insertHTML', button.html);
+        return;
+      }
+      applyFormatting(button.command, value);
+    } else if (button.title === 'Help') {
+      message.info('Rich text editor functionality is basic. Use standard browser shortcuts for more options.');
+    }
+  };
 
   return (
     <Card
@@ -271,152 +362,203 @@ const Notes = ({ campaignId }) => {
       }
       bordered={false}
       headStyle={{ backgroundColor: '#fafafa' }}
+      className="campaign-card"
     >
-      {/* Rich Text Editor Toolbar */}
-      <div style={{ 
-        border: '1px solid #d9d9d9', 
-        borderBottom: 'none',
-        padding: '8px',
-        backgroundColor: '#fafafa',
-        borderRadius: '6px 6px 0 0'
-      }}>
+      <div className="notes-toolbar">
         <Space size="small" wrap>
           {toolbarButtons.map((button, index) => (
             <Tooltip key={index} title={button.title}>
-              <Button 
-                type="text" 
-                size="small" 
+              <Button
+                type="text"
+                size="small"
                 icon={button.icon}
-                style={{ minWidth: 32 }}
+                className="toolbar-button"
+                onClick={() => handleToolbarButtonClick(button)}
               />
             </Tooltip>
           ))}
           <Divider type="vertical" />
+          {/* Font family and size dropdowns for visual indication, actual application requires more complex execCommand or custom logic */}
           <Select
-            defaultValue="Fira Sans"
+            defaultValue="Default"
             size="small"
             style={{ width: 100 }}
             bordered={false}
+            onChange={(value) => applyFormatting('fontName', value)}
           >
-            <Option value="Fira Sans">Fira Sans</Option>
             <Option value="Arial">Arial</Option>
-            <Option value="Times">Times</Option>
+            <Option value="Verdana">Verdana</Option>
+            <Option value="Georgia">Georgia</Option>
+            <Option value="Times New Roman">Times New Roman</Option>
+            <Option value="Courier New">Courier New</Option>
+            <Option value="Default">Default</Option> {/* Fira Sans is not a standard web safe font, use a generic "Default" */}
           </Select>
           <Select
-            defaultValue="15"
+            defaultValue="3" // Corresponds to a medium size in execCommand
             size="small"
             style={{ width: 60 }}
             bordered={false}
+            onChange={(value) => applyFormatting('fontSize', value)}
           >
-            <Option value="12">12</Option>
-            <Option value="14">14</Option>
-            <Option value="15">15</Option>
-            <Option value="16">16</Option>
-            <Option value="18">18</Option>
+            <Option value="1">1</Option>
+            <Option value="2">2</Option>
+            <Option value="3">3</Option>
+            <Option value="4">4</Option>
+            <Option value="5">5</Option>
+            <Option value="6">6</Option>
+            <Option value="7">7</Option>
           </Select>
         </Space>
       </div>
 
-      {/* Text Area */}
-      <TextArea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        placeholder="Add your notes here..."
-        rows={8}
-        style={{ 
-          borderRadius: '0 0 6px 6px',
-          borderTop: 'none',
-          resize: 'vertical'
+      <div
+        ref={editorRef}
+        contentEditable="true"
+        className="notes-editor"
+        style={{
+          minHeight: '200px',
+          border: '1px solid #d9d9d9',
+          borderRadius: '2px',
+          padding: '8px 12px',
+          overflowY: 'auto',
+          backgroundColor: loading ? '#f0f0f0' : '#fff',
+          cursor: loading ? 'not-allowed' : 'text',
         }}
-        loading={loading}
+        onInput={(e) => setNotes(e.currentTarget.innerHTML)} // Update state on input
+        dangerouslySetInnerHTML={{ __html: notes }} // Set initial HTML content
       />
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          <Spin />
+        </div>
+      )}
 
-      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <Button 
-          type="primary"
+      <div className="notes-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
+        {/* "Add note" button might imply adding a new section or entry, which is not implemented by a single rich editor field */}
+        <Button
+          type="default" // Changed to default as it doesn't perform a save action directly
           icon={<PlusOutlined />}
-          style={{ backgroundColor: '#17a2b8', borderColor: '#17a2b8' }}
+          className="campaign-button"
+          onClick={() => {
+            if (editorRef.current) {
+              editorRef.current.innerHTML = ''; // Clear editor for a new note
+              setNotes('');
+              editorRef.current.focus();
+            }
+          }}
         >
-          Add note
+          Clear Notes
         </Button>
-        <Button 
+        <Button
           type="primary"
           icon={<SaveOutlined />}
           onClick={handleSaveNotes}
           loading={saveLoading}
+          className="campaign-button"
         >
           Save Notes
         </Button>
       </div>
     </Card>
   );
-}; 
+};
 
+/**
+ * PublisherAccess component manages which publishers are approved for a campaign using a Transfer component.
+ * @param {object} props - Component props.
+ * @param {string} props.campaignId - The ID of the campaign.
+ * @param {function} props.onApprovedPublishersChange - Callback when approved publishers change.
+ */
 const PublisherAccess = ({ campaignId, onApprovedPublishersChange }) => {
-  const [allPublishers, setAllPublishers] = useState([]);
-  const [targetKeys, setTargetKeys] = useState([]);
+  const [allPublishers, setAllPublishers] = useState([]); // All possible publishers
+  const [targetKeys, setTargetKeys] = useState([]); // Keys of publishers currently approved (in right panel)
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
-  const [assignmentData, setAssignmentData] = useState([]);
-  const [questionnaire, setQuestionnaire] = useState('');
 
+  // Fetch all publishers and initially approved publishers
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPublishersData = async () => {
+      if (!campaignId) return;
       setLoading(true);
-      setAssignmentData([]);
       try {
-        const allPubsResponse = await apiClient.post('/common/publisher/list', {});
-        if (allPubsResponse.data?.success) {
-          const formattedData = allPubsResponse.data.data.map(pub => ({
+        // 1. Fetch all publishers
+        const allPublishersResponse = await apiClient.post('/common/publisher/list', {});
+        let fetchedAllPublishers = [];
+        if (allPublishersResponse.data?.success) {
+          fetchedAllPublishers = allPublishersResponse.data.data.map(pub => ({
             key: pub.id.toString(),
             title: `(ID: ${pub.id}) ${pub.name}`,
-            publisherData: pub,
+            ...pub,
           }));
-          setAllPublishers(formattedData);
+          setAllPublishers(fetchedAllPublishers);
         } else {
-          throw new Error("Failed to load publisher list.");
+          message.error('Failed to load all publishers.');
         }
-        try {
-            
-        } catch (assignedError) {
-            setTargetKeys([]);
-            onApprovedPublishersChange && onApprovedPublishersChange([]);
+
+        // 2. Fetch approved publishers for this campaign
+        const approvedPublishersResponse = await apiClient.get(`/admin/campaign/${campaignId}/approved-publishers`);
+        if (approvedPublishersResponse.data?.success) {
+          const approvedPublisherIds = (approvedPublishersResponse.data.data || []).map(pub => pub.id.toString());
+          setTargetKeys(approvedPublisherIds);
+          // Notify parent about initial approved publishers
+          if (onApprovedPublishersChange) {
+            const initialApproved = fetchedAllPublishers.filter(pub => approvedPublisherIds.includes(pub.key));
+            onApprovedPublishersChange(initialApproved);
+          }
+        } else {
+          message.warn('No approved publishers found or failed to fetch approved list.');
+          setTargetKeys([]);
         }
       } catch (error) {
-        message.error(error.message || 'An error occurred while fetching data.');
+        message.error('Failed to load publisher access data: ' + (error.message || 'An error occurred.'));
+        setAllPublishers([]);
+        setTargetKeys([]);
       } finally {
         setLoading(false);
       }
     };
-    if (campaignId) {
-        fetchData();
-    }
+
+    fetchPublishersData();
   }, [campaignId, onApprovedPublishersChange]);
 
-  const handleChange = (newTargetKeys) => {
+  /**
+   * Handles the change event of the Transfer component.
+   * Updates the targetKeys (approved publishers).
+   * @param {string[]} newTargetKeys - The new array of keys in the target list.
+   * @param {string} direction - 'left' or 'right' indicating the direction of transfer.
+   * @param {string[]} moveKeys - The keys of the items moved.
+   */
+  const handleChange = (newTargetKeys, direction, moveKeys) => {
     setTargetKeys(newTargetKeys);
-    
-    // Update approved publishers when selection changes
-    const approvedPublishers = allPublishers.filter(pub => 
-      newTargetKeys.includes(pub.key)
-    );
-    onApprovedPublishersChange && onApprovedPublishersChange(approvedPublishers);
+    // Optionally, update parent with current selection immediately (e.g., for display)
+    if (onApprovedPublishersChange) {
+      const currentApproved = allPublishers.filter(pub => newTargetKeys.includes(pub.key));
+      onApprovedPublishersChange(currentApproved);
+    }
   };
 
+  /**
+   * Handles saving the approved publishers to the backend.
+   */
   const handleSave = async () => {
     setSaveLoading(true);
-    setAssignmentData([]);
     try {
-      const response = await apiClient.post('/admin/campaign-assignment/assign', {
-        campaignId: campaignId,
-        publisherIds: targetKeys,
+      const response = await apiClient.post('/common/publisher/approve', {
+        campaignId: Number(campaignId),
+        publisherIds: targetKeys.map(Number), // Convert keys back to numbers if needed by API
       });
-      console.log("Response Data", response.data);
+
       if (response.data?.success) {
-        message.success('Publisher access updated successfully!');
-        setAssignmentData(response.data.data);
+        message.success('Publisher access saved successfully!');
+        // Ensure parent component has the latest list after save
+        if (onApprovedPublishersChange) {
+          const approvedPublishers = allPublishers.filter(pub =>
+            targetKeys.includes(pub.key)
+          );
+          onApprovedPublishersChange(approvedPublishers);
+        }
       } else {
-        throw new Error(response.data?.message || 'Failed to update publisher access.');
+        throw new Error(response.data?.message || 'Failed to save publisher access.');
       }
     } catch (error) {
       message.error(error.message || 'An error occurred while saving.');
@@ -425,95 +567,53 @@ const PublisherAccess = ({ campaignId, onApprovedPublishersChange }) => {
     }
   };
 
-  const getPublisherName = (publisherId) => {
-    const publisher = allPublishers.find(p => p.key === publisherId.toString());
-    return publisher ? publisher.title : `Publisher ID: ${publisherId}`;
-  };
-  
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    message.success('Link copied!');
-  };
-
-  const assignmentColumns = [
-    {
-      title: 'Publisher',
-      dataIndex: 'publisherId',
-      key: 'publisherId',
-      render: getPublisherName,
-    },
-    {
-      title: 'Generated Tracking Link',
-      dataIndex: 'publisherLink',
-      key: 'publisherLink',
-      render: (link) => (
-        <Space>
-          <a href={link} target="_blank" rel="noopener noreferrer">{link}</a>
-          <Tooltip title="Copy Link">
-            <Button icon={<CopyOutlined />} size="small" onClick={() => copyToClipboard(link)} />
-          </Tooltip>
-        </Space>
-      )
-    },
-  ];
-
   return (
     <Card
-      title="Publisher Access: Ask for Permission"
+      title="Approve Publishers"
       bordered={false}
       headStyle={{ backgroundColor: '#fafafa' }}
-      extra={<Button type="primary" onClick={handleSave} loading={saveLoading}>Save</Button>}
+      className="campaign-card"
+      extra={
+        <Button
+          type="primary"
+          icon={<SaveOutlined />}
+          onClick={handleSave}
+          loading={saveLoading}
+          className="campaign-button"
+        >
+          Save
+        </Button>
+      }
     >
-      <div style={{ marginBottom: 16 }}>
-        <Text strong>Questionnaire</Text>
-        <Input.TextArea
-          rows={2}
-          placeholder="Write here what you want to ask publisher to run this campaign"
-          value={questionnaire}
-          onChange={(e) => setQuestionnaire(e.target.value)}
-          style={{ marginTop: 8 }}
-        />
-      </div>
-      <Checkbox defaultChecked style={{ marginBottom: 16 }}>
-        Also disable tracking links when removing access
-      </Checkbox>
       <Transfer
         dataSource={allPublishers}
         targetKeys={targetKeys}
         onChange={handleChange}
         render={item => item.title}
         listStyle={{ width: '100%', height: 300, border: '1px solid #d9d9d9', borderRadius: '2px' }}
-        titles={['Pending', 'Approved']}
+        titles={['Available', 'Approved']}
         showSearch
         loading={loading}
         filterOption={(inputValue, item) =>
-            item.title.toLowerCase().indexOf(inputValue.toLowerCase()) !== -1
+          item.title.toLowerCase().indexOf(inputValue.toLowerCase()) !== -1
         }
-        operations={['Approve', 'Deny']}
+        operations={['Approve', 'Remove']}
       />
-      {assignmentData.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <Title level={5}>Generated Publisher Links</Title>
-          <Table
-            columns={assignmentColumns}
-            dataSource={assignmentData.map(item => ({ ...item, key: item.id }))}
-            pagination={false}
-            size="small"
-            bordered
-          />
-        </div>
-      )}
     </Card>
   );
 };
 
+/**
+ * CampaignDetailPage component displays detailed information about a campaign.
+ */
 const CampaignDetailPage = () => {
   const { id } = useParams();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [approvedPublishers, setApprovedPublishers] = useState([]);
+  const [approvedPublishers, setApprovedPublishers] = useState([]); // State to hold approved publishers
 
+  // Fetches campaign details
   useEffect(() => {
     const fetchCampaignDetails = async () => {
       if (!id) return;
@@ -521,6 +621,7 @@ const CampaignDetailPage = () => {
       setError(null);
       try {
         const response = await apiClient.get(`/admin/campaign/${id}`);
+        console.log("Campaign Details Response:", response.data);
         if (response.data?.success) {
           setCampaign(response.data.data);
         } else {
@@ -535,12 +636,54 @@ const CampaignDetailPage = () => {
     fetchCampaignDetails();
   }, [id]);
 
-  const handleApprovedPublishersChange = (publishers) => {
+  // Callback to update approved publishers from PublisherAccess component
+  const handleApprovedPublishersChange = useCallback((publishers) => {
     setApprovedPublishers(publishers);
+  }, []);
+
+  /**
+   * Formats an array value for display.
+   * @param {Array} value - The array to format.
+   * @returns {string} Formatted string or 'Not specified'.
+   */
+  const formatArrayValue = (value) => {
+    if (Array.isArray(value)) {
+      return value.length > 0 ? value.join(', ') : 'Not specified';
+    }
+    return value || 'Not specified';
+  };
+
+  /**
+   * Formats a date string for display.
+   * @param {string} dateString - The date string to format.
+   * @returns {string} Formatted date or 'Not specified'.
+   */
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not specified';
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+      return dateString; // Return original if invalid date
+    }
+  };
+
+  /**
+   * Determines the color for a status tag.
+   * @param {string} status - The status string.
+   * @returns {string} Ant Design tag color.
+   */
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active': return 'green';
+      case 'inactive': return 'red';
+      case 'expired': return 'orange';
+      case 'paused': return 'yellow';
+      default: return 'default';
+    }
   };
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><Spin size="large" tip="Loading Campaign Details..." /></div>;
+    return <CampaignDetailSkeleton />;
   }
 
   if (error) {
@@ -552,78 +695,86 @@ const CampaignDetailPage = () => {
   }
 
   return (
-    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: '100vh' }}>
-      <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
+    <div className="campaign-detail-page">
+      <Row justify="space-between" align="middle" className="page-header">
         <Col>
           <Space align="center" size="large">
-            <Link to="/campaigns" style={{ color: 'rgba(0,0,0,.85)' }}>
-              <ArrowLeftOutlined style={{ fontSize: '20px', cursor: 'pointer' }}/>
+            <Link to="/campaign/manage" className="back-link">
+              <ArrowLeftOutlined className="back-icon" />
             </Link>
             <Title level={4} style={{ marginBottom: 0 }}>
-              Campaigns  ID: {campaign.id}
+              Campaign ID: {campaign.id}
             </Title>
           </Space>
         </Col>
-       
       </Row>
+
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={12}>
           <Card
             title={`Details (ID: ${campaign.id})`}
             bordered={false}
             headStyle={{ backgroundColor: '#fafafa' }}
-            extra={
-              <Space>
-                <Button icon={<DownloadOutlined />} />
-                <Button icon={<UploadOutlined />} />
-                <Button icon={<EditOutlined />} />
-              </Space>
-            }
+            className="campaign-card"
           >
             <Descriptions column={1} bordered size="small" labelStyle={{ width: '35%' }}>
               <Descriptions.Item label="Title">{campaign.title}</Descriptions.Item>
               <Descriptions.Item label="Description">{campaign.description || 'No description available'}</Descriptions.Item>
               <Descriptions.Item label="Status">
-                  <Tag color={campaign.status === 'active' ? 'green' : 'orange'}>
+                <Tag color={getStatusColor(campaign.status)}>
                   {campaign.status?.toUpperCase()}
-                  </Tag>
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Effective Status">
+                <Tag color={getStatusColor(campaign.effectiveStatus)}>
+                  {campaign.effectiveStatus?.toUpperCase()}
+                </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Advertiser">
-                  <a href="#">(ID: {campaign.company_id}) {campaign.company?.name}</a>
+                <a href="#">(ID: {campaign.company_id}) {campaign.company?.name}</a>
               </Descriptions.Item>
-              <Descriptions.Item label="Category">{campaign.category || 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Category">{formatArrayValue(campaign.category)}</Descriptions.Item>
               <Descriptions.Item label="Visibility">{campaign.visibility}</Descriptions.Item>
               <Descriptions.Item label="Objective">{campaign.objective}</Descriptions.Item>
               <Descriptions.Item label="Currency">{campaign.currency}</Descriptions.Item>
-              <Descriptions.Item label="Commission Rate">{campaign.commission_rate ? `${campaign.commission_rate}%` : 'Not specified'}</Descriptions.Item>
-              <Descriptions.Item label="Commission Type">{campaign.commission_type || 'Not specified'}</Descriptions.Item>
-              <Descriptions.Item label="Start Date">{campaign.start_date ? new Date(campaign.start_date).toLocaleDateString() : 'Not specified'}</Descriptions.Item>
-              <Descriptions.Item label="End Date">{campaign.end_date ? new Date(campaign.end_date).toLocaleDateString() : 'Not specified'}</Descriptions.Item>
-              <Descriptions.Item label="Created Date">{new Date(campaign.created_at).toLocaleDateString()}</Descriptions.Item>
+              <Descriptions.Item label="Payout">{campaign.payout ? `${campaign.payout} ${campaign.currency}` : 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Revenue">{campaign.revenue ? `${campaign.revenue} ${campaign.currency}` : 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Revenue Model">{campaign.revenueModel || 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Conversion Tracking">{campaign.conversionTracking || 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Devices">{formatArrayValue(campaign.devices)}</Descriptions.Item>
+              <Descriptions.Item label="Operating System">{formatArrayValue(campaign.operatingSystem)}</Descriptions.Item>
+              <Descriptions.Item label="Geo Coverage">{formatArrayValue(campaign.geoCoverage)}</Descriptions.Item>
+              <Descriptions.Item label="Traffic Channels">{formatArrayValue(campaign.allowedTrafficChannels)}</Descriptions.Item>
+              <Descriptions.Item label="Campaign Start">{formatDate(campaign.campaignStartDate)}</Descriptions.Item>
+              <Descriptions.Item label="Campaign End">{formatDate(campaign.campaignEndDate)}</Descriptions.Item>
+              <Descriptions.Item label="Time Zone">{campaign.timezone || 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Start Hour">{campaign.startHour !== undefined ? `${campaign.startHour}:00` : 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="End Hour">{campaign.endHour !== undefined ? `${campaign.endHour}:00` : 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Created Date">{formatDate(campaign.created_at)}</Descriptions.Item>
               <Descriptions.Item label="Preview URL">
-                  <a href={campaign.preview_url} target="_blank" rel="noopener noreferrer">
+                <a href={campaign.preview_url} target="_blank" rel="noopener noreferrer">
                   {campaign.preview_url}
-                  </a>
+                </a>
               </Descriptions.Item>
-              <Descriptions.Item label="Tracking URL">{campaign.tracking_url || 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Tracking URL">{campaign.trackingUrl || 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Default Campaign URL">{campaign.defaultCampaignUrl || 'Not specified'}</Descriptions.Item>
+              <Descriptions.Item label="Note">{campaign.note || 'No notes'}</Descriptions.Item>
             </Descriptions>
           </Card>
         </Col>
         <Col xs={24} lg={12}>
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <TrackingLinkCard 
-              campaignId={campaign.id} 
-              approvedPublishers={approvedPublishers}
+            <TrackingLinkCard
+              campaignId={campaign.id}
             />
-            <PublisherAccess 
+            <PublisherAccess
               campaignId={campaign.id}
               onApprovedPublishersChange={handleApprovedPublishersChange}
             />
           </Space>
         </Col>
       </Row>
-      
-      {/* Block Publishers and Notes in full width below */}
+
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         <Col xs={24} lg={12}>
           <BlockPublishers campaignId={campaign.id} />
