@@ -1,3 +1,5 @@
+@use './Variable' as *;
+
 .login-container {
   display: flex;
   min-height: 100vh;
@@ -7,7 +9,7 @@
 
 .login-leftside {
   flex: 1 !important;
-  background: linear-gradient(135deg, #050a2c, #0a1a4e);
+  background: linear-gradient(135deg, $dark-bg, $dark-bg-light);
   color: #fff;
   padding: 2rem;
   display: flex !important;
@@ -113,7 +115,7 @@
 /* Buttons */
 .btn {
   padding: 0.75rem;
-  background-color: #111827;
+  background-color: $dark-bg;
   color: #fff;
   font-size: 1rem;
   font-weight: 500;

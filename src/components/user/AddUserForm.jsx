@@ -265,6 +265,7 @@ const AddUserForm = ({
             htmlType="submit"
             loading={loading}
             size="large"
+            className='user-button'
           >
             {loading ? 'Creating...' : 'Create User'}
           </Button>

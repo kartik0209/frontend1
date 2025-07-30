@@ -1,6 +1,6 @@
 // src/App.jsx
 import React, { useEffect, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store/store";
@@ -14,10 +14,11 @@ import Loading from "./components/common/LoadingSpinner";
 // Component to initialize auth and company data
 const AuthInitializer = ({ children }) => {
   const dispatch = useDispatch();
-  const { subdomain, companyData } = useSelector((state) => state.auth);
+  const { subdomain, companyData, isAuthenticated, loading } = useSelector((state) => state.auth);
+  const location = useLocation();
 
   useEffect(() => {
-    // Initialize auth first
+    // Initialize auth first without any navigation
     dispatch(initializeAuth());
   }, [dispatch]);
 
@@ -36,16 +37,19 @@ function AppContent() {
 
   console.log('App Content - isAuthenticated:', isAuthenticated, 'loading:', loading);
 
+  // Show loading while authentication is being determined
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
-    <Router>
-      <Suspense fallback={<Loading />}>
-        {isAuthenticated ? (
-          <ProtectedRoutes />
-        ) : (
-          <PublicRoutes />
-        )}
-      </Suspense>
-    </Router>
+    <Suspense fallback={<Loading />}>
+      {isAuthenticated ? (
+        <ProtectedRoutes />
+      ) : (
+        <PublicRoutes />
+      )}
+    </Suspense>
   );
 }
 
@@ -53,9 +57,11 @@ function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={<Loading />} persistor={persistor}>
-        <AuthInitializer>
-          <AppContent />
-        </AuthInitializer>
+        <Router>
+          <AuthInitializer>
+            <AppContent />
+          </AuthInitializer>
+        </Router>
       </PersistGate>
     </Provider>
   );

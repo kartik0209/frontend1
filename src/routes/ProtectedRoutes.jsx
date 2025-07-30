@@ -1,6 +1,6 @@
 // src/routes/ProtectedRoutes.jsx
 import React, { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Layout from "../layouts/ProtectedLayout";
 import ProtectedRoute from "../components/authguards/ProtectedRoute";
@@ -14,7 +14,7 @@ import AdvertiserDetailsPage from "../pages/AdvertiserDetailsPage";
 // Lazy load components for better performance
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const Users = lazy(() => import("../pages/Users"));
-const CompanyList = lazy(() => import("../pages/CompanyList")); // Fixed typo: CopmpanyList -> CompanyList
+const CompanyList = lazy(() => import("../pages/CompanyList"));
 const CompanyTabsPage = lazy(() => import("../pages/CompanyTabsPage"));
 const CampaignCreator = lazy(() => import("../pages/CampaignCreator"));
 const CampaignManagement = lazy(() => import("../pages/CampaignManagement"));
@@ -46,6 +46,7 @@ const ProtectedRoutes = () => {
   const { isAuthenticated, user, permissions } = useSelector(
     (state) => state.auth
   );
+  const location = useLocation();
 
   console.log("ProtectedRoutes - isAuthenticated:", isAuthenticated);
   console.log("ProtectedRoutes - user:", user);
@@ -61,8 +62,11 @@ const ProtectedRoutes = () => {
     <Layout>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
-          {/* Default redirect to dashboard */}
-          {/* <Route path="/" element={<Navigate to="/dashboard" replace />} /> */}
+          {/* Only redirect root path to dashboard */}
+          <Route 
+            path="/" 
+            element={<Navigate to="/dashboard" replace />} 
+          />
 
           <Route
             path="/dashboard"
@@ -187,7 +191,7 @@ const ProtectedRoutes = () => {
           />
 
           {/* Fallback for any unmatched protected routes */}
-          {/* <Route path="*" element={<Navigate to="/dashboard" replace />} /> */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Suspense>
     </Layout>

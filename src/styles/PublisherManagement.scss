@@ -1,16 +1,18 @@
-// Variables
-$primary-color: #1890ff;
-$success-color: #52c41a;
-$warning-color: #faad14;
-$error-color: #ff4d4f;
-$background-color: #f0f2f5;
-$white: #ffffff;
-$border-color: #d9d9d9;
-$border-radius: 8px;
-$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-$transition: all 0.3s ease;
-$dark-gradient: linear-gradient(135deg, #050a2c, #0a1a4e);
+// // Variables
+// $primary-color: $primary-color;
+// $success-color: #52c41a;
+// $warning-color: #faad14;
+// $error-color: #ff4d4f;
+// $background-color: #f0f2f5;
+// $white: #ffffff;
+// $border-color: #d9d9d9;
+// $border-radius: 8px;
+// $box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+// $transition: all 0.3s ease;
+// $dark-gradient: linear-gradient(135deg, #050a2c, $dark-bg-light);
 
+
+@use './Variable' as *;
 // Mixins
 @mixin flex-center {
   display: flex;
@@ -34,7 +36,7 @@ $dark-gradient: linear-gradient(135deg, #050a2c, #0a1a4e);
 // Main publisher management container
 .publisher-management {
   min-height: 100vh;
-  background: $background-color;
+  background: #f0f2f5;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -409,13 +411,13 @@ $dark-gradient: linear-gradient(135deg, #050a2c, #0a1a4e);
       font-size: 12px;
 
       &.select-all-btn {
-        background: linear-gradient(135deg, $success-color, #73d13d);
+        background: $dark-gradient;
         border: none;
         color: $white;
       }
 
       &.clear-all-btn {
-        background: linear-gradient(135deg, $error-color, #ff7875);
+        background: $dark-gradient;
         border: none;
         color: $white;
       }

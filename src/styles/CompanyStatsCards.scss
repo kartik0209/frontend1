@@ -1,5 +1,6 @@
 /* src/components/CompanyStatsCards.scss */
 
+ @use './Variable' as *;
 .stats-cards {
   margin-bottom: 24px;
 }
@@ -11,7 +12,7 @@
 
 /* Blue border for total */
 .stat-card.total-card {
-  border-left-color: #1890ff;
+  border-left-color: $primary-color;
 }
 
 /* Green border for approved */

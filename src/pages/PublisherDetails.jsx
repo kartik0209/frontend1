@@ -203,14 +203,14 @@ const PublisherDetailsPage = () => {
         <Row gutter={[24, 24]}>
           <Col xs={24} lg={12}>
             <Card bordered={false} style={{ height: '100%' }} bodyStyle={{ padding: 0 }}>
-              <div style={{ background: 'linear-gradient(to right, #ff7e5f, #feb47b)', padding: '24px', display: 'flex', alignItems: 'center', borderRadius: '8px 8px 0 0' }}>
-                <Avatar size={64} icon={<UserOutlined />} style={{ marginRight: '24px' }} />
+              <div style={{ background: 'linear-gradient(135deg, #050a2c, #0a1a4e)', padding: '24px', display: 'flex', alignItems: 'center', borderRadius: '8px 8px 0 0' }}>
+                <Avatar size={64} icon={<UserOutlined />} style={{ marginRight: '24px',background:"transparent" }} />
                 <div style={{ flex: 1 }}><Title level={4} style={{ color: 'white', margin: 0 }}>{publisher.name}</Title></div>
-                <Space>
+                {/* <Space>
                   <Button type="default" icon={<CopyOutlined />} onClick={handleClone}>Clone</Button>
                   <Button type="default" icon={<CheckCircleOutlined />} onClick={handleActivate}>Active</Button>
                   <Button type="default" icon={<EditOutlined />} onClick={showEditModal}>Edit</Button>
-                </Space>
+                </Space> */}
               </div>
               <div style={{ padding: '24px' }}>
                 <Descriptions column={1} bordered size="small" labelStyle={{ width: '35%' }}>
@@ -237,9 +237,9 @@ const PublisherDetailsPage = () => {
           </Col>
           <Col xs={24} lg={12}>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
-              <Card title="Tracking Link" bordered={false} headStyle={{ backgroundColor: '#fafafa' }} extra={<Space><Button style={{backgroundColor: primaryColor, color: 'white'}} icon={<BarChartOutlined />}>Performance Report</Button><Button style={{backgroundColor: primaryColor, color: 'white'}} icon={<LinkOutlined />}>Manage Links</Button></Space>}><div style={{ padding: '20px 0' }}><Text type="secondary">Enable the Publisher to Generate its Tracking Link</Text></div></Card>
-              <Card title="Settings" bordered={false} headStyle={{ backgroundColor: '#fafafa' }} extra={<Button style={{backgroundColor: primaryColor, color: 'white'}} icon={<EditOutlined />} onClick={showEditModal}>Edit</Button>}><Row gutter={[16, 16]}><Col span={24}><Text type="secondary">Currency: {publisher.currency} | Email Notifications: {publisher.notify ? 'Yes' : 'No'} | Locale: {publisher.locale}</Text></Col></Row><Divider /><Row><Col span={24}><div><Text type="secondary" style={{ fontSize: '12px' }}>BANK:</Text><div><Button type="link" icon={<BankOutlined />} style={{ padding: 0, fontWeight: 'bold' }}>Details</Button></div></div></Col></Row></Card>
-              <Card title="Account Users" bordered={false} headStyle={{ backgroundColor: '#fafafa' }} extra={<Button style={{backgroundColor: primaryColor, color: 'white'}} icon={<PlusOutlined />} size="small">Add</Button>}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={<Text type="secondary">No Subaccounts created for the Publisher</Text>} /></Card>
+              <Card title="Tracking Link" bordered={false} headStyle={{ backgroundColor: '#fafafa' }} extra={<Space><Button style={{backgroundColor: "transparent", color: 'black', border:"none"}} icon={<BarChartOutlined />}>Performance Report</Button><Button style={{backgroundColor: "transparent", color: 'black', border:"none"}} icon={<LinkOutlined />}>Manage Links</Button></Space>}><div style={{ padding: '20px 0' }}><Text type="secondary">Enable the Publisher to Generate its Tracking Link</Text></div></Card>
+              <Card title="Settings" bordered={false} headStyle={{ backgroundColor: '#fafafa' }} extra={<Button style={{backgroundColor: "transparent", color: 'black', border:"none"}} icon={<EditOutlined />} onClick={showEditModal}>Edit</Button>}><Row gutter={[16, 16]}><Col span={24}><Text type="secondary">Currency: {publisher.currency} | Email Notifications: {publisher.notify ? 'Yes' : 'No'} | Locale: {publisher.locale}</Text></Col></Row><Divider /><Row><Col span={24}><div><Text type="secondary" style={{ fontSize: '12px' }}>BANK:</Text><div><Button type="link" icon={<BankOutlined />} style={{ padding: 0, fontWeight: 'bold' }}>Details</Button></div></div></Col></Row></Card>
+              <Card title="Account Users" bordered={false} headStyle={{ backgroundColor: '#fafafa' }} extra={<Button style={{backgroundColor: "transparent", color: 'black', border:"none"}} icon={<PlusOutlined />} size="small">Add</Button>}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={<Text type="secondary">No Subaccounts created for the Publisher</Text>} /></Card>
               <Card title="Private Tracking Domain" bordered={false} headStyle={{ backgroundColor: '#fafafa' }}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={<Text type="secondary">No private tracking domain found</Text>} /></Card>
             </Space>
           </Col>

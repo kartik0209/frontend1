@@ -1,18 +1,20 @@
 // Import color module for modern Sass color functions
 @use "sass:color";
 
-// Variables
-$primary-color: #1890ff;
-$success-color: #52c41a;
-$warning-color: #faad14;
-$error-color: #ff4d4f;
-$text-color: #262626;
-$text-secondary: #8c8c8c;
-$border-color: #f0f0f0;
-$background-light: #fafafa;
-$white: #ffffff;
-$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-$border-radius: 8px;
+// // Variables
+// $primary-color: $primary-color;
+// $success-color: #52c41a;
+// $warning-color: #faad14;
+// $error-color: #ff4d4f;
+// $text-color: #262626;
+// $text-secondary: #8c8c8c;
+// $border-color: #f0f0f0;
+// $background-light: #fafafa;
+// $white: #ffffff;
+// $box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+// $border-radius: 8px;
+
+@use './Variable' as *;
 
 // Mixins
 @mixin flex-center {

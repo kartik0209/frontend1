@@ -36,6 +36,10 @@ const ApproveConfirmModal = ({
       onCancel={onCancel}
       confirmLoading={loading}
       okText="Yes, Approve"
+      okButtonProps={{
+        style: { backgroundColor: "#52c41a", borderColor: "#52c41a"  },
+        disabled: subscriptionDays <= 0 || amount < 0,
+      }}
       cancelText="Cancel"
       okType="primary"
       centered

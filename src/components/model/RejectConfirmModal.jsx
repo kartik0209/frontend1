@@ -27,6 +27,9 @@ const RejectConfirmModal = ({
       confirmLoading={loading}
       okText="Yes, Reject"
       cancelText="Cancel"
+      okButtonProps={{
+        style: { backgroundColor: '#ff4d4f', color:"white", borderColor: '#ff4d4f' },
+      }}
       okType="danger"
       centered
       width={500}

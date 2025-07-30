@@ -1,3 +1,4 @@
+@use './Variable' as *;
 .user-view-modal {
     .ant-modal-content {
         border-radius: 10px;
@@ -18,7 +19,7 @@
 
     .user-modal__profile-avatar {
         background: #e6f7ff;
-        color: #1890ff;
+        color: $primary-color;
         font-size: 32px;
         display: flex;
         align-items: center;

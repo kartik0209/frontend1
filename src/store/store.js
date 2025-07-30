@@ -1,13 +1,13 @@
 // src/store/store.js
 import { configureStore } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import authSlice from './authSlice';
 
 // Create an encryptor instance (you must pass at least `secretKey`)
 const encryptor = encryptTransform({
-  secretKey:  'default‐fallback‐key',
+  secretKey: 'default‐fallback‐key',
   onError: (error) => {
     console.error('Redux Persist encryption error:', error);
   }
@@ -16,9 +16,9 @@ const encryptor = encryptTransform({
 const persistConfig = {
   key: 'auth',
   storage,
-  whitelist: ['isAuthenticated', 'user', 'role', 'subdomain'],
+  whitelist: ['isAuthenticated', 'user', 'role', 'subdomain', 'permissions'], // Added permissions to persist
   blacklist: ['token', 'loading', 'error'],
-  transforms: [encryptor],    // ← pass the result, not the factory itself
+  transforms: [encryptor],
   migrate: (state) => Promise.resolve(state),
 };
 
@@ -29,13 +29,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: [
-          'persist/PERSIST',
-          'persist/REHYDRATE',
-          'persist/PAUSE',
-          'persist/PURGE',
-          'persist/REGISTER',
-        ],
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }),
   devTools: process.env.NODE_ENV !== 'production',

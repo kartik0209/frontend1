@@ -1,56 +1,141 @@
-// Most Used Colors Variables
-// Based on analysis of all SCSS files
+// =============================================================================
+// GLOBAL COLOR VARIABLES - _colors.scss
+// =============================================================================
+// Import this file at the top of all SCSS files: @import './colors';
 
-// Primary Brand Colors (Most Frequent)
-$primary-dark: #050a2c;           // Used 50+ times across files
-$primary-dark-light: #0a1a4e;     // Used 40+ times across files
-$primary-gradient: linear-gradient(135deg, #050a2c, #0a1a4e); // Used 25+ times
+// Primary Brand Colors
+$primary-color: #1890ff;
+$primary-light: #40a9ff;
+$primary-dark: #096dd9;
+$primary-gradient: linear-gradient(135deg, #1890ff, #36cfc9);
 
-// Core UI Colors (Very Frequent)
-$white: #ffffff;                  // Used 100+ times
-$black: #000000;                  // Used 30+ times
-$primary-blue: #1890ff;           // Used 40+ times (Ant Design primary)
-$primary-accent: #4A90E2;         // Used 20+ times
+// Dark Theme Colors
+$dark-bg: #050a2c;
+$dark-bg-light: #0a1a4e;
+$dark-gradient: linear-gradient(135deg, #050a2c, #0a1a4e);
 
-// Text Colors (Most Common)
-$text-primary: #262626;           // Used 35+ times
-$text-secondary: #8c8c8c;         // Used 25+ times
-$text-light: rgba(255, 255, 255, 0.8); // Used 20+ times
-$text-dark: #1a1a1a;             // Used 15+ times
-$text-muted: #595959;             // Used 15+ times
 
-// Background Colors (Frequent)
-$background-light: #f0f2f5;       // Used 20+ times
-$background-card: #ffffff;        // Used 25+ times
-$background-secondary: #fafafa;   // Used 20+ times
-$background-gray: #f8f9fa;        // Used 15+ times
-$background-gray-light: #f9fafb;  // Used 10+ times
+// Neutral Colors
+$white: #ffffff;
+$black: #000000;
+$background-light: #f0f2f5;
+$background-secondary: #f8f9fa;
+$background-gray: #fafafa;
 
-// Border Colors (Common)
-$border-color: #d9d9d9;           // Used 25+ times
-$border-light: #f0f0f0;           // Used 30+ times
-$border-lighter: #e2e8f0;         // Used 15+ times
-$border-rgba: rgba(255, 255, 255, 0.1); // Used 15+ times
+// Text Colors
+$text-primary: #262626;
+$text-secondary: #8c8c8c;
+$text-tertiary: #595959;
+$text-dark: #1a1a1a;
+$text-light: rgba(255, 255, 255, 0.8);
+$text-placeholder: rgba(255, 255, 255, 0.6);
 
-// Status Colors (Standard Ant Design + Custom)
-$success-color: #52c41a;          // Used 20+ times
-$warning-color: #faad14;          // Used 15+ times
-$error-color: #ff4d4f;            // Used 20+ times
-$info-color: #1890ff;             // Used 15+ times
+// Border Colors
+$border-color: #d9d9d9;
+$border-light: #f0f0f0;
+$border-secondary: rgba(255, 255, 255, 0.1);
+$border-dark: rgba(255, 255, 255, 0.2);
 
-// Utility Colors (Frequent)
-$backdrop-blur: rgba(5, 10, 44, 0.95); // Used 10+ times
-$shadow-color: rgba(0, 0, 0, 0.1); // Used 20+ times
-$shadow-dark: rgba(0, 0, 0, 0.3);  // Used 10+ times
-$overlay-light: rgba(255, 255, 255, 0.1); // Used 15+ times
+// Status Colors
+$success-color: #52c41a;
+$success-light: #73d13d;
+$warning-color: #faad14;
+$error-color: #ff4d4f;
+$error-light: #ff7875;
+$info-color: #1890ff;
 
-// Gray Scale (Common)
-$gray-50: #f9fafb;               // Used 10+ times
-$gray-100: #f3f4f6;              // Used 10+ times
-$gray-200: #e5e7eb;              // Used 10+ times
-$gray-600: #4b5563;              // Used 8+ times
+// Semantic Colors
+$approved-color: #52c41a;
+$pending-color: #faad14;
+$rejected-color: #ff4d4f;
+$total-color: #1890ff;
 
-// Additional Frequently Used Colors
-$blue-light: #e6f7ff;            // Used 8+ times
-$green-gradient-start: #4ade80;   // Used 5+ times
-$green-gradient-end: #10b981;     // Used 5+ times
+// Background Variants
+$card-bg: #ffffff;
+$modal-backdrop: rgba(5, 10, 44, 0.95);
+$backdrop-blur: rgba(5, 10, 44, 0.95);
+
+// Shadow Colors
+$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$box-shadow-light: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+$box-shadow-dark: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+// Interactive States
+$hover-bg: rgba(255, 255, 255, 0.1);
+$hover-bg-light: #f5f5f5;
+$focus-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+
+// Form Colors
+$input-bg: rgba(255, 255, 255, 0.1);
+$input-border: rgba(255, 255, 255, 0.2);
+$input-focus-border: #1890ff;
+
+// Table Colors
+$table-header-bg: #fafafa;
+$table-hover-bg: rgba(24, 144, 255, 0.05);
+$table-border: #f0f0f0;
+
+
+$text-color: #262626;
+
+
+
+ $secondary-text: #595959;
+ $spacing-base: 24px;
+$spacing-sm: 16px;
+ $spacing-xs: 8px;
+
+// Common Border Radius
+$border-radius: 8px;
+$border-radius-sm: 4px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+
+// Common Transitions
+$transition: all 0.3s ease;
+$transition-fast: all 0.2s ease;
+$transition-speed: 0.3s;
+
+
+// Gradient Variants
+$gradient-success: linear-gradient(135deg, #52c41a, #73d13d);
+$gradient-error: linear-gradient(135deg, #ff4d4f, #ff7875);
+$gradient-primary: linear-gradient(135deg, #1890ff, #36cfc9);
+
+// Color Variants for Different States
+$primary-variants: (
+  10: rgba(24, 144, 255, 0.1),
+  20: rgba(24, 144, 255, 0.2),
+  30: rgba(24, 144, 255, 0.3),
+  50: rgba(24, 144, 255, 0.5),
+);
+
+$white-variants: (
+  5: rgba(255, 255, 255, 0.05),
+  10: rgba(255, 255, 255, 0.1),
+  15: rgba(255, 255, 255, 0.15),
+  20: rgba(255, 255, 255, 0.2),
+  60: rgba(255, 255, 255, 0.6),
+  80: rgba(255, 255, 255, 0.8),
+);
+
+$black-variants: (
+  2: rgba(0, 0, 0, 0.02),
+  4: rgba(0, 0, 0, 0.04),
+  6: rgba(0, 0, 0, 0.06),
+  10: rgba(0, 0, 0, 0.1),
+  70: rgba(0, 0, 0, 0.7),
+);
+
+// Helper function to get color variants
+@function get-primary($opacity) {
+  @return map-get($primary-variants, $opacity);
+}
+
+@function get-white($opacity) {
+  @return map-get($white-variants, $opacity);
+}
+
+@function get-black($opacity) {
+  @return map-get($black-variants, $opacity);
+}

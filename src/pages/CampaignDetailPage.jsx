@@ -579,7 +579,8 @@ const PublisherAccess = ({ campaignId, onApprovedPublishersChange }) => {
           icon={<SaveOutlined />}
           onClick={handleSave}
           loading={saveLoading}
-          className="campaign-button"
+          //className="campaign-button"
+          style={{backgroundColor: "transparent !important", color: 'black', border:"none"}}
         >
           Save
         </Button>

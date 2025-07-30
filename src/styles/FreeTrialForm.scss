@@ -1,18 +1,21 @@
-// Color Variables
-$primary-color: #4A90E2;
-$dark-bg: #050a2c;
-$dark-bg-light: #0a1a4e;
-$white: #ffffff;
-$text-secondary: rgba(255, 255, 255, 0.8);
-$border-color: rgba(255, 255, 255, 0.1);
-$backdrop-blur: rgba(5, 10, 44, 0.95);
+// // Color Variables
+// $primary-color: #4A90E2;
+// $dark-bg: #050a2c;
+// $dark-bg-lightt: $dark-bg-light;
+// $white: #ffffff;
+// $text-secondary: rgba(255, 255, 255, 0.8);
+// $border-color: rgba(255, 255, 255, 0.1);
+// $backdrop-blur: rgba(5, 10, 44, 0.95);
 
-// Additional Variables
-$error-color: #ff4d4f;
-$success-color: #52c41a;
-$border-radius: 8px;
-$border-radius-lg: 12px;
-$transition-speed: 0.3s;
+// // Additional Variables
+// $error-color: #ff4d4f;
+// $success-color: #52c41a;
+// $border-radius: 8px;
+// $border-radius-lg: 12px;
+// $transition-speed: 0.3s;
+
+
+@use './Variable' as *;
 
 // Mixins
 @mixin flex-center {

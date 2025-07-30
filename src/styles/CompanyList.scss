@@ -1,15 +1,18 @@
-// Variables
-$background-light: #f0f2f5;
-$card-bg: #ffffff;
+// // Variables
+// $background-light: #f0f2f5;
+// $card-bg: #ffffff;
 
-// Use the gradient for the button background
-$primary-gradient: linear-gradient(135deg, #050a2c, #0a1a4e);
+// // Use the gradient for the button background
+// $primary-gradient: linear-gradient(135deg, $primary-dark, $primary-dark-light);
 
-$secondary-text: #595959;
-$border-radius: 4px;
-$spacing-base: 24px;
-$spacing-sm: 16px;
-$spacing-xs: 8px;
+// $secondary-text: #595959;
+// $border-radius: 4px;
+// $spacing-base: 24px;
+// $spacing-sm: 16px;
+// $spacing-xs: 8px;
+
+@use './Variable' as *;
+
 
 // Page container
 .company-list-page {
