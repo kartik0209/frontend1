@@ -280,53 +280,53 @@ const [editModalVisible, setEditModalVisible] = useState(false);
     (col) => visibleColumns[col.key]
   );
 
-  const handleSearch = async (values) => {
-    setLoading(true);
-    try {
-      // Clean up search parameters
-      const searchParams = Object.keys(values).reduce((acc, key) => {
-        if (
-          values[key] !== undefined &&
-          values[key] !== null &&
-          values[key] !== ""
-        ) {
-          acc[key] = values[key];
-        }
-        return acc;
-      }, {});
+    const handleSearch = async (values) => {
+      setLoading(true);
+      try {
+        // Clean up search parameters
+        const searchParams = Object.keys(values).reduce((acc, key) => {
+          if (
+            values[key] !== undefined &&
+            values[key] !== null &&
+            values[key] !== ""
+          ) {
+            acc[key] = values[key];
+          }
+          return acc;
+        }, {});
 
-      console.log("Search params:", searchParams);
+        console.log("Search params:", searchParams);
 
-      const response = await apiClient.post(
-        "/admin/campaign/list",
-        searchParams
-      );
-
-      console.log("Search response:", response.data);
-
-      if (response.data && response.data.success) {
-        const campaignData =
-          response.data.data || response.data.campaigns || [];
-        const campaignsWithKeys = campaignData.map((campaign) => ({
-          ...campaign,
-          key: campaign.id || Math.random().toString(36).substr(2, 9),
-        }));
-
-        setCampaigns(campaignsWithKeys);
-        message.success(
-          `Search completed! Found ${campaignsWithKeys.length} campaigns.`
+        const response = await apiClient.post(
+          "/admin/campaign/list",
+          searchParams
         );
-      } else {
-        throw new Error(response.data?.message || "Search failed");
+
+        console.log("Search response:", response.data);
+
+        if (response.data && response.data.success) {
+          const campaignData =
+            response.data.data || response.data.campaigns || [];
+          const campaignsWithKeys = campaignData.map((campaign) => ({
+            ...campaign,
+            key: campaign.id || Math.random().toString(36).substr(2, 9),
+          }));
+
+          setCampaigns(campaignsWithKeys);
+          message.success(
+            `Search completed! Found ${campaignsWithKeys.length} campaigns.`
+          );
+        } else {
+          throw new Error(response.data?.message || "Search failed");
+        }
+      } catch (error) {
+        console.error("Search error:", error);
+        message.error(error.response?.data?.message || "Search failed");
+      } finally {
+        setLoading(false);
+        setSearchVisible(false);
       }
-    } catch (error) {
-      console.error("Search error:", error);
-      message.error(error.response?.data?.message || "Search failed");
-    } finally {
-      setLoading(false);
-      setSearchVisible(false);
-    }
-  };
+    };
 
   const handleExport = () => {
     if (campaigns.length === 0) {
@@ -434,15 +434,11 @@ const handleDelete = (campaignId) => {
 
 // API function for updating campaign status
 const updateCampaignStatus = async (campaignId, newStatus) => {
-  try {
-    const response = await apiClient.patch(`/admin/campaign/${campaignId}/status`, {
-      status: newStatus
-    });
-    console.log('Update status response:', response.data);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiClient.patch(`/admin/campaign/${campaignId}/status`, {
+    status: newStatus
+  });
+  console.log('Update status response:', response.data);
+  return response.data;
 };
 
 // Usage in your CampaignManagement component

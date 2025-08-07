@@ -26,7 +26,7 @@ import "../../styles/TrackingLinkCard.scss";
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const TrackingLinkCard = ({ campaignId }) => {
+const TrackingLinkCard = ({ campaignId ,issaved}) => {
   const [publishersList, setPublishersList] = useState([]);
   const [listLoading, setListLoading] = useState(false);
   const [selectedPublisher, setSelectedPublisher] = useState(null);
@@ -90,7 +90,7 @@ const TrackingLinkCard = ({ campaignId }) => {
     };
 
     fetchApprovedPublishers();
-  }, [campaignId]);
+  }, [campaignId, issaved]);
 
   const generateTrackingLink = async () => {
     if (!selectedPublisher) {

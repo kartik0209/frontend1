@@ -19,28 +19,10 @@ const CompanyTabsPage = lazy(() => import("../pages/CompanyTabsPage"));
 const CampaignCreator = lazy(() => import("../pages/CampaignCreator"));
 const CampaignManagement = lazy(() => import("../pages/CampaignManagement"));
 const PublisherManagement = lazy(() => import("../pages/PublisherManagement"));
+const CampaignReportsPage = lazy(() => import("../pages/CampaignReportsPage"));
+const ConversionReportsPage = lazy(() => import("../pages/ConversionReportsPage"));
 
-const ConversionReportsPage = lazy(() =>
-  Promise.resolve({
-    default: () => (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        <h2>Conversion Reports</h2>
-        <p>View Conversion Data</p>
-      </div>
-    ),
-  })
-);
 
-const CampaignReportsPage = lazy(() =>
-  Promise.resolve({
-    default: () => (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        <h2>Campaign Reports</h2>
-        <p>View Campaign Data</p>
-      </div>
-    ),
-  })
-);
 
 const ProtectedRoutes = () => {
   const { isAuthenticated, user, permissions } = useSelector(
@@ -48,9 +30,7 @@ const ProtectedRoutes = () => {
   );
   const location = useLocation();
 
-  console.log("ProtectedRoutes - isAuthenticated:", isAuthenticated);
-  console.log("ProtectedRoutes - user:", user);
-  console.log("ProtectedRoutes - permissions:", permissions);
+
 
   // Redirect unauthenticated users to login
   if (!isAuthenticated) {
