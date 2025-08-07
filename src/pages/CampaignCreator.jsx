@@ -12,8 +12,8 @@ import { useCampaignForm } from "../hooks/useCampaignForm";
 import { validatePayload, buildPayload, extractErrorMessage } from "../utils/campaighUtils";
 import apiclient from "../services/apiServices";
 import "../styles/CampaignCreator.scss";
-import SuccessModal from "../components/SuccessModal";
-import FailModal from "../components/FailModal";
+import SuccessModal from "../components/model/SuccessModal";
+import FailModal from "../components/model/FailModal";
 const { Title } = Typography;
 
 const CampaignForm = () => {

@@ -472,9 +472,7 @@
       @include transition();
       margin-top: auto;
 
-      &:hover {
-        background: lighten($dark-bg, 10%);
-      }
+     
     }
 
     // Side cards styling
