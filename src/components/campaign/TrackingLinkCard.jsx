@@ -122,19 +122,7 @@ const TrackingLinkCard = ({ campaignId ,issaved}) => {
         const assignmentData = response.data.data[0];
         let finalLink = assignmentData.publisherLink;
 
-        // If addTrackingParam is checked, append the parameters to the generated link
-        if (linkOptions.addTrackingParam) {
-          const params = new URLSearchParams();
-          if (additionalParams.p1) params.append("p1", additionalParams.p1);
-          if (additionalParams.p2) params.append("p2", additionalParams.p2);
-          if (additionalParams.p3) params.append("p3", additionalParams.p3);
-          if (additionalParams.p4) params.append("p4", additionalParams.p4);
-
-          if (params.toString()) {
-            finalLink +=
-              (finalLink.includes("?") ? "&" : "?") + params.toString();
-          }
-        }
+      
 
         setGeneratedLink(finalLink);
         message.success("Tracking link generated successfully!");
