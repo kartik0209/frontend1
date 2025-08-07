@@ -434,37 +434,7 @@ const CampaignReportsPage = () => {
       },
       width: 140,
     },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (record) => (
-        <Space>
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            size="small"
-            onClick={() => console.log("View tracking details:", record)}
-            title="View Details"
-          >
-            View
-          </Button>
-          {record.eventType === "click" && (
-            <Button
-              type="link"
-              size="small"
-              onClick={() =>
-                console.log("View conversions for click:", record.clickId)
-              }
-              title="View Related Conversions"
-            >
-              Conversions
-            </Button>
-          )}
-        </Space>
-      ),
-      width: 120,
-      fixed: "right",
-    },
+   
   ];
 
   // Load campaigns on component mount
