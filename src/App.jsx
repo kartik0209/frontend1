@@ -8,6 +8,8 @@ import { initializeAuth, fetchCompanyData } from "./store/authSlice";
 import PublicRoutes from "./routes/PublicRoutes";
 import ProtectedRoutes from "./routes/ProtectedRoutes";
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // Enhanced loading component with CSS animation
 import Loading from "./components/common/LoadingSpinner";
 
@@ -62,6 +64,18 @@ function App() {
             <AppContent />
           </AuthInitializer>
         </Router>
+         <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       </PersistGate>
     </Provider>
   );

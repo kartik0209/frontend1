@@ -14,6 +14,7 @@ import apiclient from "../services/apiServices";
 import "../styles/CampaignCreator.scss";
 import SuccessModal from "../components/model/SuccessModal";
 import FailModal from "../components/model/FailModal";
+import ToasterService from "../utils/toaster";
 const { Title } = Typography;
 
 const CampaignForm = () => {
@@ -59,13 +60,23 @@ const CampaignForm = () => {
       console.error("Response data:", error.response?.data);
       console.error("Response status:", error.response?.status);
       
-      const errorMessage = extractErrorMessage(error);
+     const errorMessage = extractErrorMessage(error);
+    ToasterService.error(errorMessage);
       showFailModal("Error Creating Campaign", errorMessage);
       message.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+
+ const handleFinishFailed = (errorInfo) => {
+  const firstError = errorInfo.errorFields[0];
+  if (firstError) {
+    ToasterService.error(`Please fill  ${firstError.name.join(' ')}`);
+  }
+};
+
 
   return (
     <div className="campaign-form">
@@ -78,6 +89,7 @@ const CampaignForm = () => {
           form={form}
           layout="vertical"
           onFinish={handleFinish}
+          onFinishFailed={handleFinishFailed}
           className="campaign-form__form"
           // initialValues={{
           //   objective: "conversions",

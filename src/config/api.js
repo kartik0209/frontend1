@@ -1,6 +1,6 @@
 // src/config/api.js
 const API_CONFIG = {
-  BASE_URL:  'https://afftrex.onrender.com/api',
+  BASE_URL:  'https://api.afftrex.org/api',
   TIMEOUT: 15000, // Reduced for better performance
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',
