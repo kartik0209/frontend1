@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useEffect, Suspense ,useState} from "react";
+import React, { useEffect, Suspense ,useState,useMemo} from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
@@ -29,11 +29,11 @@ const AuthInitializer = ({ children }) => {
       const hostParts = window.location.hostname.split(".");
       return hostParts.length > 2 ? hostParts[0] : "Afftrex";
     }, []);
-    
+
   useEffect(() => {
     // Fetch company data when subdomain is available
     if (subdomain && !companyData) {
-      dispatch(fetchCompanyData(subdomain));
+      dispatch(fetchCompanyData(subdomain || brand));
     }
   }, [dispatch, subdomain, companyData]);
 
