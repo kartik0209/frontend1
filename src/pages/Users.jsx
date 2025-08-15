@@ -439,6 +439,7 @@ const Users = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             size="large"
+            style={{ width: 300 }}
             allowClear
             className="search-input"
           />
