@@ -184,10 +184,6 @@ const authSlice = createSlice({
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
-    setSubdomain: (state, action) => {
-  state.subdomain = action.payload;
-},
-
   },
   extraReducers: (builder) => {
     builder
@@ -271,8 +267,7 @@ export const {
   updateUserProfile, 
   setUserPermissions,
   setCompanyData,
-  setLoading,
-  setSubdomain,
+  setLoading
 } = authSlice.actions;
 
 export default authSlice.reducer;

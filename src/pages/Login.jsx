@@ -49,8 +49,10 @@ const Login = () => {
   useEffect(() => {
     if (companyName && !companyData) {
       dispatch(fetchCompanyData(companyName));
+    }else{
+      dispatch(fetchCompanyData(brand));
     }
-  }, [dispatch, companyName, companyData]);
+  }, [dispatch, companyName, companyData,brand]);
 
   // Handle authentication redirect
   useEffect(() => {
