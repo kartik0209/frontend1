@@ -173,3 +173,17 @@ export const secureStorage = {
     }
   }
 };
+
+
+
+// src/utils/getSubdomain.js
+export function getSubdomain() {
+  const host = window.location.hostname; // e.g., amex.afftrex.com
+  const parts = host.split('.');
+
+  // If you have domains like afftrex.com (2 parts) or www.afftrex.com (3 parts)
+  if (parts.length > 2) {
+    return parts[0]; // "amex"
+  }
+  return null; // No subdomain
+}

@@ -1,20 +1,60 @@
 import React from "react";
-import { Form, Input, Radio, Card, Row, Col } from "antd";
+import { Form, Input, Radio, Card, Row, Col,Select } from "antd";
 import { objectiveOptions } from "../../../data/formOptions";
 import { Editor } from '@tinymce/tinymce-react';
+import apiClient from "../../../services/apiServices";
+
+const { Option } = Select;
+
 
 const { TextArea } = Input;
 
 const BasicDetailsSection = ({ formState, updateFormState }) => {
+  const [advertisers, setAdvertisers] = React.useState([]);
+const [loadingAdvertisers, setLoadingAdvertisers] = React.useState(false);
+
+React.useEffect(() => {
+  const fetchAdvertisers = async () => {
+    setLoadingAdvertisers(true);
+    try {
+      const response = await apiClient.post("/common/advertiser/list", {});
+      if (response.data.data && response.data.success) {
+        setAdvertisers(response.data.data || []);
+      } else {
+        throw new Error(response.data?.message || "Failed to fetch advertisers");
+      }
+    } catch (error) {
+      console.error("Error fetching advertisers:", error);
+      setAdvertisers([]);
+    } finally {
+      setLoadingAdvertisers(false);
+    }
+  };
+
+  fetchAdvertisers();
+}, []);
+
   return (
     <Card title="Basic Details" className="campaign-form__section">
-      <Form.Item
-        label="Company ID"
-        name="companyId"
-        rules={[{ required: true, message: "Please enter Company ID" }]}
-      >
-        <Input placeholder="Enter Company ID" />
-      </Form.Item>
+     <Form.Item
+  label="Advertiser"
+  name="Advertiser_id"
+  rules={[{ required: true, message: "Please select an advertiser" }]}
+>
+  <Select
+    placeholder="Select advertiser"
+    loading={loadingAdvertisers}
+    showSearch
+    optionFilterProp="children"
+  >
+    {advertisers.map((adv) => (
+      <Option key={adv.id} value={adv.id}>
+        {adv.name}
+      </Option>
+    ))}
+  </Select>
+</Form.Item>
+
 
       <Form.Item
         label="Choose an Objective"

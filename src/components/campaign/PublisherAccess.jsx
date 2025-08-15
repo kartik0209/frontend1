@@ -99,7 +99,8 @@ const PublisherAccess = ({ campaignId, onApprovedPublishersChange ,setIsSaved}) 
     item.title.toLowerCase().includes(inputValue.toLowerCase());
 
   // Simple render function to show only publisher name
-  const renderItem = (item) => item.title;
+const renderItem = (item) => `${item.id} - ${item.name}`;
+
 
   if (loading) {
     return (

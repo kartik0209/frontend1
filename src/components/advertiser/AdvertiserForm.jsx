@@ -1,7 +1,14 @@
-// src/components/advertiser/AdvertiserForm.jsx
 import React from "react";
 import { Form, Row, Col, Input, Select, Button, Space, Switch, Tag } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
+import { Country, State, City } from 'country-state-city';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
+import currencyList from 'currency-list';
+import currencyCodes from "currency-codes";
+
+// Map the data to AntD Select options
+
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -10,6 +17,47 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
   const [tags, setTags] = React.useState([]);
   const [inputVisible, setInputVisible] = React.useState(false);
   const [inputValue, setInputValue] = React.useState('');
+  const [states, setStates] = React.useState([]);
+  const [cities, setCities] = React.useState([]);
+  const [selectedCountry, setSelectedCountry] = React.useState('');
+  const [selectedState, setSelectedState] = React.useState('');
+  const [phoneValue, setPhoneValue] = React.useState();
+
+  const allCountries = Country.getAllCountries();
+
+
+  const currencyOptions = currencyCodes.data.map((currency) => ({
+  code: currency.code,
+  label: `${currency.code} - ${currency.currency}`,
+}));
+  
+  const handleCountryChange = (value) => {
+    setSelectedCountry(value);
+    setSelectedState('');
+    setCities([]);
+    
+    const countryStates = State.getStatesOfCountry(value);
+    setStates(countryStates);
+    
+    form.setFieldsValue({ 
+      state: undefined, 
+      city: undefined 
+    });
+  };
+
+  const handleStateChange = (value) => {
+    setSelectedState(value);
+    
+    const stateCities = City.getCitiesOfState(selectedCountry, value);
+    setCities(stateCities);
+    
+    form.setFieldsValue({ city: undefined });
+  };
+
+  const handlePhoneChange = (value) => {
+    setPhoneValue(value);
+    form.setFieldsValue({ phone: value });
+  };
 
   const handleClose = (removedTag) => {
     const newTags = tags.filter((tag) => tag !== removedTag);
@@ -87,7 +135,14 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
             name="phone"
             rules={[{ required: true, message: "Please enter phone number" }]}
           >
-            <Input placeholder="Enter phone number" />
+            <PhoneInput
+              placeholder="Enter phone number"
+              value={phoneValue}
+              onChange={handlePhoneChange}
+              defaultCountry="US"
+              international
+              countryCallingCodeEditable={false}
+            />
           </Form.Item>
         </Col>
       </Row>
@@ -167,40 +222,94 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
           <Form.Item
             label="Country"
             name="country"
-            rules={[{ required: true, message: "Please enter country" }]}
+            rules={[{ required: true, message: "Please select country" }]}
           >
-            <Input placeholder="Enter country" />
+            <Select 
+              placeholder="Select country"
+              showSearch
+              optionFilterProp="children"
+              onChange={handleCountryChange}
+              filterOption={(input, option) =>
+                option.children && typeof option.children === 'string' 
+                  ? option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  : false
+              }
+            >
+              {allCountries.map((country) => (
+                <Option key={country.isoCode} value={country.isoCode}>
+                  {country.flag} {country.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Form.Item
+            label="State"
+            name="state"
+            rules={[{ required: true, message: "Please select state" }]}
+          >
+            <Select 
+              placeholder="Select state"
+              showSearch
+              optionFilterProp="children"
+              onChange={handleStateChange}
+              disabled={!selectedCountry}
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {states.map((state) => (
+                <Option key={state.isoCode} value={state.isoCode}>
+                  {state.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
         </Col>
         <Col xs={24} sm={8}>
           <Form.Item
             label="City"
             name="city"
-            rules={[{ required: true, message: "Please enter city" }]}
+            rules={[{ required: true, message: "Please select city" }]}
           >
-            <Input placeholder="Enter city" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Form.Item
-            label="Currency"
-            name="currency"
-            rules={[{ required: true, message: "Please select currency" }]}
-          >
-            <Select placeholder="Select currency">
-              <Option value="USD">USD</Option>
-              <Option value="EUR">EUR</Option>
-              <Option value="GBP">GBP</Option>
-              <Option value="JPY">JPY</Option>
-              <Option value="CAD">CAD</Option>
-              <Option value="AUD">AUD</Option>
-              <Option value="INR">INR</Option>
+            <Select 
+              placeholder="Select city"
+              showSearch
+              optionFilterProp="children"
+              disabled={!selectedState}
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {cities.map((city) => (
+                <Option key={city.name} value={city.name}>
+                  {city.name}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
         </Col>
       </Row>
 
       <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="Currency"
+            name="currency"
+            rules={[{ required: true, message: "Please select currency" }]}
+          >
+          
+            <Select placeholder="Select currency" showSearch optionFilterProp="label">
+                {currencyOptions.map((curr) => (
+                  <Option key={curr.code} value={curr.code} label={curr.label}>
+                    {curr.label}
+                  </Option>
+                ))}
+              </Select>
+          
+          </Form.Item>
+        </Col>
         <Col xs={24} sm={12}>
           <Form.Item
             label="Entity Type"
@@ -215,6 +324,9 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
             </Select>
           </Form.Item>
         </Col>
+      </Row>
+
+      <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
           <Form.Item
             label="Notifications"
