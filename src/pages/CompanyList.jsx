@@ -8,27 +8,31 @@ import {
   message,
   Alert,
   Input,
-    Button,
+  Button,
+  Avatar,
 } from 'antd';
-import { LoadingOutlined, SearchOutlined } from '@ant-design/icons';
+import {
+  LoadingOutlined,
+  SearchOutlined,
+  UserOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import apiClient from '../services/apiServices';
-import '../styles/CompanyList.scss'; // Import your styles
+import AddCompanyDrawer from '../components/company/AddCompanyDrawer';
+import '../styles/CompanyList.scss';
 
 const { Text, Title, Paragraph } = Typography;
-const { Search } = Input;
+const { Search } = Input; // Destructure the Search component from Input
 
 const CompanyListPage = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
-  // Fetch function—optionally with search parameter
   const fetchCompanies = (searchQuery = '') => {
     setLoading(true);
     setNotFound(false);
-
-    // Build the endpoint, including ?search= if provided
     const endpoint = searchQuery
       ? `/admin/company/list?search=${encodeURIComponent(searchQuery)}`
       : '/admin/company/list';
@@ -41,6 +45,7 @@ const CompanyListPage = () => {
           setCompanies(json.data);
         } else {
           message.error('Unexpected data format from server.');
+          setCompanies([]);
         }
       })
       .catch((err) => {
@@ -50,36 +55,47 @@ const CompanyListPage = () => {
         } else {
           message.error('Failed to load company list. Please try again.');
         }
+        setCompanies([]);
       })
       .finally(() => {
         setLoading(false);
       });
   };
 
-  // Initial load
   useEffect(() => {
     fetchCompanies();
   }, []);
 
-  // Columns, including a generated row ID
+  const handleRegistrationSuccess = () => {
+    setDrawerVisible(false);
+    fetchCompanies();
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   const columns = [
     {
-      title: 'ID',
-      key: 'rowIndex',
-      width: 60,
-      render: (_text, _record, index) => index + 1,
-      sorter: (a, b) => companies.indexOf(a) - companies.indexOf(b),
-    },
-    {
-      title: 'Name',
+      title: 'Company',
       dataIndex: 'name',
       key: 'name',
+      fixed: 'left',
+      width: 220,
       render: (name, record) => (
-        <Space direction="vertical" size={0}>
-          <Text strong>{name}</Text>
-          <Text type="secondary" copyable>
-            {record.subdomain}.afftrex.com
-          </Text>
+        <Space>
+          <Avatar src={record.logo} icon={<UserOutlined />} />
+          <Space direction="vertical" size={0}>
+            <Text strong>{name}</Text>
+            <Text type="secondary" copyable>
+              {record.subdomain}.afftrex.com
+            </Text>
+          </Space>
         </Space>
       ),
       sorter: (a, b) => a.name.localeCompare(b.name),
@@ -88,30 +104,22 @@ const CompanyListPage = () => {
       title: 'Admin Email',
       dataIndex: 'admin_email',
       key: 'admin_email',
+      width: 250,
       render: (email) => <Text copyable>{email}</Text>,
-      responsive: ['md'],
-    },
-    {
-      title: 'Subdomain',
-      dataIndex: 'subdomain',
-      key: 'subdomain',
-      render: (subdomain) => (
-        <Tag color="blue" style={{ textTransform: 'lowercase' }}>
-          {subdomain}
-        </Tag>
-      ),
-      sorter: (a, b) => a.subdomain.localeCompare(b.subdomain),
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      width: 120,
       render: (status) => {
-        let color = 'default';
-        if (status === 'approved') color = 'green';
-        else if (status === 'pending') color = 'orange';
-        else if (status === 'rejected') color = 'red';
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+        const color =
+          {
+            approved: 'green',
+            pending: 'orange',
+            rejected: 'red',
+          }[status] || 'default';
+        return <Tag color={color}>{status?.toUpperCase()}</Tag>;
       },
       filters: [
         { text: 'Pending', value: 'pending' },
@@ -121,79 +129,102 @@ const CompanyListPage = () => {
       onFilter: (value, record) => record.status === value,
     },
     {
-      title: 'Created At',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (ts) =>
-        new Date(ts).toLocaleDateString('en-IN', {
-          timeZone: 'Asia/Kolkata',
-        }),
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-      responsive: ['lg'],
+      title: 'Subscription',
+      dataIndex: 'subscription_type',
+      key: 'subscription_type',
+      width: 120,
+      render: (type) => <Tag color="blue">{type?.toUpperCase()}</Tag>,
+    },
+    {
+      title: 'Remaining Days',
+      dataIndex: 'subscription_remain_day',
+      key: 'subscription_remain_day',
+      align: 'center',
+      width: 150,
+      sorter: (a, b) =>
+        a.subscription_remain_day - b.subscription_remain_day,
+      render: (days) => <Text strong>{days}</Text>,
+    },
+    {
+      title: 'Start Date',
+      dataIndex: 'subscription_start_date',
+      key: 'subscription_start_date',
+      width: 150,
+      render: formatDate,
+      sorter: (a, b) =>
+        new Date(a.subscription_start_date) -
+        new Date(b.subscription_start_date),
+    },
+    {
+      title: 'Created On',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      width: 150,
+      render: formatDate,
+      sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
     },
   ];
 
   return (
-    <div className="company-list-page">
-      {/* Header with title, subtitle, and search input */}
-      <div className="company-list-page__header">
-        <div className="company-list-page__header-info">
-          <Title className="company-list-page__title">Company List</Title>
-          <Paragraph className="company-list-page__subtitle">
-            All registered companies and their statuses
-          </Paragraph>
-        </div>
-            <div className="company-list-page__header-search">
-          <Input
-            className="company-list-page__search-input"
-            placeholder="Search by name or email"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            allowClear
-            onPressEnter={() => fetchCompanies(searchTerm)}
-            size="large"
-          />
-          <Button
-            className="company-list-page__search-button"
-            type="primary"
-            icon={<SearchOutlined />}
-            onClick={() => fetchCompanies(searchTerm)}
-            size="large"
-          >
-            Search
-          </Button>
-        </div>
-      </div>
-
-      {/* Table container */}
-      <div className="company-list-page__table-container">
-        {loading ? (
-          <div className="company-list-page__spinner">
-            <Spin
-              indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />}
-            />
+    <>
+      <div className="company-list-page">
+        <div className="company-list-page__header">
+          <div className="company-list-page__header-info">
+            <Title className="company-list-page__title">Company List</Title>
+            <Paragraph className="company-list-page__subtitle">
+              All registered companies and their statuses
+            </Paragraph>
           </div>
-        ) : notFound ? (
-          <Alert
-            className="company-list-page__alert"
-            type="warning"
-            message="Endpoint Not Found (404)"
-            description="Could not find `/admin/company/list` on the server. Please verify your backend route."
-            showIcon
-          />
-        ) : (
-          <Table
-            rowKey={(record, index) => index}
-            dataSource={companies}
-            columns={columns}
-            pagination={{ pageSize: 10 }}
-            bordered
-            size="middle"
-            locale={{ emptyText: 'No companies available' }}
-          />
-        )}
+          {/* ## Updated Header Actions Section ## */}
+          <div className="company-list-page__header-actions">
+            <Space>
+              <Search
+                placeholder="Search by name or email"
+                onSearch={fetchCompanies}
+                allowClear
+                size="large"
+                style={{ width: 320 }}
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="large"
+                style={{backgroundColor: '#0a1a4e', color: '#fff'}}
+                onClick={() => setDrawerVisible(true)}
+              >
+                Add Company
+              </Button>
+            </Space>
+          </div>
+        </div>
+
+        <div className="company-list-page__table-container">
+          {loading ? (
+            <div className="company-list-page__spinner">
+              <Spin
+                indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />}
+              />
+            </div>
+          ) : (
+            <Table
+              rowKey="id"
+              dataSource={companies}
+              columns={columns}
+              pagination={{ pageSize: 10, showSizeChanger: true }}
+              bordered
+              size="middle"
+              scroll={{ x: 1300 }}
+              locale={{ emptyText: 'No companies available' }}
+            />
+          )}
+        </div>
       </div>
-    </div>
+      <AddCompanyDrawer
+        open={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+        onSuccess={handleRegistrationSuccess}
+      />
+    </>
   );
 };
 
