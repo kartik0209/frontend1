@@ -176,14 +176,15 @@ export const secureStorage = {
 
 
 
-// src/utils/getSubdomain.js
-export function getSubdomain() {
-  const host = window.location.hostname; // e.g., amex.afftrex.com
-  const parts = host.split('.');
-
-  // If you have domains like afftrex.com (2 parts) or www.afftrex.com (3 parts)
-  if (parts.length > 2) {
-    return parts[0]; // "amex"
+export const extractSubdomain = () => {
+  const hostname = window.location.hostname;
+  const parts = hostname.split('.');
+  
+  // For URLs like amex.afftrx.com, return 'amex'
+  // For localhost or single domain, return 'afftrex' as default
+  if (parts.length >= 3) {
+    return parts[0]; // Returns 'amex' from 'amex.afftrx.com'
   }
-  return null; // No subdomain
-}
+  
+  return 'afftrex'; // Default fallback
+};

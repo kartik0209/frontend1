@@ -16,7 +16,7 @@ export const getCountryIso2 = (countryObj) => {
 
 export const buildPayload = (values, formState) => {
   const payload = {
-    company_id: parseInt(values.companyId) || 1,
+    advertiser_id: parseInt(values.companyId) || 1,
     objective: values.objective || "conversions",
     title: values.title || "Default Campaign",
     description: values.description || "",
@@ -104,7 +104,7 @@ export const validatePayload = (payload) => {
   const errors = [];
   
   if (!payload.title) errors.push("Title is required");
-  if (!payload.company_id) errors.push("Company ID is required");
+  if (!payload.advertiser_id) errors.push("Advertiser ID is required");
   if (!payload.defaultCampaignUrl) errors.push("Default Campaign URL is required");
   
   return {

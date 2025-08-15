@@ -7,6 +7,7 @@ import { store, persistor } from "./store/store";
 import { initializeAuth, fetchCompanyData } from "./store/authSlice";
 import PublicRoutes from "./routes/PublicRoutes";
 import ProtectedRoutes from "./routes/ProtectedRoutes";
+import { extractSubdomain } from "./utils/helpers";
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -20,22 +21,20 @@ const AuthInitializer = ({ children }) => {
   const location = useLocation();
 
   useEffect(() => {
-    
     dispatch(initializeAuth());
   }, [dispatch]);
 
-
-   const brand = useMemo(() => {
-      const hostParts = window.location.hostname.split(".");
-      return hostParts.length > 2 ? hostParts[0] : "Afftrex";
-    }, []);
+  // Extract subdomain from URL
+  const currentSubdomain = useMemo(() => {
+    return extractSubdomain();
+  }, []);
 
   useEffect(() => {
-    // Fetch company data when subdomain is available
-    if (subdomain && !companyData) {
-      dispatch(fetchCompanyData(subdomain || brand));
+    // Fetch company data using extracted subdomain
+    if (currentSubdomain && !companyData) {
+      dispatch(fetchCompanyData(currentSubdomain));
     }
-  }, [dispatch, subdomain, companyData]);
+  }, [dispatch, currentSubdomain, companyData]); // Updated dependencies
 
   return children;
 };

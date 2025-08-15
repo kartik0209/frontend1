@@ -6,6 +6,7 @@ import apiClient from '../services/apiServices';
 import { getRolePermissions } from '../utils/rbac';
 import { secureStorage } from '../utils/helpers';
 import { logError } from '../utils/errorHandler';
+import { extractSubdomain } from '../utils/helpers';
 
 // Initial state
 const initialState = {
@@ -43,16 +44,16 @@ export const loginUser = createAsyncThunk(
       // Store token securely
       secureStorage.setItem('authToken', token);
 
-      const { name, role, email, id, subdomain } = decoded;
+      const { name, role, email, id} = decoded;
       const user = { id, name, email, role };
       const permissions = decoded.permissions || getRolePermissions(role);
-
+ const subdomain = extractSubdomain();
       return {
         token,
         user,
         permissions,
         role,
-        subdomain: subdomain || credentials.subdomain || 'afftrex',
+        subdomain,
       };
     } catch (error) {
       logError(error, 'loginUser', { email: credentials.email });
@@ -81,10 +82,10 @@ export const initializeAuth = createAsyncThunk(
         return rejectWithValue('Token expired');
       }
 
-      const { name, role, email, id, subdomain } = decoded;
+      const { name, role, email, id } = decoded;
       const user = { id, name, email, role };
       const permissions = decoded.permissions || getRolePermissions(role);
-      
+      const subdomain = extractSubdomain();
       return {
         token,
         user,
@@ -140,10 +141,10 @@ export const refreshToken = createAsyncThunk(
       const decoded = jwtDecode(newToken);
       secureStorage.setItem('authToken', newToken);
 
-      const { name, role, email, id, subdomain } = decoded;
+      const { name, role, email, id } = decoded;
       const user = { id, name, email, role };
       const permissions = decoded.permissions || getRolePermissions(role);
-
+const subdomain = extractSubdomain();
       return {
         token: newToken,
         user,

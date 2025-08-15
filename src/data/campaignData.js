@@ -23,8 +23,8 @@ export const baseColumns = [
     width: 100,
   },
   {
-    title: "Company ID",
-    dataIndex: "company_id",
+    title: "Advertiser ",
+    dataIndex: "advertiser_id",
     key: "advertiserId",
     width: 120,
   },

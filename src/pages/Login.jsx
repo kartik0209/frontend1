@@ -6,7 +6,7 @@ import * as Yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { loginUser, clearError, fetchCompanyData } from "../store/authSlice";
-
+import { extractSubdomain } from "../utils/helpers";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Login.scss";
 import BottomGraphic from "../assets/bottom_deco.png";
@@ -34,25 +34,41 @@ const Login = () => {
   );
 
   // Memoized brand calculation
-  const brand = useMemo(() => {
-    const hostParts = window.location.hostname.split(".");
-    return hostParts.length > 2 ? hostParts[0] : "Afftrex";
-  }, []);
+  // const brand = useMemo(() => {
+  //   const hostParts = window.location.hostname.split(".");
+  //   return hostParts.length > 2 ? hostParts[0] : "Afftrex";
+  // }, []);
 
+
+  
+
+  const subdomain = useMemo(() => {
+  return extractSubdomain();
+}, []);
+
+
+const brandDisplay = useMemo(() => {
+  return subdomain.charAt(0).toUpperCase() + subdomain.slice(1);
+}, [subdomain])
+useEffect(() => {
+  if (subdomain && !companyData) {
+    dispatch(fetchCompanyData(subdomain));
+  }
+}, [dispatch, subdomain, companyData]);
   // Get company name from URL params
-  const companyName = useMemo(() => {
-    const rawCompany = searchParams.get("company");
-    return rawCompany?.trim() || "afftrex";
-  }, [searchParams]);
+  // const companyName = useMemo(() => {
+  //   const rawCompany = searchParams.get("company");
+  //   return rawCompany?.trim() || "afftrex";
+  // }, [searchParams]);
 
   // Fetch company data on mount
-  useEffect(() => {
-    if (companyName && !companyData) {
-      dispatch(fetchCompanyData(companyName));
-    }else{
-      dispatch(fetchCompanyData(brand));
-    }
-  }, [dispatch, companyName, companyData,brand]);
+  // useEffect(() => {
+  //   if (companyName && !companyData) {
+  //     dispatch(fetchCompanyData(companyName));
+  //   }else{
+  //     dispatch(fetchCompanyData(brand));
+  //   }
+  // }, [dispatch, companyName, companyData,brand]);
 
   // Handle authentication redirect
   useEffect(() => {
@@ -74,7 +90,7 @@ const Login = () => {
     try {
       const credentials = {
         ...values,
-        subdomain: companyName,
+        subdomain,
       };
       
       await dispatch(loginUser(credentials)).unwrap();
@@ -95,7 +111,7 @@ const Login = () => {
     } finally {
       setSubmitting(false);
     }
-  }, [dispatch, companyName, location, navigate]);
+  }, [dispatch, subdomain, location, navigate]);
 
   // Don't render if already authenticated
   if (isAuthenticated) {
@@ -116,10 +132,10 @@ const Login = () => {
         <div className="welcome">
           <h1 className="title">
             Hello <br />
-            {brand.charAt(0).toUpperCase() + brand.slice(1)} 👋
+            {brandDisplay} 👋
           </h1>
           <p className="summary">
-            Access your dashboard at {brand}.
+            Access your dashboard at {brandDisplay}.
             <br />
             Log in to manage your partnerships and track earnings.
           </p>
@@ -131,7 +147,7 @@ const Login = () => {
           {companyData?.logo && (
             <img
               src={companyData.logo}
-              alt={`${brand} Logo`}
+              alt={`${brandDisplay} Logo`}
               className="logo"
               loading="lazy"
               onError={(e) => {
