@@ -64,8 +64,11 @@ const AddUserForm = ({
 
   // Role options - matching your API structure
   const roleOptions = [
-    { value: 'advertiser', label: 'Advertiser', color: '#87d068' },
-    { value: 'publisher', label: 'Publisher', color: '#108ee9' },
+    { value: 'advertiser_manager', label: 'Advertiser Manager', color: '#87d068' },
+    { value: 'publisher_manager', label: 'Publisher Manager', color: '#108ee9' },
+    { value: 'operation_manager', label: 'Operation Manager', color: '#faad14' },
+    { value: 'accountant', label: 'Accountant', color: '#52c41a' },
+    { value: 'sub_admin', label: 'Sub Admin', color: '#d4380d' },
   ];
 
   // Status options - matching your API (Active/Inactive)
