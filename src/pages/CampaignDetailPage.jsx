@@ -17,6 +17,12 @@ import {
   Tooltip,
   Select,
   Divider,
+  Form,
+  DatePicker,
+  InputNumber,
+  Switch,
+  Modal,
+
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -24,6 +30,8 @@ import {
   FileTextOutlined,
   PlusOutlined,
   SaveOutlined,
+  EditOutlined,
+  CloseOutlined,
   BoldOutlined,
   ItalicOutlined,
   UnderlineOutlined,
@@ -43,374 +51,336 @@ import {
 import apiClient from '../services/apiServices';
 import TrackingLinkCard from '../components/campaign/TrackingLinkCard';
 import PublisherAccess from '../components/campaign/PublisherAccess';
-import '../styles/CampaignDetailPage.scss'; // Assuming this SCSS file exists
+import '../styles/CampaignDetailPage.scss';
 import CampaignDetailSkeleton from '../components/skeletons/CampaignDetailSkeleton';
 import ConversionTracking from '../components/campaign/ConversionTracking';
+import dayjs from 'dayjs';
+import BlockPublishers from '../components/campaign/BlockPublishers';
 
+import {conversionTrackingOptions } from '../data/formOptions';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-/**
- * BlockPublishers component allows blocking and unblocking publishers for a specific campaign.
- * @param {object} props - Component props.
- * @param {string} props.campaignId - The ID of the campaign.
- */
-const BlockPublishers = ({ campaignId }) => {
-  const [allPublishers, setAllPublishers] = useState([]);
-  const [blockedPublishers, setBlockedPublishers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
+const { TextArea } = Input;
+const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
+  const [form] = Form.useForm();
+  const [saving, setSaving] = useState(false);
 
-  // Fetches all publishers and the publishers currently blocked for the campaign
   useEffect(() => {
-    const fetchPublishers = async () => {
-      setLoading(true);
-      try {
-        // Fetch all publishers
-        const allPublishersResponse = await apiClient.post('/common/publisher/list', {});
-        if (allPublishersResponse.data?.success) {
-          setAllPublishers(allPublishersResponse.data.data);
-        } else {
-          message.error('Failed to load all publishers.');
-        }
-
-        // Fetch blocked publishers for the current campaign
-        const blockedResponse = await apiClient.get(`/admin/campaign/${campaignId}/blocked-publishers`);
-        if (blockedResponse.data?.success) {
-          setBlockedPublishers(blockedResponse.data.data || []);
-        } else {
-          // If no blocked publishers, or API returns non-success, treat as empty
-          setBlockedPublishers([]);
-        }
-      } catch (error) {
-        message.error('Failed to load publishers: ' + (error.message || 'An error occurred.'));
-        setBlockedPublishers([]); // Ensure blockedPublishers is an array even on error
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (campaignId) {
-      fetchPublishers();
-    }
-  }, [campaignId]);
-
-  /**
-   * Handles blocking a selected publisher.
-   * @param {string} publisherId - The ID of the publisher to block.
-   */
-  const handleBlockPublisher = async (publisherId) => {
-    if (!publisherId) return;
-
-    setSaveLoading(true);
-    try {
-      const response = await apiClient.post(`/admin/campaign/${campaignId}/block-publisher`, {
-        publisherId: publisherId
+    if (visible && campaign) {
+      // Set form values when modal opens
+      form.setFieldsValue({
+        title: campaign.title,
+        description: campaign.description,
+        status: campaign.status,
+        visibility: campaign.visibility,
+        objective: campaign.objective,
+        currency: campaign.currency,
+        payout: campaign.payout,
+        revenue: campaign.revenue,
+        revenueModel: campaign.revenueModel,
+        conversionTracking: campaign.conversionTracking,
+        devices: campaign.devices,
+        operatingSystem: campaign.operatingSystem,
+        geoCoverage: campaign.geoCoverage,
+        allowedTrafficChannels: campaign.allowedTrafficChannels,
+        campaignStartDate: campaign.campaignStartDate ? dayjs(campaign.campaignStartDate) : null,
+        campaignEndDate: campaign.campaignEndDate ? dayjs(campaign.campaignEndDate) : null,
+        timezone: campaign.timezone,
+        startHour: campaign.startHour,
+        endHour: campaign.endHour,
+        preview_url: campaign.preview_url,
+        trackingUrl: campaign.trackingUrl,
+        defaultCampaignUrl: campaign.defaultCampaignUrl,
+        note: campaign.note,
       });
-
-      if (response.data?.success) {
-        // Find the publisher from the allPublishers list and add to blocked
-        const publisherToBlock = allPublishers.find(p => p.id.toString() === publisherId.toString());
-        if (publisherToBlock) {
-          setBlockedPublishers(prev => [...prev, publisherToBlock]);
-        }
-        message.success('Publisher blocked successfully');
-      } else {
-        message.error(response.data?.message || 'Failed to block publisher');
-      }
-    } catch (error) {
-      message.error('Failed to block publisher: ' + (error.message || 'An error occurred.'));
-    } finally {
-      setSaveLoading(false);
     }
-  };
+  }, [visible, campaign, form]);
 
-  /**
-   * Handles unblocking a publisher.
-   * @param {string} publisherId - The ID of the publisher to unblock.
-   */
-  const handleUnblockPublisher = async (publisherId) => {
-    setSaveLoading(true);
+  const handleSave = async () => {
     try {
-      const response = await apiClient.delete(`/admin/campaign/${campaignId}/block-publisher/${publisherId}`);
+      setSaving(true);
+      const values = await form.validateFields();
+      
+      // Format dates for API
+      const formattedValues = {
+        ...values,
+        campaignStartDate: values.campaignStartDate ? values.campaignStartDate.format('YYYY-MM-DD') : null,
+        campaignEndDate: values.campaignEndDate ? values.campaignEndDate.format('YYYY-MM-DD') : null,
+      };
 
+      const response = await apiClient.put(`/admin/campaign/${campaign.id}`, formattedValues);
+      
       if (response.data?.success) {
-        setBlockedPublishers(prev => prev.filter(p => p.id.toString() !== publisherId.toString()));
-        message.success('Publisher unblocked successfully');
+        message.success('Campaign updated successfully');
+        onSave(response.data.data || { ...campaign, ...formattedValues });
+        onCancel();
       } else {
-        message.error(response.data?.message || 'Failed to unblock publisher');
+        message.error(response.data?.message || 'Failed to update campaign');
       }
     } catch (error) {
-      message.error('Failed to unblock publisher: ' + (error.message || 'An error occurred.'));
-    } finally {
-      setSaveLoading(false);
-    }
-  };
-
-  // Filter out publishers that are already blocked from the available list for selection
-  const availablePublishers = allPublishers.filter(
-    pub => !blockedPublishers.some(blocked => blocked.id.toString() === pub.id.toString())
-  );
-
-  return (
-    <Card
-      title={
-        <Space>
-          <BlockOutlined />
-          Block Publishers
-        </Space>
+      if (error.errorFields) {
+        message.error('Please fill in all required fields');
+      } else {
+        message.error('Failed to update campaign: ' + (error.message || 'An error occurred'));
       }
-      bordered={false}
-      headStyle={{ backgroundColor: '#fafafa' }}
-      className="campaign-card"
-    >
-      <div style={{ marginBottom: 16 }}>
-        <Text strong>Select Publishers</Text>
-        <Select
-          style={{ width: '100%', marginTop: 8 }}
-          placeholder="Select publishers to block"
-          onSelect={handleBlockPublisher}
-          loading={loading}
-          disabled={saveLoading}
-          value={null} // Reset select value after selection
-        >
-          {availablePublishers.map(publisher => (
-            <Option key={publisher.id} value={publisher.id}>
-              (ID: {publisher.id}) {publisher.name}
-            </Option>
-          ))}
-        </Select>
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <Text type="secondary" style={{ fontSize: '12px' }}>
-          <strong>Note:</strong> Publishers added to this block list will no longer be able to see the campaign on their panel or API.
-          No Traffic will be allowed from these publishers on this campaign.
-        </Text>
-      </div>
-
-      {blockedPublishers.length > 0 && (
-        <div>
-          <Text strong>Blocked Publishers:</Text>
-          <div style={{ marginTop: 8 }}>
-            {blockedPublishers.map(publisher => (
-              <Tag
-                key={publisher.id}
-                closable
-                onClose={() => handleUnblockPublisher(publisher.id)}
-                color="red"
-                style={{ marginBottom: 8 }}
-              >
-                (ID: {publisher.id}) {publisher.name}
-              </Tag>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* The "Save" button here is a bit misleading as actions are immediate */}
-      <Button
-        type="primary"
-        className="campaign-button"
-        style={{ marginTop: 16 }}
-        loading={saveLoading}
-        disabled={blockedPublishers.length === 0 && availablePublishers.length === allPublishers.length}
-      >
-        Save
-      </Button>
-    </Card>
-  );
-};
-
-/**
- * Notes component provides a rich text editor for campaign notes.
- * @param {object} props - Component props.
- * @param {string} props.campaignId - The ID of the campaign.
- */
-const Notes = ({ campaignId }) => {
-  const [notes, setNotes] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
-  const editorRef = useRef(null);
-
-
-
-  
-  const handleSaveNotes = async () => {
-    setSaveLoading(true);
-   
-    
-  };
-
- 
-  const applyFormatting = (command, value = null) => {
-    if (editorRef.current) {
-      editorRef.current.focus();
-      document.execCommand(command, false, value);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const toolbarButtons = [
-    { icon: <BoldOutlined />, title: 'Bold', command: 'bold' },
-    { icon: <ItalicOutlined />, title: 'Italic', command: 'italic' },
-    { icon: <UnderlineOutlined />, title: 'Underline', command: 'underline' },
-    { icon: <StrikethroughOutlined />, title: 'Strikethrough', command: 'strikeThrough' },
-
-    { icon: <FontSizeOutlined />, title: 'Font Size', command: 'fontSize' },
-    { icon: <FontColorsOutlined />, title: 'Font Color', command: 'foreColor' },
-    { icon: <UnorderedListOutlined />, title: 'Bullet List', command: 'insertUnorderedList' },
-    { icon: <OrderedListOutlined />, title: 'Numbered List', command: 'insertOrderedList' },
-    { icon: <AlignLeftOutlined />, title: 'Align Left', command: 'justifyLeft' },
-    { icon: <TableOutlined />, title: 'Table', command: 'insertHTML', html: '<table><tr><td></td><td></td></tr><tr><td></td><td></td></tr></table>' }, // Basic table insertion
-    { icon: <LinkOutlined />, title: 'Link', command: 'createLink' }, // Requires prompt for URL
-    { icon: <PictureOutlined />, title: 'Image', command: 'insertImage' }, // Requires prompt for image URL
-    { icon: <ScissorOutlined />, title: 'Cut', command: 'cut' },
-    { icon: <UndoOutlined />, title: 'Undo', command: 'undo' },
-    { icon: <QuestionCircleOutlined />, title: 'Help', command: null }, // No execCommand for help
+  const statusOptions = [
+    { label: 'Active', value: 'active' },
+    { label: 'Inactive', value: 'inactive' },
+    { label: 'Paused', value: 'paused' },
+    { label: 'Expired', value: 'expired' },
   ];
 
-  const handleToolbarButtonClick = (button) => {
-    if (button.command) {
-      let value = null;
-      if (button.command === 'createLink') {
-        value = prompt('Enter URL:');
-        if (!value) return; // Don't execute if no URL provided
-      } else if (button.command === 'insertImage') {
-        value = prompt('Enter Image URL:');
-        if (!value) return; // Don't execute if no URL provided
-      } else if (button.command === 'foreColor') {
-        value = prompt('Enter color (e.g., red, #FF0000):');
-        if (!value) return;
-      } else if (button.command === 'fontSize') {
-        value = prompt('Enter font size (1-7):'); // execCommand uses 1-7 for font size
-        if (!value || isNaN(parseInt(value)) || parseInt(value) < 1 || parseInt(value) > 7) {
-          message.warning('Please enter a valid font size between 1 and 7.');
-          return;
-        }
-      } else if (button.html) {
-        // For commands that insert HTML directly
-        applyFormatting('insertHTML', button.html);
-        return;
-      }
-      applyFormatting(button.command, value);
-    } else if (button.title === 'Help') {
-      message.info('Rich text editor functionality is basic. Use standard browser shortcuts for more options.');
-    }
-  };
+
+  const visibilityOptions = [
+    { label: 'Public', value: 'public' },
+    { label: 'Private', value: 'private' },
+    { label: 'Invite Only', value: 'invite_only' },
+  ];
+
+  const objectiveOptions = [
+    { label: 'Sales', value: 'sales' },
+    { label: 'Leads', value: 'leads' },
+    { label: 'Traffic', value: 'traffic' },
+    { label: 'Brand Awareness', value: 'brand_awareness' },
+  ];
+
+  const currencyOptions = [
+    { label: 'USD', value: 'USD' },
+    { label: 'EUR', value: 'EUR' },
+    { label: 'GBP', value: 'GBP' },
+    { label: 'INR', value: 'INR' },
+  ];
+
+  const revenueModelOptions = [
+    { label: 'CPA', value: 'CPA' },
+    { label: 'CPC', value: 'CPC' },
+    { label: 'CPM', value: 'CPM' },
+    { label: 'Revenue Share', value: 'revenue_share' },
+  ];
+
+  const deviceOptions = [
+    { label: 'Desktop', value: 'desktop' },
+    { label: 'Mobile', value: 'mobile' },
+    { label: 'Tablet', value: 'tablet' },
+  ];
+
+  const osOptions = [
+    { label: 'Windows', value: 'windows' },
+    { label: 'macOS', value: 'macos' },
+    { label: 'Linux', value: 'linux' },
+    { label: 'iOS', value: 'ios' },
+    { label: 'Android', value: 'android' },
+  ];
 
   return (
-    <Card
-      title={
-        <Space>
-          <FileTextOutlined />
-          Notes
-        </Space>
-      }
-      bordered={false}
-      headStyle={{ backgroundColor: '#fafafa' }}
-      className="campaign-card"
+    <Modal
+      title={`Edit Campaign - ${campaign?.title}`}
+      open={visible}
+      onCancel={onCancel}
+      width={800}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>
+          Cancel
+        </Button>,
+        <Button key="save" type="primary" loading={saving} onClick={handleSave}>
+          Save Changes
+        </Button>,
+      ]}
+      destroyOnClose
     >
-      <div className="notes-toolbar">
-        <Space size="small" wrap>
-          {toolbarButtons.map((button, index) => (
-            <Tooltip key={index} title={button.title}>
-              <Button
-                type="text"
-                size="small"
-                icon={button.icon}
-                className="toolbar-button"
-                onClick={() => handleToolbarButtonClick(button)}
+      <Form form={form} layout="vertical" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="title"
+              label="Campaign Title"
+              rules={[{ required: true, message: 'Please enter campaign title' }]}
+            >
+              <Input placeholder="Enter campaign title" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="status" label="Status">
+              <Select placeholder="Select status">
+                {statusOptions.map(option => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item name="description" label="Description">
+          <TextArea rows={3} placeholder="Enter campaign description" />
+        </Form.Item>
+
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item name="visibility" label="Visibility">
+              <Select placeholder="Select visibility">
+                {visibilityOptions.map(option => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="objective" label="Objective">
+              <Select placeholder="Select objective">
+                {objectiveOptions.map(option => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="currency" label="Currency">
+              <Select placeholder="Select currency">
+                {currencyOptions.map(option => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item name="payout" label="Payout">
+              <InputNumber
+                style={{ width: '100%' }}
+                min={0}
+                step={0.01}
+                placeholder="0.00"
               />
-            </Tooltip>
-          ))}
-          <Divider type="vertical" />
-          {/* Font family and size dropdowns for visual indication, actual application requires more complex execCommand or custom logic */}
-          <Select
-            defaultValue="Default"
-            size="small"
-            style={{ width: 100 }}
-            bordered={false}
-            onChange={(value) => applyFormatting('fontName', value)}
-          >
-            <Option value="Arial">Arial</Option>
-            <Option value="Verdana">Verdana</Option>
-            <Option value="Georgia">Georgia</Option>
-            <Option value="Times New Roman">Times New Roman</Option>
-            <Option value="Courier New">Courier New</Option>
-            <Option value="Default">Default</Option> {/* Fira Sans is not a standard web safe font, use a generic "Default" */}
-          </Select>
-          <Select
-            defaultValue="3" // Corresponds to a medium size in execCommand
-            size="small"
-            style={{ width: 60 }}
-            bordered={false}
-            onChange={(value) => applyFormatting('fontSize', value)}
-          >
-            <Option value="1">1</Option>
-            <Option value="2">2</Option>
-            <Option value="3">3</Option>
-            <Option value="4">4</Option>
-            <Option value="5">5</Option>
-            <Option value="6">6</Option>
-            <Option value="7">7</Option>
-          </Select>
-        </Space>
-      </div>
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="revenue" label="Revenue">
+              <InputNumber
+                style={{ width: '100%' }}
+                min={0}
+                step={0.01}
+                placeholder="0.00"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="revenueModel" label="Revenue Model">
+              <Select placeholder="Select model">
+                {revenueModelOptions.map(option => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+<Row gutter={16}>
+  <Col span={24}>
+    <Form.Item name="conversionTracking" label="Conversion Tracking">
+      <Select placeholder="Select a tracking method">
+        {conversionTrackingOptions.map(option => (
+          <Option key={option.value} value={option.value}>
+            {option.label}
+          </Option>
+        ))}
+      </Select>
+    </Form.Item>
+  </Col>
+</Row>
 
-      <div
-        ref={editorRef}
-        contentEditable="true"
-        className="notes-editor"
-        style={{
-          minHeight: '200px',
-          border: '1px solid #d9d9d9',
-          borderRadius: '2px',
-          padding: '8px 12px',
-          overflowY: 'auto',
-          backgroundColor: loading ? '#f0f0f0' : '#fff',
-          cursor: loading ? 'not-allowed' : 'text',
-        }}
-        onInput={(e) => setNotes(e.currentTarget.innerHTML)} // Update state on input
-        dangerouslySetInnerHTML={{ __html: notes }} // Set initial HTML content
-      />
-      {loading && (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          <Spin />
-        </div>
-      )}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="devices" label="Devices">
+              <Select mode="multiple" placeholder="Select devices">
+                {deviceOptions.map(option => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="operatingSystem" label="Operating Systems">
+              <Select mode="multiple" placeholder="Select OS">
+                {osOptions.map(option => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
 
-      <div className="notes-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-        {/* "Add note" button might imply adding a new section or entry, which is not implemented by a single rich editor field */}
-        <Button
-          type="default" // Changed to default as it doesn't perform a save action directly
-          icon={<PlusOutlined />}
-          className="campaign-button"
-          onClick={() => {
-            if (editorRef.current) {
-              editorRef.current.innerHTML = ''; // Clear editor for a new note
-              setNotes('');
-              editorRef.current.focus();
-            }
-          }}
-        >
-          Clear Notes
-        </Button>
-        <Button
-          type="primary"
-          icon={<SaveOutlined />}
-          onClick={handleSaveNotes}
-          loading={saveLoading}
-          className="campaign-button"
-        >
-          Save Notes
-        </Button>
-      </div>
-    </Card>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="campaignStartDate" label="Start Date">
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="campaignEndDate" label="End Date">
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item name="startHour" label="Start Hour">
+              <InputNumber min={0} max={23} style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="endHour" label="End Hour">
+              <InputNumber min={0} max={23} style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="timezone" label="Timezone">
+              <Input placeholder="e.g., UTC, EST, PST" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item name="preview_url" label="Preview URL">
+          <Input placeholder="Enter preview URL" />
+        </Form.Item>
+
+        <Form.Item name="trackingUrl" label="Tracking URL">
+          <Input placeholder="Enter tracking URL" />
+        </Form.Item>
+
+        <Form.Item name="defaultCampaignUrl" label="Default Campaign URL">
+          <Input placeholder="Enter default campaign URL" />
+        </Form.Item>
+
+        <Form.Item name="note" label="Notes">
+          <TextArea rows={3} placeholder="Enter any notes" />
+        </Form.Item>
+      </Form>
+    </Modal>
   );
 };
-
-
 
 
 
@@ -422,9 +392,10 @@ const CampaignDetailPage = () => {
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [approvedPublishers, setApprovedPublishers] = useState([]); // State to hold approved publishers
-
+  const [approvedPublishers, setApprovedPublishers] = useState([]);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const [issaved, setIsSaved] = useState(false);
+
   useEffect(() => {
     const fetchCampaignDetails = async () => {
       if (!id) return;
@@ -447,12 +418,14 @@ const CampaignDetailPage = () => {
     fetchCampaignDetails();
   }, [id]);
 
- 
   const handleApprovedPublishersChange = useCallback((publishers) => {
     setApprovedPublishers(publishers);
   }, []);
 
- 
+  const handleCampaignUpdate = (updatedCampaign) => {
+    setCampaign(updatedCampaign);
+  };
+
   const formatArrayValue = (value) => {
     if (Array.isArray(value)) {
       return value.length > 0 ? value.join(', ') : 'Not specified';
@@ -465,11 +438,54 @@ const CampaignDetailPage = () => {
     try {
       return new Date(dateString).toLocaleDateString();
     } catch (e) {
-      return dateString; // Return original if invalid date
+      return dateString;
     }
   };
 
- 
+
+
+
+  // Handler to update state and call the API
+// In CampaignDetailPage.js
+
+// UPDATE this function to include the API call
+const handleTrackingTypeChange = async (newType) => {
+  // Store the original campaign state to revert on failure
+  const originalCampaign = campaign;
+  
+  // 1. Optimistically update the UI for a responsive feel
+  setCampaign(prev => ({ ...prev, conversionTracking: newType }));
+
+  try {
+    // 2. Call the API to save the change
+    const response = await apiClient.put(`/admin/campaign/${id}`, { 
+      conversionTracking: newType 
+    });
+
+    if (response.data?.success) {
+      message.success('Tracking type updated successfully!');
+      // Optionally, update state with the full response data if needed
+      // setCampaign(response.data.data); 
+    } else {
+      // Handle cases where the API responds with an error
+      throw new Error(response.data?.message || 'Failed to update tracking type.');
+    }
+  } catch (error) {
+    message.error(error.message || 'An error occurred.');
+    // 3. Revert the UI change if the API call fails
+    setCampaign(originalCampaign);
+  }
+};
+
+  const handleScriptChange = (newScript) => {
+     setCampaign(prev => ({ ...prev, trackingScript: newScript }));
+     // You would likely save this on a button click, not on every keystroke
+  };
+
+
+
+
+
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'active': return 'green';
@@ -491,7 +507,7 @@ const CampaignDetailPage = () => {
   if (!campaign) {
     return <Alert message="No campaign data available." type="warning" showIcon style={{ margin: '24px' }} />;
   }
-console.log("camapign------>",campaign)
+
   return (
     <div className="campaign-detail-page">
       <Row justify="space-between" align="middle" className="page-header">
@@ -504,6 +520,21 @@ console.log("camapign------>",campaign)
               Campaign ID: {campaign.id}
             </Title>
           </Space>
+        </Col>
+        <Col>
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => setEditModalVisible(true)}
+            style={{ 
+              background: '#1890ff',
+              borderColor: '#1890ff',
+              borderRadius: '6px',
+              fontWeight: '500'
+            }}
+          >
+            Edit Campaign
+          </Button>
         </Col>
       </Row>
 
@@ -574,24 +605,29 @@ console.log("camapign------>",campaign)
           </Space>
         </Col>
       </Row>
-{/* 
+
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         <Col xs={24} lg={12}>
           <BlockPublishers campaignId={campaign.id} />
         </Col>
         <Col xs={24} lg={12}>
-          <Notes campaignId={campaign.id} />
+           <ConversionTracking
+      value={campaign.trackingScript}
+      onChange={handleScriptChange}
+      trackingType={campaign.conversionTracking}
+      onTrackingTypeChange={handleTrackingTypeChange}
+      options={conversionTrackingOptions}
+    />
         </Col>
-      </Row> */}
+      </Row>
 
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-  <Col xs={24} lg={12}>
-    <BlockPublishers campaignId={campaign.id} />
-  </Col>
-  <Col xs={24} lg={12}>
-    <ConversionTracking value={campaign.trackingScript} />
-  </Col>
-</Row>
+      {/* Edit Campaign Modal */}
+      <EditCampaignModal
+        visible={editModalVisible}
+        onCancel={() => setEditModalVisible(false)}
+        campaign={campaign}
+        onSave={handleCampaignUpdate}
+      />
     </div>
   );
 };

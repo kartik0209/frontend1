@@ -92,51 +92,49 @@ const TrackingLinkCard = ({ campaignId ,issaved}) => {
     fetchApprovedPublishers();
   }, [campaignId, issaved]);
 
-  const generateTrackingLink = async () => {
-    if (!selectedPublisher) {
-      message.warning("Please select a publisher first");
-      return;
+ // REMOVE the old generateTrackingLink function and REPLACE it with this new function.
+// This new function takes the publisherId as an argument.
+const fetchAndSetLink = async (publisherId) => {
+  if (!publisherId) return;
+
+  setGenerateLoading(true);
+  try {
+    const requestData = {
+      campaignId: String(campaignId),
+      publisherIds: [String(publisherId)],
+    };
+
+    // Add additional parameters to body if addTrackingParam is checked
+    if (linkOptions.addTrackingParam) {
+      requestData.p1 = additionalParams.p1;
+      requestData.p2 = additionalParams.p2;
+      requestData.p3 = additionalParams.p3;
+      requestData.p4 = additionalParams.p4;
     }
 
-    setGenerateLoading(true);
-    try {
-      const requestData = {
-        campaignId: String(campaignId),
-        publisherIds: [String(selectedPublisher)],
-      };
+    const response = await apiClient.post(
+      "/admin/campaign-assignment/assign",
+      requestData
+    );
 
-      // Add additional parameters to body if addTrackingParam is checked
-      if (linkOptions.addTrackingParam) {
-        requestData.p1 = additionalParams.p1;
-        requestData.p2 = additionalParams.p2;
-        requestData.p3 = additionalParams.p3;
-        requestData.p4 = additionalParams.p4;
-      }
+    if (response.data?.success && response.data.data.length > 0) {
+      const assignmentData = response.data.data[0];
+      let finalLink = assignmentData.publisherLink;
 
-      const response = await apiClient.post(
-        "/admin/campaign-assignment/assign",
-        requestData
+      setGeneratedLink(finalLink);
+      message.success("Tracking link generated successfully!");
+    } else {
+      throw new Error(
+        response.data?.message || "Failed to generate tracking link"
       );
-
-      if (response.data?.success && response.data.data.length > 0) {
-        const assignmentData = response.data.data[0];
-        let finalLink = assignmentData.publisherLink;
-
-      
-
-        setGeneratedLink(finalLink);
-        message.success("Tracking link generated successfully!");
-      } else {
-        throw new Error(
-          response.data?.message || "Failed to generate tracking link"
-        );
-      }
-    } catch (error) {
-      message.error(error.message || "Failed to generate tracking link");
-    } finally {
-      setGenerateLoading(false);
     }
-  };
+  } catch (error) {
+    message.error(error.message || "Failed to generate tracking link");
+    setGeneratedLink(""); // Clear link on error
+  } finally {
+    setGenerateLoading(false);
+  }
+};
 
   const openLinkInNewTab = () => {
     if (generatedLink) {
@@ -158,10 +156,16 @@ const TrackingLinkCard = ({ campaignId ,issaved}) => {
     }
   };
 
-  const handlePublisherChange = (value) => {
-    setSelectedPublisher(value);
-    setGeneratedLink("");
-  };
+ // UPDATE this function
+const handlePublisherChange = (value) => {
+  setSelectedPublisher(value);
+  setGeneratedLink(""); // Clear previous link immediately
+
+  // If a publisher is selected, fetch the new link
+  if (value) {
+    fetchAndSetLink(value);
+  }
+};
 
   const handleLinkOptionChange = (option, checked) => {
     setLinkOptions((prev) => ({
@@ -228,62 +232,50 @@ const TrackingLinkCard = ({ campaignId ,issaved}) => {
 
         <div className="link-generation">
           <Title level={5}>Generated Link</Title>
-          <div className="generated-link-section">
-            <Tooltip title="Open Link in New Tab">
-              <Button
-                icon={<ExportOutlined />}
-                onClick={openLinkInNewTab}
-                disabled={!generatedLink}
-                style={customButtonStyle}
-                onMouseEnter={(e) =>
-                  Object.assign(e.target.style, customButtonHoverStyle)
-                }
-                onMouseLeave={(e) =>
-                  Object.assign(e.target.style, customButtonStyle)
-                }
-              />
-            </Tooltip>
+       
+<div className="generated-link-section">
+  <Input.TextArea
+    value={generatedLink}
+    placeholder="Select a publisher to generate a tracking link..."
+    rows={3}
+    readOnly
+    className="generated-link-textarea"
+  />
+  <Space className="link-actions">
+    {/* This is the new "Open Link" button */}
+    <Button
+      type="primary"
+      icon={<ExportOutlined />}
+      onClick={openLinkInNewTab}
+      loading={generateLoading} // Shows loading state while fetching
+      disabled={!generatedLink || generateLoading} // Disabled until link is ready
+      style={customButtonStyle}
+      onMouseEnter={(e) =>
+        Object.assign(e.target.style, customButtonHoverStyle)
+      }
+      onMouseLeave={(e) =>
+        Object.assign(e.target.style, customButtonStyle)
+      }
+    >
+      Open Link
+    </Button>
 
-            <Input.TextArea
-              value={generatedLink}
-              placeholder="Generated tracking link will appear here..."
-              rows={3}
-              readOnly
-              className="generated-link-textarea"
-            />
-            <Space className="link-actions">
-              <Button
-                type="primary"
-                onClick={generateTrackingLink}
-                loading={generateLoading}
-                disabled={!selectedPublisher}
-                style={customButtonStyle}
-                onMouseEnter={(e) =>
-                  Object.assign(e.target.style, customButtonHoverStyle)
-                }
-                onMouseLeave={(e) =>
-                  Object.assign(e.target.style, customButtonStyle)
-                }
-              >
-                Generate Link
-              </Button>
-
-              <Tooltip title="Copy Link">
-                <Button
-                  icon={<CopyOutlined />}
-                  onClick={copyToClipboard}
-                  disabled={!generatedLink}
-                  style={customButtonStyle}
-                  onMouseEnter={(e) =>
-                    Object.assign(e.target.style, customButtonHoverStyle)
-                  }
-                  onMouseLeave={(e) =>
-                    Object.assign(e.target.style, customButtonStyle)
-                  }
-                />
-              </Tooltip>
-            </Space>
-          </div>
+    <Tooltip title="Copy Link">
+      <Button
+        icon={<CopyOutlined />}
+        onClick={copyToClipboard}
+        disabled={!generatedLink}
+        style={customButtonStyle}
+        onMouseEnter={(e) =>
+          Object.assign(e.target.style, customButtonHoverStyle)
+        }
+        onMouseLeave={(e) =>
+          Object.assign(e.target.style, customButtonStyle)
+        }
+      />
+    </Tooltip>
+  </Space>
+</div>
         </div>
 
         <Divider />

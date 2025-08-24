@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
-import { Card, Input, Button, message, Space } from 'antd';
+import React from 'react'; // useState is no longer needed for trackingType
+import { Card, Input, Button, message, Space, Select } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
 
 const { TextArea } = Input;
+const { Option } = Select;
 
-/**
- * ConversionTracking with Copy to Clipboard
- * @param {object} props 
- * @param {string} props.value - The initial value to show in the text box
- * @param {function} props.onChange - Callback when text is changed
- */
-const ConversionTracking = ({ value = '', onChange }) => {
-  const [copied, setCopied] = useState(false);
+// 1. Accept `trackingType` and `onTrackingTypeChange` as props
+const ConversionTracking = ({ 
+  value = '', 
+  onChange,
+  trackingType, // The value for the dropdown, passed from the parent
+  onTrackingTypeChange, // The function to call when the dropdown changes
+  options=[]
+}) => {
+  // 2. The internal state for trackingType has been removed.
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(value);
-      setCopied(true);
       message.success('Copied to clipboard!');
     } catch (err) {
       message.error('Failed to copy.');
@@ -27,7 +28,22 @@ const ConversionTracking = ({ value = '', onChange }) => {
     <Card
       title={
         <Space style={{ justifyContent: 'space-between', width: '100%' }}>
-          <span>Conversion Tracking Script</span>
+          <Space align="center">
+            <Select
+              // 3. Bind the Select component to the props
+              value={trackingType}
+              onChange={onTrackingTypeChange}
+              style={{ width: 120 }}
+            >
+              {/* 2. Map over the options prop to create the dropdown items */}
+              {options.map(opt => (
+                <Option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </Option>
+              ))}
+            </Select>
+            <span>Conversion Tracking Script</span>
+          </Space>
           <Button
             icon={<CopyOutlined />}
             onClick={handleCopy}
