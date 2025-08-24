@@ -60,8 +60,8 @@ const TrackingLinkCard = ({ campaignId ,issaved}) => {
     color: "white",
   };
 
-  useEffect(() => {
-    const fetchApprovedPublishers = async () => {
+
+   const fetchApprovedPublishers = async () => {
       if (!campaignId) return;
 
       setListLoading(true);
@@ -88,9 +88,12 @@ const TrackingLinkCard = ({ campaignId ,issaved}) => {
         setListLoading(false);
       }
     };
+    
+  useEffect(() => {
+   
 
     fetchApprovedPublishers();
-  }, [campaignId, issaved]);
+  }, []);
 
  // REMOVE the old generateTrackingLink function and REPLACE it with this new function.
 // This new function takes the publisherId as an argument.

@@ -1,168 +1,123 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Spin, Alert, Row, Col, Typography, Button, Space } from 'antd';
-import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
+import React from 'react';
+import { Card, Descriptions, Tag } from 'antd';
 
-import apiClient from '../services/apiServices';
-import CampaignDetailSkeleton from '../components/skeletons/CampaignDetailSkeleton';
-import EditCampaignModal from './EditCampaignModal';
-import CampaignDetailsCard from './CampaignDetailsCard';
-import TrackingLinkCard from '../components/campaign/TrackingLinkCard';
-import PublisherAccess from '../components/campaign/PublisherAccess';
-import BlockPublishers from './BlockPublishers';
-import ConversionTracking from '../components/campaign/ConversionTracking';
-import { conversionTrackingOptions } from '../data/formOptions';
-import '../styles/CampaignDetailPage.scss';
-
-const { Title } = Typography;
-
-const CampaignDetailPage = () => {
-  const { id } = useParams();
-  const [campaign, setCampaign] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [approvedPublishers, setApprovedPublishers] = useState([]);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [issaved, setIsSaved] = useState(false);
-
-  useEffect(() => {
-    const fetchCampaignDetails = async () => {
-      if (!id) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await apiClient.get(`/admin/campaign/${id}`);
-        console.log("Campaign Details Response:", response.data);
-        if (response.data?.success) {
-          setCampaign(response.data.data);
-        } else {
-          throw new Error(response.data?.message || "Campaign not found.");
-        }
-      } catch (err) {
-        setError(err.message || "An error occurred while fetching campaign details.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCampaignDetails();
-  }, [id]);
-
-  const handleApprovedPublishersChange = useCallback((publishers) => {
-    setApprovedPublishers(publishers);
-  }, []);
-
-  const handleCampaignUpdate = (updatedCampaign) => {
-    setCampaign(updatedCampaign);
+const CampaignDetailsCard = ({ campaign }) => {
+  const formatArrayValue = (value) => {
+    if (Array.isArray(value)) {
+      return value.length > 0 ? value.join(', ') : 'Not specified';
+    }
+    return value || 'Not specified';
   };
 
-  const handleTrackingTypeChange = async (newType) => {
-    const originalCampaign = campaign;
-    setCampaign(prev => ({ ...prev, conversionTracking: newType }));
-
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not specified';
     try {
-      const response = await apiClient.put(`/admin/campaign/${id}`, { 
-        conversionTracking: newType 
-      });
-
-      if (response.data?.success) {
-        message.success('Tracking type updated successfully!');
-      } else {
-        throw new Error(response.data?.message || 'Failed to update tracking type.');
-      }
-    } catch (error) {
-      message.error(error.message || 'An error occurred.');
-      setCampaign(originalCampaign);
+      return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+      return dateString;
     }
   };
 
-  const handleScriptChange = (newScript) => {
-    setCampaign(prev => ({ ...prev, trackingScript: newScript }));
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active': return 'green';
+      case 'inactive': return 'red';
+      case 'expired': return 'orange';
+      case 'paused': return 'yellow';
+      default: return 'default';
+    }
   };
 
-  if (loading) {
-    return <CampaignDetailSkeleton />;
-  }
-
-  if (error) {
-    return <Alert message="Error" description={error} type="error" showIcon style={{ margin: '24px' }} />;
-  }
-
-  if (!campaign) {
-    return <Alert message="No campaign data available." type="warning" showIcon style={{ margin: '24px' }} />;
-  }
-
   return (
-    <div className="campaign-detail-page">
-      <Row justify="space-between" align="middle" className="page-header">
-        <Col>
-          <Space align="center" size="large">
-            <Link to="/campaign/manage" className="back-link">
-              <ArrowLeftOutlined className="back-icon" />
-            </Link>
-            <Title level={4} style={{ marginBottom: 0 }}>
-              Campaign ID: {campaign.id}
-            </Title>
-          </Space>
-        </Col>
-        <Col>
-          <Button
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => setEditModalVisible(true)}
-            style={{ 
-              background: '#1890ff',
-              borderColor: '#1890ff',
-              borderRadius: '6px',
-              fontWeight: '500'
-            }}
-          >
-            Edit Campaign
-          </Button>
-        </Col>
-      </Row>
-
-      <Row gutter={[24, 24]}>
-        <Col xs={24} lg={12}>
-          <CampaignDetailsCard campaign={campaign} />
-        </Col>
-        <Col xs={24} lg={12}>
-          <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <TrackingLinkCard
-              campaignId={campaign.id}
-              issaved={issaved}
-            />
-            <PublisherAccess
-              campaignId={campaign.id}
-              onApprovedPublishersChange={handleApprovedPublishersChange}
-              setIsSaved={setIsSaved}
-            />
-          </Space>
-        </Col>
-      </Row>
-
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-        <Col xs={24} lg={12}>
-          <BlockPublishers campaignId={campaign.id} />
-        </Col>
-        <Col xs={24} lg={12}>
-          <ConversionTracking
-            value={campaign.trackingScript}
-            onChange={handleScriptChange}
-            trackingType={campaign.conversionTracking}
-            onTrackingTypeChange={handleTrackingTypeChange}
-            options={conversionTrackingOptions}
-          />
-        </Col>
-      </Row>
-
-      <EditCampaignModal
-        visible={editModalVisible}
-        onCancel={() => setEditModalVisible(false)}
-        campaign={campaign}
-        onSave={handleCampaignUpdate}
-      />
-    </div>
+    <Card
+      title={`Details (ID: ${campaign.id})`}
+      bordered={false}
+      headStyle={{ backgroundColor: '#fafafa' }}
+      className="campaign-card"
+    >
+      <Descriptions column={1} bordered size="small" labelStyle={{ width: '35%' }}>
+        <Descriptions.Item label="Title">{campaign.title}</Descriptions.Item>
+        <Descriptions.Item label="Description">
+          {campaign.description || 'No description available'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Status">
+          <Tag color={getStatusColor(campaign.status)}>
+            {campaign.status?.toUpperCase()}
+          </Tag>
+        </Descriptions.Item>
+        <Descriptions.Item label="Effective Status">
+          <Tag color={getStatusColor(campaign.effectiveStatus)}>
+            {campaign.effectiveStatus?.toUpperCase()}
+          </Tag>
+        </Descriptions.Item>
+        <Descriptions.Item label="Advertiser">
+          <a href="#">(ID: {campaign.company_id}) {campaign.company?.name}</a>
+        </Descriptions.Item>
+        <Descriptions.Item label="Category">
+          {formatArrayValue(campaign.category)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Visibility">{campaign.visibility}</Descriptions.Item>
+        <Descriptions.Item label="Objective">{campaign.objective}</Descriptions.Item>
+        <Descriptions.Item label="Currency">{campaign.currency}</Descriptions.Item>
+        <Descriptions.Item label="Payout">
+          {campaign.payout ? `${campaign.payout} ${campaign.currency}` : 'Not specified'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Revenue">
+          {campaign.revenue ? `${campaign.revenue} ${campaign.currency}` : 'Not specified'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Revenue Model">
+          {campaign.revenueModel || 'Not specified'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Conversion Tracking">
+          {campaign.conversionTracking || 'Not specified'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Devices">
+          {formatArrayValue(campaign.devices)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Operating System">
+          {formatArrayValue(campaign.operatingSystem)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Geo Coverage">
+          {formatArrayValue(campaign.geoCoverage)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Traffic Channels">
+          {formatArrayValue(campaign.allowedTrafficChannels)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Campaign Start">
+          {formatDate(campaign.campaignStartDate)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Campaign End">
+          {formatDate(campaign.campaignEndDate)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Time Zone">
+          {campaign.timezone || 'Not specified'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Start Hour">
+          {campaign.startHour !== undefined ? `${campaign.startHour}:00` : 'Not specified'}
+        </Descriptions.Item>
+        <Descriptions.Item label="End Hour">
+          {campaign.endHour !== undefined ? `${campaign.endHour}:00` : 'Not specified'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Created Date">
+          {formatDate(campaign.created_at)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Preview URL">
+          <a href={campaign.preview_url} target="_blank" rel="noopener noreferrer">
+            {campaign.preview_url}
+          </a>
+        </Descriptions.Item>
+        <Descriptions.Item label="Tracking URL">
+          {campaign.trackingUrl || 'Not specified'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Default Campaign URL">
+          {campaign.defaultCampaignUrl || 'Not specified'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Note">
+          {campaign.note || 'No notes'}
+        </Descriptions.Item>
+      </Descriptions>
+    </Card>
   );
 };
 
-export default CampaignDetailPage;
+export default CampaignDetailsCard;

@@ -128,3 +128,155 @@ export const extractErrorMessage = (error) => {
   }
   return "Error creating campaign";
 };
+
+
+
+
+
+// Utility functions for campaign management
+
+export const formatArrayValue = (value) => {
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value.join(', ') : 'Not specified';
+  }
+  return value || 'Not specified';
+};
+
+export const formatDate = (dateString) => {
+  if (!dateString) return 'Not specified';
+  try {
+    return new Date(dateString).toLocaleDateString();
+  } catch (e) {
+    return dateString;
+  }
+};
+
+export const formatDateTime = (dateString) => {
+  if (!dateString) return 'Not specified';
+  try {
+    return new Date(dateString).toLocaleString();
+  } catch (e) {
+    return dateString;
+  }
+};
+
+export const getStatusColor = (status) => {
+  switch (status?.toLowerCase()) {
+    case 'active': return 'green';
+    case 'inactive': return 'red';
+    case 'expired': return 'orange';
+    case 'paused': return 'yellow';
+    case 'pending': return 'blue';
+    case 'approved': return 'green';
+    case 'rejected': return 'red';
+    default: return 'default';
+  }
+};
+
+export const formatCurrency = (amount, currency = 'USD') => {
+  if (!amount && amount !== 0) return 'Not specified';
+  return `${amount} ${currency}`;
+};
+
+export const formatHour = (hour) => {
+  if (hour === undefined || hour === null) return 'Not specified';
+  return `${hour}:00`;
+};
+
+export const validateTimeRange = (startHour, endHour) => {
+  if (startHour === undefined || endHour === undefined) return true;
+  return startHour < endHour;
+};
+
+export const formatUrl = (url) => {
+  if (!url) return 'Not specified';
+  // Add protocol if missing
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
+export const truncateText = (text, maxLength = 50) => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};
+
+export const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+export const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const generateCampaignUrl = (baseUrl, campaignId, publisherId) => {
+  if (!baseUrl) return '';
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}campaign_id=${campaignId}&publisher_id=${publisherId}`;
+};
+
+export const calculateRevenue = (payout, margin = 0) => {
+  if (!payout) return 0;
+  return payout + (payout * margin / 100);
+};
+
+export const getDeviceIcon = (device) => {
+  switch (device?.toLowerCase()) {
+    case 'desktop': return '💻';
+    case 'mobile': return '📱';
+    case 'tablet': return '📱';
+    default: return '💻';
+  }
+};
+
+export const getOSIcon = (os) => {
+  switch (os?.toLowerCase()) {
+    case 'windows': return '🪟';
+    case 'macos': return '🍎';
+    case 'linux': return '🐧';
+    case 'ios': return '📱';
+    case 'android': return '🤖';
+    default: return '💻';
+  }
+};
+
+export const sortPublishers = (publishers, sortBy = 'name', order = 'asc') => {
+  return [...publishers].sort((a, b) => {
+    let aValue = a[sortBy];
+    let bValue = b[sortBy];
+    
+    if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+    
+    if (order === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+};
+
+export const filterPublishersByStatus = (publishers, status) => {
+  if (!status || status === 'all') return publishers;
+  return publishers.filter(publisher => publisher.status === status);
+};
+
+export const searchPublishers = (publishers, searchTerm) => {
+  if (!searchTerm) return publishers;
+  const term = searchTerm.toLowerCase();
+  return publishers.filter(publisher => 
+    publisher.name?.toLowerCase().includes(term) ||
+    publisher.email?.toLowerCase().includes(term) ||
+    publisher.id?.toString().includes(term)
+  );
+};

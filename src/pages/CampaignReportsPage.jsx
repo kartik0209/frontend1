@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Select,
@@ -16,7 +16,6 @@ import {
 import {
   ReloadOutlined,
   DownloadOutlined,
-  EyeOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
@@ -24,7 +23,7 @@ import apiClient from "../services/apiServices";
 const { Option } = Select;
 const { Title } = Typography;
 
-const CampaignReportsPage = () => {
+const ConversionReportsPage = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [campaignDetails, setCampaignDetails] = useState(null);
@@ -32,162 +31,203 @@ const CampaignReportsPage = () => {
   const [loading, setLoading] = useState(false);
   const [reportsLoading, setReportsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
-  // Fetch all campaigns for dropdown
-  const fetchCampaigns = useCallback(async () => {
+  const fetchCampaigns = async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await apiClient.post("/admin/campaign/list", {});
-
-      console.log("API Response:", response.data);
-
+      
       if (response.data && response.data.success) {
-        const campaignData =
-          response.data.data || response.data.campaigns || [];
-        console.log("Campaign Data:", campaignData);
-
-        // Ensure each campaign has a unique key
+        const campaignData = response.data.data || response.data.campaigns || [];
         const campaignsWithKeys = campaignData.map((campaign) => ({
           ...campaign,
           key: campaign.id || Math.random().toString(36).substring(2, 11),
         }));
         setCampaigns(campaignsWithKeys);
-        message.success(
-          `${campaignsWithKeys.length} campaigns loaded successfully!`
-        );
+        message.success(`${campaignsWithKeys.length} campaigns loaded successfully!`);
       } else {
         throw new Error(response.data?.message || "Failed to fetch campaigns");
       }
     } catch (error) {
       console.error("Error fetching campaigns:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to load campaigns";
+      const errorMessage = error.response?.data?.message || error.message || "Failed to load campaigns";
       message.error(errorMessage);
       setError(errorMessage);
       setCampaigns([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  // Fetch campaign details
-  const fetchCampaignDetails = useCallback(
-    async (campaignId) => {
-      if (!campaignId) return;
-
-      try {
-        // First check if we already have the campaign details in our campaigns array
-        const campaign = campaigns.find((c) => c.id === campaignId);
-        if (campaign) {
-          setCampaignDetails(campaign);
-          return;
-        }
-
-        // If not found in campaigns array, fetch from API
-        const response = await apiClient.get(`/admin/campaign/${campaignId}`);
-        if (response.data?.success) {
-          setCampaignDetails(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching campaign details:", error);
-        // Set basic details from campaigns array as fallback
-        const campaign = campaigns.find((c) => c.id === campaignId);
-        if (campaign) {
-          setCampaignDetails(campaign);
-        }
-      }
-    },
-    [campaigns]
-  );
-
-  // Fetch campaign reports - Fixed API endpoint
-  const fetchCampaignReports = useCallback(async (campaignId) => {
-    if (!campaignId) return;
-
+  const fetchAllReports = async (page = 1, pageSize = 10) => {
     setReportsLoading(true);
     setError(null);
     try {
-      // Fixed API endpoint with proper slash
-      const response = await apiClient.get(
-        `/admin/report/campaign-trackings/${campaignId}`
-      );
-      console.log("Campaign Reports Response:", response.data);
-
+      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}`);
+      
       if (response.data?.success) {
         const reports = response.data.data || [];
+        const total = response.data.total || response.data.totalCount || reports.length;
+        
         setReportData(reports);
+        setPagination(prev => ({
+          ...prev,
+          current: page,
+          pageSize: pageSize,
+          total: total,
+        }));
+        
         message.success(`${reports.length} reports loaded successfully!`);
       } else {
         throw new Error(response.data?.message || "Failed to fetch reports.");
       }
     } catch (err) {
       console.error("Error fetching reports:", err);
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        "An error occurred while fetching reports.";
+      const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
       setError(errorMessage);
       message.error(errorMessage);
       setReportData([]);
+      setPagination(prev => ({
+        ...prev,
+        total: 0,
+      }));
     } finally {
       setReportsLoading(false);
     }
-  }, []);
+  };
 
-  // Handle campaign selection - Fixed
-  const handleCampaignChange = useCallback(
-    (campaignId) => {
-      setSelectedCampaign(campaignId);
-      if (campaignId) {
-        fetchCampaignDetails(campaignId);
-        fetchCampaignReports(campaignId);
+  const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
+    if (!campaignId) return;
+    
+    setReportsLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}`);
+      
+      if (response.data?.success) {
+        const reports = response.data.data || [];
+        const total = response.data.total || response.data.totalCount || reports.length;
+        
+        setReportData(reports);
+        setPagination(prev => ({
+          ...prev,
+          current: page,
+          pageSize: pageSize,
+          total: total,
+        }));
+
+        if (response.data.campaign) {
+          setCampaignDetails(response.data.campaign);
+        } else {
+          const campaign = campaigns.find((c) => c.id === campaignId);
+          setCampaignDetails(campaign);
+        }
+
+        message.success(`${reports.length} reports loaded successfully!`);
       } else {
-        setCampaignDetails(null);
-        setReportData([]);
+        throw new Error(response.data?.message || "Failed to fetch reports.");
       }
-    },
-    [fetchCampaignDetails, fetchCampaignReports]
-  );
+    } catch (err) {
+      console.error("Error fetching reports:", err);
+      const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
+      setError(errorMessage);
+      message.error(errorMessage);
+      setReportData([]);
+      setPagination(prev => ({
+        ...prev,
+        total: 0,
+      }));
+    } finally {
+      setReportsLoading(false);
+    }
+  };
 
-  // Refresh data - Fixed
-  const handleRefresh = useCallback(async () => {
+  const handleCampaignChange = (campaignId) => {
+    setSelectedCampaign(campaignId);
+    setPagination(prev => ({
+      ...prev,
+      current: 1,
+    }));
+    
+    if (campaignId) {
+      fetchCampaignReports(campaignId, 1, pagination.pageSize);
+    } else {
+      setCampaignDetails(null);
+      fetchAllReports(1, pagination.pageSize);
+    }
+  };
+
+  const handleTableChange = (paginationInfo) => {
+    const { current, pageSize } = paginationInfo;
+    
+    if (selectedCampaign) {
+      fetchCampaignReports(selectedCampaign, current, pageSize);
+    } else {
+      fetchAllReports(current, pageSize);
+    }
+  };
+
+  const handleRefresh = async () => {
     try {
       if (selectedCampaign) {
-        await fetchCampaignReports(selectedCampaign);
+        await fetchCampaignReports(selectedCampaign, pagination.current, pagination.pageSize);
+      } else {
+        await fetchAllReports(pagination.current, pagination.pageSize);
       }
       await fetchCampaigns();
     } catch (error) {
       console.error("Error during refresh:", error);
       message.error("Failed to refresh data");
     }
-  }, [selectedCampaign, fetchCampaignReports, fetchCampaigns]);
+  };
 
-  // Export functionality - Actually works now
-  const handleExport = useCallback(() => {
+  const handleExportAll = async () => {
     try {
-      if (reportData.length === 0) {
+      setReportsLoading(true);
+      let allData = [];
+      let currentPage = 1;
+      const pageSize = 100;
+      let hasMoreData = true;
+
+      while (hasMoreData) {
+        const url = selectedCampaign 
+          ? `/admin/report/conversion-trackings?page=${currentPage}&pageSize=${pageSize}&campaignId=${selectedCampaign}`
+          : `/admin/report/conversion-trackings?page=${currentPage}&pageSize=${pageSize}`;
+        
+        const response = await apiClient.get(url);
+        
+        if (response.data?.success) {
+          const pageData = response.data.data || [];
+          allData = [...allData, ...pageData];
+          
+          if (pageData.length < pageSize) {
+            hasMoreData = false;
+          } else {
+            currentPage++;
+          }
+        } else {
+          hasMoreData = false;
+        }
+      }
+
+      if (allData.length === 0) {
         message.warning("No data to export");
         return;
       }
 
-      // Convert data to CSV format
       const headers = columns.map((col) => col.title).join(",");
-      const rows = reportData.map((record) =>
+      const rows = allData.map((record) =>
         columns
           .map((col) => {
-            if (col.key === "actions") return ""; // Skip actions column
-
-            const value = col.dataIndex
-              ? Array.isArray(col.dataIndex)
-                ? col.dataIndex.reduce((obj, key) => obj?.[key], record)
-                : record[col.dataIndex]
-              : record[col.key];
-
+            const value = record[col.dataIndex];
             if (!value) return "N/A";
-            if (col.key === "timestamp" || col.key === "createdAt") {
+            if (col.dataIndex.includes("Time") || col.dataIndex.includes("At")) {
               return dayjs(value).format("YYYY-MM-DD HH:mm:ss");
             }
             return typeof value === "string" ? `"${value}"` : value;
@@ -204,132 +244,84 @@ const CampaignReportsPage = () => {
         link.setAttribute("href", url);
         link.setAttribute(
           "download",
-          `campaign_reports_${dayjs().format("YYYY-MM-DD")}.csv`
+          `conversion_reports_${selectedCampaign ? `campaign_${selectedCampaign}_` : "all_"}${dayjs().format("YYYY-MM-DD")}.csv`
         );
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        message.success("Report exported successfully!");
+        message.success(`Report with ${allData.length} records exported successfully!`);
       }
     } catch (error) {
       console.error("Export error:", error);
       message.error("Failed to export data");
+    } finally {
+      setReportsLoading(false);
     }
-  }, [reportData]);
+  };
 
-  // Table columns - Optimized and fixed
   const columns = [
     {
       title: "Date",
-      dataIndex: "timestamp",
-      key: "timestamp",
-      render: (timestamp) =>
-        timestamp ? dayjs(timestamp).format("DD MMM YYYY") : "N/A",
-      sorter: (a, b) => {
-        if (!a.timestamp && !b.timestamp) return 0;
-        if (!a.timestamp) return -1;
-        if (!b.timestamp) return 1;
-        return dayjs(a.timestamp).unix() - dayjs(b.timestamp).unix();
-      },
+      dataIndex: "clickTime",
+      key: "clickTime",
+      render: (clickTime) =>
+        clickTime ? dayjs(clickTime).format("DD MMM YYYY") : "N/A",
+      sorter: false,
       width: 120,
     },
     {
-      title: "Campaign ID",
-      dataIndex: "campaignId",
-      key: "campaignId",
+      title: "Tracking ID",
+      dataIndex: "trackingId",
+      key: "trackingId",
       render: (value) => value || "N/A",
+      sorter: false,
       width: 100,
     },
     {
-      title: "Publisher",
-      dataIndex: ["publisher", "name"],
-      key: "publisher_name",
-      render: (text, record) => {
-    
-        const publisherName =
-          record.publisher?.name ||
-          record.publisherName ||
-          record.publisher_name ||
-          record.publisher?.username ||
-          record.publisher?.email ||
-          "N/A";
-        return publisherName;
-      },
+      title: "Transaction ID",
+      dataIndex: "transactionId",
+      key: "transactionId",
+      render: (text) => text || "N/A",
       width: 150,
     },
     {
-      title: "Event Type",
-      dataIndex: "eventType",
-      key: "eventType",
-      render: (eventType) => {
-        if (!eventType) return <Tag color="gray">N/A</Tag>;
-        const color =
-          {
-            click: "blue",
-            impression: "green",
-            conversion: "gold",
-          }[eventType.toLowerCase()] || "default";
-        return <Tag color={color}>{eventType.toUpperCase()}</Tag>;
+      title: "Sale Amount",
+      dataIndex: "saleAmount",
+      key: "saleAmount",
+      render: (value, record) => {
+        if (!value) return "N/A";
+        const currency = record.currency || "$";
+        return `${currency}${parseFloat(value).toFixed(2)}`;
       },
+      sorter: false,
+      align: "right",
       width: 120,
-      filters: [
-        { text: "Click", value: "click" },
-        { text: "Impression", value: "impression" },
-        { text: "Conversion", value: "conversion" },
-      ],
-      onFilter: (value, record) => record.eventType?.toLowerCase() === value,
     },
     {
-      title: "Click ID",
-      dataIndex: "clickId",
-      key: "clickId",
-      render: (clickId) =>
-        clickId ? (
+      title: "Currency",
+      dataIndex: "currency",
+      key: "currency",
+      render: (text) => text || "N/A",
+      width: 100,
+    },
+    {
+      title: "Click Count",
+      dataIndex: "clickCount",
+      key: "clickCount",
+      render: (value) => (value || 0).toLocaleString(),
+      sorter: false,
+      align: "right",
+      width: 100,
+    },
+    {
+      title: "Session ID",
+      dataIndex: "sessionId",
+      key: "sessionId",
+      render: (text) =>
+        text ? (
           <span style={{ fontFamily: "monospace", fontSize: "12px" }}>
-            {clickId.length > 15 ? `${clickId.substring(0, 15)}...` : clickId}
-          </span>
-        ) : (
-          "N/A"
-        ),
-      width: 140,
-    },
-    {
-      title: "Country",
-      dataIndex: "country",
-      key: "country",
-      render: (country) => country || "N/A",
-      width: 100,
-    },
-    {
-      title: "Device",
-      dataIndex: "device",
-      key: "device",
-      render: (device) => device || "N/A",
-      width: 100,
-    },
-    {
-      title: "OS",
-      dataIndex: "os",
-      key: "os",
-      render: (os) => os || "N/A",
-      width: 100,
-    },
-    {
-      title: "Browser",
-      dataIndex: "browser",
-      key: "browser",
-      render: (browser) => browser || "N/A",
-      width: 100,
-    },
-    {
-      title: "IP Address",
-      dataIndex: "ipAddress",
-      key: "ipAddress",
-      render: (ip) =>
-        ip ? (
-          <span style={{ fontFamily: "monospace", fontSize: "12px" }}>
-            {ip}
+            {text.length > 12 ? `${text.substring(0, 12)}...` : text}
           </span>
         ) : (
           "N/A"
@@ -337,83 +329,18 @@ const CampaignReportsPage = () => {
       width: 130,
     },
     {
-      title: "Region",
-      dataIndex: "region",
-      key: "region",
-      render: (region) => region || "N/A",
-      width: 100,
-    },
-    {
-      title: "City",
-      dataIndex: "city",
-      key: "city",
-      render: (city) => city || "N/A",
-      width: 100,
-    },
-    {
-      title: "Carrier",
-      dataIndex: "carrier",
-      key: "carrier",
-      render: (carrier) => carrier || "N/A",
-      width: 100,
-    },
-    {
-      title: "P1",
-      dataIndex: "p1",
-      key: "p1",
-      render: (value) => value || "N/A",
-      width: 80,
-    },
-    {
-      title: "P2",
-      dataIndex: "p2",
-      key: "p2",
-      render: (value) => value || "N/A",
-      width: 80,
-    },
-    {
-      title: "P3",
-      dataIndex: "p3",
-      key: "p3",
-      render: (value) => value || "N/A",
-      width: 80,
-    },
-    {
-      title: "P4",
-      dataIndex: "p4",
-      key: "p4",
-      render: (value) => value || "N/A",
-      width: 80,
-    },
-    {
-      title: "User Agent",
-      dataIndex: "userAgent",
-      key: "userAgent",
-      render: (userAgent) =>
-        userAgent ? (
-          <span title={userAgent} style={{ fontSize: "12px" }}>
-            {userAgent.length > 30
-              ? `${userAgent.substring(0, 30)}...`
-              : userAgent}
-          </span>
-        ) : (
-          "N/A"
-        ),
-      width: 200,
-    },
-    {
-      title: "Referer",
-      dataIndex: "referer",
-      key: "referer",
-      render: (referer) =>
-        referer ? (
+      title: "Page URL",
+      dataIndex: "pageUrl",
+      key: "pageUrl",
+      render: (url) =>
+        url ? (
           <a
-            href={referer}
+            href={url}
             target="_blank"
             rel="noopener noreferrer"
             style={{ fontSize: "12px" }}
           >
-            {referer.length > 30 ? `${referer.substring(0, 30)}...` : referer}
+            {url.length > 30 ? `${url.substring(0, 30)}...` : url}
           </a>
         ) : (
           "N/A"
@@ -421,31 +348,94 @@ const CampaignReportsPage = () => {
       width: 200,
     },
     {
+      title: "Pixel Type",
+      dataIndex: "pixelType",
+      key: "pixelType",
+      render: (type) => {
+        if (!type) return <Tag color="gray">N/A</Tag>;
+        const color = {
+          iframe: "blue",
+          image: "green",
+          sdk: "purple",
+        }[type.toLowerCase()] || "default";
+        return <Tag color={color}>{type.toUpperCase()}</Tag>;
+      },
+      width: 100,
+    },
+    {
+      title: "Event Type",
+      dataIndex: "eventType",
+      key: "eventType",
+      render: (type) => {
+        if (!type) return <Tag color="gray">N/A</Tag>;
+        const color = {
+          conversion: "gold",
+          lead: "blue",
+          signup: "green",
+        }[type.toLowerCase()] || "default";
+        return <Tag color={color}>{type.toUpperCase()}</Tag>;
+      },
+      width: 110,
+    },
+    {
+      title: "Conversion Time",
+      dataIndex: "conversionTime",
+      key: "conversionTime",
+      render: (conversionTime) =>
+        conversionTime
+          ? dayjs(conversionTime).format("DD MMM YYYY HH:mm")
+          : "N/A",
+      sorter: false,
+      width: 140,
+    },
+    {
+      title: "Conversion Value",
+      dataIndex: "conversionValue",
+      key: "conversionValue",
+      render: (value, record) => {
+        if (!value || value === 0) return "N/A";
+        const currency = record.currency || "$";
+        return `${currency}${parseFloat(value).toFixed(2)}`;
+      },
+      sorter: false,
+      align: "right",
+      width: 130,
+    },
+    {
+      title: "Conversion Status",
+      dataIndex: "conversionStatus",
+      key: "conversionStatus",
+      render: (status) => {
+        if (!status) return <Tag color="gray">N/A</Tag>;
+        const color = {
+          pending: "orange",
+          approved: "green",
+          rejected: "red",
+        }[status.toLowerCase()] || "default";
+        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+      },
+      width: 130,
+    },
+    {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (createdAt) =>
         createdAt ? dayjs(createdAt).format("DD MMM YYYY HH:mm") : "N/A",
-      sorter: (a, b) => {
-        if (!a.createdAt && !b.createdAt) return 0;
-        if (!a.createdAt) return -1;
-        if (!b.createdAt) return 1;
-        return dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix();
-      },
+      sorter: false,
       width: 140,
     },
-   
   ];
 
-  // Load campaigns on component mount
   useEffect(() => {
     fetchCampaigns();
-  }, [fetchCampaigns]);
+    fetchAllReports(1, 10);
+  }, []);
 
   return (
     <div style={{ padding: "24px" }}>
       <div style={{ marginBottom: "24px" }}>
-        <Title level={2}>Campaign Reports</Title>
+        <Title level={2}>Conversion Reports</Title>
       </div>
 
       {error && (
@@ -459,7 +449,6 @@ const CampaignReportsPage = () => {
         />
       )}
 
-      {/* Campaign Selection and Filters */}
       <Card style={{ marginBottom: "24px" }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -467,12 +456,13 @@ const CampaignReportsPage = () => {
               <strong>Select Campaign:</strong>
             </div>
             <Select
-              placeholder="Choose a campaign"
+              placeholder="All Campaigns"
               style={{ width: "100%" }}
               value={selectedCampaign}
               onChange={handleCampaignChange}
               loading={loading}
               showSearch
+              allowClear
               filterOption={(input, option) =>
                 option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
@@ -491,7 +481,6 @@ const CampaignReportsPage = () => {
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={handleRefresh}
-                  disabled={!selectedCampaign}
                   loading={reportsLoading}
                 >
                   Refresh
@@ -499,17 +488,17 @@ const CampaignReportsPage = () => {
                 <Button
                   type="primary"
                   icon={<DownloadOutlined />}
-                  disabled={!selectedCampaign || reportData.length === 0}
-                  onClick={handleExport}
+                  disabled={pagination.total === 0}
+                  onClick={handleExportAll}
+                  loading={reportsLoading}
                 >
-                  Export CSV
+                  Export All CSV
                 </Button>
               </Space>
             </div>
           </Col>
         </Row>
 
-        {/* Campaign Details */}
         {campaignDetails && (
           <div
             style={{
@@ -531,7 +520,7 @@ const CampaignReportsPage = () => {
                     campaignDetails.status === "active" ? "green" : "orange"
                   }
                 >
-                  {campaignDetails.status?.toUpperCase() || "UNKNOWN"}
+                  {campaignDetails.status?.toUpperCase()}
                 </Tag>
               </Col>
             </Row>
@@ -539,47 +528,42 @@ const CampaignReportsPage = () => {
         )}
       </Card>
 
-      {/* Reports Table */}
       <Card
-        title="Campaign Reports"
+        title={selectedCampaign ? "Campaign Reports" : "All Campaign Reports"}
         extra={
-          selectedCampaign && (
-            <span style={{ color: "#666" }}>
-              Total Records: {reportData.length}
-            </span>
-          )
+          <span style={{ color: "#666" }}>
+            Total Records: {pagination.total}
+          </span>
         }
       >
         <Table
           columns={columns}
           dataSource={reportData}
           rowKey={(record) =>
-            `${record.id || record.clickId || Math.random()}-${
-              record.campaignId || Math.random()
+            `${record.id || record.transactionId || Math.random()}-${
+              record.trackingId || Math.random()
             }`
           }
           pagination={{
-            total: reportData.length,
-            pageSize: 20,
+            ...pagination,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
               `${range[0]}-${range[1]} of ${total} records`,
             pageSizeOptions: ["10", "20", "50", "100"],
           }}
-          scroll={{ x: 1600 }}
+          scroll={{ x: 1400 }}
           loading={reportsLoading}
           locale={{
-            emptyText: selectedCampaign
-              ? "No reports data available for the selected campaign"
-              : "Please select a campaign to view reports",
+            emptyText: "No reports data available",
           }}
           size="middle"
           bordered
+          onChange={handleTableChange}
         />
       </Card>
     </div>
   );
 };
 
-export default CampaignReportsPage;
+export default ConversionReportsPage;

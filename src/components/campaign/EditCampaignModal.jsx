@@ -11,8 +11,8 @@ import {
   Button,
   message
 } from 'antd';
-import apiClient from '../services/apiServices';
-import { conversionTrackingOptions } from '../data/formOptions';
+import apiClient from '../../services/apiServices';
+import { conversionTrackingOptions ,statusOptions ,objectiveOptions,osOptions,visibilityOptions,currencyOptions,revenueModelOptions,deviceOptions} from '../../data/formOptions';
 import dayjs from 'dayjs';
 
 const { Option } = Select;
@@ -83,54 +83,7 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
     }
   };
 
-  // Option configurations
-  const statusOptions = [
-    { label: 'Active', value: 'active' },
-    { label: 'Inactive', value: 'inactive' },
-    { label: 'Paused', value: 'paused' },
-    { label: 'Expired', value: 'expired' },
-  ];
 
-  const visibilityOptions = [
-    { label: 'Public', value: 'public' },
-    { label: 'Private', value: 'private' },
-    { label: 'Invite Only', value: 'invite_only' },
-  ];
-
-  const objectiveOptions = [
-    { label: 'Sales', value: 'sales' },
-    { label: 'Leads', value: 'leads' },
-    { label: 'Traffic', value: 'traffic' },
-    { label: 'Brand Awareness', value: 'brand_awareness' },
-  ];
-
-  const currencyOptions = [
-    { label: 'USD', value: 'USD' },
-    { label: 'EUR', value: 'EUR' },
-    { label: 'GBP', value: 'GBP' },
-    { label: 'INR', value: 'INR' },
-  ];
-
-  const revenueModelOptions = [
-    { label: 'CPA', value: 'CPA' },
-    { label: 'CPC', value: 'CPC' },
-    { label: 'CPM', value: 'CPM' },
-    { label: 'Revenue Share', value: 'revenue_share' },
-  ];
-
-  const deviceOptions = [
-    { label: 'Desktop', value: 'desktop' },
-    { label: 'Mobile', value: 'mobile' },
-    { label: 'Tablet', value: 'tablet' },
-  ];
-
-  const osOptions = [
-    { label: 'Windows', value: 'windows' },
-    { label: 'macOS', value: 'macos' },
-    { label: 'Linux', value: 'linux' },
-    { label: 'iOS', value: 'ios' },
-    { label: 'Android', value: 'android' },
-  ];
 
   return (
     <Modal

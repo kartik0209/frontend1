@@ -9,11 +9,13 @@ import '../../styles/CampaignDetailPage.scss'; // Optional: Add your styles here
 
 
 
-const PublisherAccess = ({ campaignId, onApprovedPublishersChange ,setIsSaved}) => {
+const PublisherAccess = ({ campaignId, onApprovedPublishersChange }) => {
   const [allPublishers, setAllPublishers] = useState([]);
   const [targetKeys, setTargetKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+
+  const [issaved, setIsSaved] = useState(false);
 
   // Fetch all publishers on component mount
   useEffect(() => {
@@ -46,6 +48,42 @@ const PublisherAccess = ({ campaignId, onApprovedPublishersChange ,setIsSaved}) 
       setLoading(false);
     }
   };
+
+
+  useEffect(() => {
+    const fetchApprovedPublishers = async () => {
+      if (!campaignId) return;
+
+      setLoading(true);
+     
+
+      try {
+        const response = await apiClient.get(
+          `/common/publisher/${campaignId}/approved-publishers`
+        );
+        if (response.data?.success) {
+         console.log("response.data.data",response.data.data);
+        } else {
+          throw new Error(
+            response.data?.message || "Failed to load publishers."
+          );
+        }
+      } catch (error) {
+        message.error(
+          error.message || "An error occurred while fetching publishers."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApprovedPublishers();
+  }, [campaignId,issaved]);
+
+
+
+
+
 
   // Handle transfer changes (approve/remove publishers)
   const handleTransferChange = (newTargetKeys, direction, moveKeys) => {
