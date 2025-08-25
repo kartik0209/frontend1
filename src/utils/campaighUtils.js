@@ -208,14 +208,7 @@ export const isValidEmail = (email) => {
   return emailRegex.test(email);
 };
 
-export const isValidUrl = (url) => {
-  try {
-    new URL(url);
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
+
 
 export const generateCampaignUrl = (baseUrl, campaignId, publisherId) => {
   if (!baseUrl) return '';
