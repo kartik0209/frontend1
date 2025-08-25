@@ -45,24 +45,12 @@ const TargetingSection = ({ formState, updateFormState }) => {
       </Form.Item>
 
       <Form.Item label="KPI" name="kpi">
-         <Editor
-              apiKey="swibzw2hr1s20zbox1ecdtfuu886owo62soin50w9uik0tkz"
-              init={{
-                height: 300,
-                menubar: false,
-                plugins: [
-                  'advlist autolink lists link image charmap print preview anchor',
-                  'searchreplace visualblocks code fullscreen',
-                  'insertdatetime media table paste help wordcount'
-                ],
-                toolbar:
-                  'undo redo | formatselect | bold italic backcolor | \
-                  alignleft aligncenter alignright alignjustify | \
-                  bullist numlist outdent indent | removeformat | help'
-              }}
-              onEditorChange={(content, editor) => onChange(content)}
-              placeholder="Enter campaign description..."
-            />
+        <TextArea
+          rows={4}
+          placeholder="Enter campaign KPI"
+          value={formState.kpi}
+          onChange={(e) => updateFormState({ kpi: e.target.value })}
+        />
       </Form.Item>
 
       <Form.Item label="Note" name="note">

@@ -106,24 +106,12 @@ const BasicDetailsSection = ({ formState, updateFormState }) => {
       </Form.Item>
 
       <Form.Item label="Description" name="description">
-        <Editor
-          apiKey="swibzw2hr1s20zbox1ecdtfuu886owo62soin50w9uik0tkz"
-          value={formState.description}
-          init={{
-            height: 300,
-            menubar: false,
-            plugins: [
-              'advlist autolink lists link image charmap print preview anchor',
-              'searchreplace visualblocks code fullscreen',
-              'insertdatetime media table paste help wordcount'
-            ],
-            toolbar:
-              'undo redo | formatselect | bold italic backcolor | \
-              alignleft aligncenter alignright alignjustify | \
-              bullist numlist outdent indent | removeformat | help'
-          }}
-          onEditorChange={handleDescriptionChange}
-        />
+       <TextArea
+         rows={4}
+         placeholder="Enter campaign description"
+         value={formState.description}
+         onChange={(e) => updateFormState({ description: e.target.value })}
+       />
       </Form.Item>
 
       <Form.Item label="Preview URL" name="previewUrl">

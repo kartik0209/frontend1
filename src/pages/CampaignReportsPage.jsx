@@ -80,7 +80,7 @@ const ConversionReportsPage = () => {
           ...prev,
           current: page,
           pageSize: pageSize,
-          total: total,
+          total:100,
         }));
         
         message.success(`${reports.length} reports loaded successfully!`);
@@ -119,7 +119,7 @@ const ConversionReportsPage = () => {
           ...prev,
           current: page,
           pageSize: pageSize,
-          total: total,
+          total: 50,
         }));
 
         if (response.data.campaign) {

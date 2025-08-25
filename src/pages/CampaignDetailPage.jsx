@@ -13,6 +13,7 @@ import ConversionTracking from '../components/campaign/ConversionTracking';
 import { useCampaign } from '../hooks/useCampaign';
 import { conversionTrackingOptions } from '../data/formOptions';
 import '../styles/CampaignDetailPage.scss';
+import CombinedPublisherManagement from '../components/campaign/CombinedPublisherManagement';
 
 const { Title } = Typography;
 
@@ -98,7 +99,7 @@ const CampaignDetailPage = () => {
       </Row>
 
 
-      <Row gutter={[24, 24]}>
+      {/* <Row gutter={[24, 24]}>
         <Col xs={24} lg={12}>
           <CampaignDetailsCard campaign={campaign} />
         </Col>
@@ -116,7 +117,22 @@ const CampaignDetailPage = () => {
             />
           </Space>
         </Col>
-      </Row>
+      </Row> */}
+
+
+      
+      <Row gutter={[24, 24]}>
+  <Col xs={24} lg={12}>
+    <CampaignDetailsCard campaign={campaign} />
+  </Col>
+  <Col xs={24} lg={12}>
+    <CombinedPublisherManagement
+      campaignId={campaign.id}
+      onApprovedPublishersChange={handleApprovedPublishersChange}
+      setIsSaved={setIsSaved}
+    />
+  </Col>
+</Row>
 
     
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>

@@ -80,7 +80,7 @@ const ConversionReportsPage = () => {
           ...prev,
           current: page,
           pageSize: pageSize,
-          total: total,
+          total: 50,
         }));
         
         message.success(`${reports.length} reports loaded successfully!`);
@@ -119,7 +119,7 @@ const ConversionReportsPage = () => {
           ...prev,
           current: page,
           pageSize: pageSize,
-          total: total,
+          total: 50,
         }));
 
         if (response.data.campaign) {
@@ -153,6 +153,7 @@ const ConversionReportsPage = () => {
     setPagination(prev => ({
       ...prev,
       current: 1,
+      total:100
     }));
     
     if (campaignId) {
