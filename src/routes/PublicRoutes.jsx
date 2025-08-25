@@ -41,8 +41,8 @@ const PublicRoutes = () => {
           path="/" 
           element={
             <Suspense fallback={<PublicPageSkeleton pageType="login" />}>
-              {/* <Login /> */}
-              <Homepage />
+              <Login />
+              {/* <Homepage /> */}
             </Suspense>
           } 
         />

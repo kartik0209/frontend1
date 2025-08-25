@@ -72,15 +72,16 @@ const ConversionReportsPage = () => {
       const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}`);
       
       if (response.data?.success) {
-        const reports = response.data.data || [];
-        const total = response.data.total || response.data.totalCount || reports.length;
+        const reports = response.data.data.pixelTrackings || [];
+        const total = response.data.data.total || response.data.totalCount || reports.length;
         
-        setReportData(reports);
+       setReportData(Array.isArray(reports) ? reports : []);
+
         setPagination(prev => ({
           ...prev,
           current: page,
           pageSize: pageSize,
-          total: 50,
+          total: total,
         }));
         
         message.success(`${reports.length} reports loaded successfully!`);
@@ -111,15 +112,15 @@ const ConversionReportsPage = () => {
       const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}`);
       
       if (response.data?.success) {
-        const reports = response.data.data || [];
-        const total = response.data.total || response.data.totalCount || reports.length;
+        const reports = response.data.data.pixelTrackings || [];
+        const total = response.data.data.total || response.data.totalCount || reports.length;
         
         setReportData(reports);
         setPagination(prev => ({
           ...prev,
           current: page,
           pageSize: pageSize,
-          total: 50,
+          total: total,
         }));
 
         if (response.data.campaign) {

@@ -65,88 +65,91 @@ const ConversionReportsPage = () => {
     }
   };
 
-  const fetchAllReports = async (page = 1, pageSize = 10) => {
-    setReportsLoading(true);
-    setError(null);
-    try {
-      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}`);
-      
-      if (response.data?.success) {
-        const reports = response.data.data || [];
-        const total = response.data.total || response.data.totalCount || reports.length;
-        
-        setReportData(reports);
-        setPagination(prev => ({
-          ...prev,
-          current: page,
-          pageSize: pageSize,
-          total:100,
-        }));
-        
-        message.success(`${reports.length} reports loaded successfully!`);
-      } else {
-        throw new Error(response.data?.message || "Failed to fetch reports.");
-      }
-    } catch (err) {
-      console.error("Error fetching reports:", err);
-      const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
-      setError(errorMessage);
-      message.error(errorMessage);
-      setReportData([]);
-      setPagination(prev => ({
-        ...prev,
-        total: 0,
-      }));
-    } finally {
-      setReportsLoading(false);
-    }
-  };
-
-  const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
-    if (!campaignId) return;
+ const fetchAllReports = async (page = 1, pageSize = 10) => {
+  setReportsLoading(true);
+  setError(null);
+  try {
+    const response = await apiClient.get(`/admin/report/campaign-trackings?page=${page}&pageSize=${pageSize}`);
     
-    setReportsLoading(true);
-    setError(null);
-    try {
-      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}`);
+    if (response.data?.success) {
+      const reports = response.data.data?.trackings || [];
+      const total = response.data.data?.total || response.data.totalCount || reports.length;
       
-      if (response.data?.success) {
-        const reports = response.data.data || [];
-        const total = response.data.total || response.data.totalCount || reports.length;
-        
-        setReportData(reports);
-        setPagination(prev => ({
-          ...prev,
-          current: page,
-          pageSize: pageSize,
-          total: 50,
-        }));
-
-        if (response.data.campaign) {
-          setCampaignDetails(response.data.campaign);
-        } else {
-          const campaign = campaigns.find((c) => c.id === campaignId);
-          setCampaignDetails(campaign);
-        }
-
-        message.success(`${reports.length} reports loaded successfully!`);
-      } else {
-        throw new Error(response.data?.message || "Failed to fetch reports.");
-      }
-    } catch (err) {
-      console.error("Error fetching reports:", err);
-      const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
-      setError(errorMessage);
-      message.error(errorMessage);
-      setReportData([]);
+      setReportData(reports);
       setPagination(prev => ({
         ...prev,
-        total: 0,
+        current: page,
+        pageSize: pageSize,
+        total: total,
       }));
-    } finally {
-      setReportsLoading(false);
+      
+      message.success(`${reports.length} reports loaded successfully!`);
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch reports.");
     }
-  };
+  } catch (err) {
+    console.error("Error fetching reports:", err);
+    const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
+    setError(errorMessage);
+    message.error(errorMessage);
+    setReportData([]);
+    setPagination(prev => ({
+      ...prev,
+      total: 0,
+    }));
+  } finally {
+    setReportsLoading(false);
+  }
+};
+ 
+
+
+const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
+  if (!campaignId) return;
+  
+  setReportsLoading(true);
+  setError(null);
+  try {
+    const response = await apiClient.get(`/admin/report/campaign-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}`);
+    
+    if (response.data?.success) {
+      const reports = response.data.data?.trackings || []; // Fixed this line
+      const total = response.data.data?.total || response.data.totalCount || reports.length;
+      
+      setReportData(reports);
+      setPagination(prev => ({
+        ...prev,
+        current: page,
+        pageSize: pageSize,
+        total: total,
+      }));
+
+      if (response.data.campaign) {
+        setCampaignDetails(response.data.campaign);
+      } else {
+        const campaign = campaigns.find((c) => c.id === campaignId);
+        setCampaignDetails(campaign);
+      }
+
+      message.success(`${reports.length} reports loaded successfully!`);
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch reports.");
+    }
+  } catch (err) {
+    console.error("Error fetching reports:", err);
+    const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
+    setError(errorMessage);
+    message.error(errorMessage);
+    setReportData([]);
+    setPagination(prev => ({
+      ...prev,
+      total: 0,
+    }));
+  } finally {
+    setReportsLoading(false);
+  }
+};
+
 
   const handleCampaignChange = (campaignId) => {
     setSelectedCampaign(campaignId);
@@ -196,14 +199,13 @@ const ConversionReportsPage = () => {
       let hasMoreData = true;
 
       while (hasMoreData) {
-        const url = selectedCampaign 
-          ? `/admin/report/conversion-trackings?page=${currentPage}&pageSize=${pageSize}&campaignId=${selectedCampaign}`
-          : `/admin/report/conversion-trackings?page=${currentPage}&pageSize=${pageSize}`;
-        
+       const url = selectedCampaign 
+  ? `/admin/report/campaign-trackings?page=${currentPage}&pageSize=${pageSize}&campaignId=${selectedCampaign}`
+  : `/admin/report/campaign-trackings?page=${currentPage}&pageSize=${pageSize}`;
         const response = await apiClient.get(url);
         
         if (response.data?.success) {
-          const pageData = response.data.data || [];
+         const pageData = response.data.data?.trackings || [];
           allData = [...allData, ...pageData];
           
           if (pageData.length < pageSize) {
@@ -260,172 +262,114 @@ const ConversionReportsPage = () => {
     }
   };
 
-  const columns = [
-    {
-      title: "Date",
-      dataIndex: "clickTime",
-      key: "clickTime",
-      render: (clickTime) =>
-        clickTime ? dayjs(clickTime).format("DD MMM YYYY") : "N/A",
-      sorter: false,
-      width: 120,
+ const columns = [
+  {
+    title: "Date",
+    dataIndex: "timestamp", // Changed from "clickTime"
+    key: "timestamp",
+    render: (timestamp) =>
+      timestamp ? dayjs(timestamp).format("DD MMM YYYY") : "N/A",
+    sorter: false,
+    width: 120,
+  },
+  {
+    title: "Click ID", // Changed from "Tracking ID"
+    dataIndex: "clickId",
+    key: "clickId",
+    render: (value) => value || "N/A",
+    sorter: false,
+    width: 100,
+  },
+  {
+    title: "Campaign ID",
+    dataIndex: "campaignId",
+    key: "campaignId",
+    render: (value) => value || "N/A",
+    width: 100,
+  },
+  {
+    title: "Publisher",
+    dataIndex: "publisher",
+    key: "publisher",
+    render: (publisher) => publisher?.name || "N/A",
+    width: 120,
+  },
+  {
+    title: "IP Address",
+    dataIndex: "ipAddress",
+    key: "ipAddress",
+    render: (text) => text || "N/A",
+    width: 130,
+  },
+  {
+    title: "Location",
+    dataIndex: "city",
+    key: "location",
+    render: (city, record) => {
+      const location = [record.city, record.region, record.country]
+        .filter(Boolean)
+        .join(", ");
+      return location || "N/A";
     },
-    {
-      title: "Tracking ID",
-      dataIndex: "trackingId",
-      key: "trackingId",
-      render: (value) => value || "N/A",
-      sorter: false,
-      width: 100,
+    width: 150,
+  },
+  {
+    title: "Device",
+    dataIndex: "device",
+    key: "device",
+    render: (device) => device || "N/A",
+    width: 100,
+  },
+  {
+    title: "OS",
+    dataIndex: "os",
+    key: "os",
+    render: (os) => os || "N/A",
+    width: 100,
+  },
+  {
+    title: "Browser",
+    dataIndex: "browser",
+    key: "browser",
+    render: (browser) => browser || "N/A",
+    width: 120,
+  },
+  {
+    title: "Event Type",
+    dataIndex: "eventType",
+    key: "eventType",
+    render: (type) => {
+      if (!type) return <Tag color="gray">N/A</Tag>;
+      const color = {
+        click: "blue",
+        conversion: "gold",
+        lead: "green",
+      }[type.toLowerCase()] || "default";
+      return <Tag color={color}>{type.toUpperCase()}</Tag>;
     },
-    {
-      title: "Transaction ID",
-      dataIndex: "transactionId",
-      key: "transactionId",
-      render: (text) => text || "N/A",
-      width: 150,
+    width: 110,
+  },
+  {
+    title: "Parameters",
+    key: "parameters",
+    render: (_, record) => {
+      const params = [record.p1, record.p2, record.p3, record.p4]
+        .filter(Boolean)
+        .join(", ");
+      return params || "N/A";
     },
-    {
-      title: "Sale Amount",
-      dataIndex: "saleAmount",
-      key: "saleAmount",
-      render: (value, record) => {
-        if (!value) return "N/A";
-        const currency = record.currency || "$";
-        return `${currency}${parseFloat(value).toFixed(2)}`;
-      },
-      sorter: false,
-      align: "right",
-      width: 120,
-    },
-    {
-      title: "Currency",
-      dataIndex: "currency",
-      key: "currency",
-      render: (text) => text || "N/A",
-      width: 100,
-    },
-    {
-      title: "Click Count",
-      dataIndex: "clickCount",
-      key: "clickCount",
-      render: (value) => (value || 0).toLocaleString(),
-      sorter: false,
-      align: "right",
-      width: 100,
-    },
-    {
-      title: "Session ID",
-      dataIndex: "sessionId",
-      key: "sessionId",
-      render: (text) =>
-        text ? (
-          <span style={{ fontFamily: "monospace", fontSize: "12px" }}>
-            {text.length > 12 ? `${text.substring(0, 12)}...` : text}
-          </span>
-        ) : (
-          "N/A"
-        ),
-      width: 130,
-    },
-    {
-      title: "Page URL",
-      dataIndex: "pageUrl",
-      key: "pageUrl",
-      render: (url) =>
-        url ? (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: "12px" }}
-          >
-            {url.length > 30 ? `${url.substring(0, 30)}...` : url}
-          </a>
-        ) : (
-          "N/A"
-        ),
-      width: 200,
-    },
-    {
-      title: "Pixel Type",
-      dataIndex: "pixelType",
-      key: "pixelType",
-      render: (type) => {
-        if (!type) return <Tag color="gray">N/A</Tag>;
-        const color = {
-          iframe: "blue",
-          image: "green",
-          sdk: "purple",
-        }[type.toLowerCase()] || "default";
-        return <Tag color={color}>{type.toUpperCase()}</Tag>;
-      },
-      width: 100,
-    },
-    {
-      title: "Event Type",
-      dataIndex: "eventType",
-      key: "eventType",
-      render: (type) => {
-        if (!type) return <Tag color="gray">N/A</Tag>;
-        const color = {
-          conversion: "gold",
-          lead: "blue",
-          signup: "green",
-        }[type.toLowerCase()] || "default";
-        return <Tag color={color}>{type.toUpperCase()}</Tag>;
-      },
-      width: 110,
-    },
-    {
-      title: "Conversion Time",
-      dataIndex: "conversionTime",
-      key: "conversionTime",
-      render: (conversionTime) =>
-        conversionTime
-          ? dayjs(conversionTime).format("DD MMM YYYY HH:mm")
-          : "N/A",
-      sorter: false,
-      width: 140,
-    },
-    {
-      title: "Conversion Value",
-      dataIndex: "conversionValue",
-      key: "conversionValue",
-      render: (value, record) => {
-        if (!value || value === 0) return "N/A";
-        const currency = record.currency || "$";
-        return `${currency}${parseFloat(value).toFixed(2)}`;
-      },
-      sorter: false,
-      align: "right",
-      width: 130,
-    },
-    {
-      title: "Conversion Status",
-      dataIndex: "conversionStatus",
-      key: "conversionStatus",
-      render: (status) => {
-        if (!status) return <Tag color="gray">N/A</Tag>;
-        const color = {
-          pending: "orange",
-          approved: "green",
-          rejected: "red",
-        }[status.toLowerCase()] || "default";
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
-      },
-      width: 130,
-    },
-    {
-      title: "Created At",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (createdAt) =>
-        createdAt ? dayjs(createdAt).format("DD MMM YYYY HH:mm") : "N/A",
-      sorter: false,
-      width: 140,
-    },
-  ];
+    width: 150,
+  },
+  {
+    title: "Created At",
+    dataIndex: "createdAt",
+    key: "createdAt",
+    render: (createdAt) =>
+      createdAt ? dayjs(createdAt).format("DD MMM YYYY HH:mm") : "N/A",
+    sorter: false,
+    width: 140,
+  },
+];
 
   useEffect(() => {
     fetchCampaigns();
