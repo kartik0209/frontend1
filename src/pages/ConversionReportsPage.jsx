@@ -16,9 +16,11 @@ import {
 import {
   ReloadOutlined,
   DownloadOutlined,
+  FilterOutlined, // Import FilterOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
+import ConversionReportFilter from "../components/campaign/ConversionRepotFilter"; // Import the filter component
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -36,6 +38,35 @@ const ConversionReportsPage = () => {
     pageSize: 10,
     total: 0,
   });
+
+  // State for filter modal visibility and applied filters
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState({});
+
+  // Helper function to build the query string from applied filters
+  const buildFilterQuery = (filters) => {
+    const params = new URLSearchParams();
+    if (!filters || !filters.basicFilters) return params.toString();
+
+    const { basicFilters } = filters;
+
+    if (basicFilters.dateRange && basicFilters.dateRange[0] && basicFilters.dateRange[1]) {
+      params.append('startDate', dayjs(basicFilters.dateRange[0]).startOf('day').toISOString());
+      params.append('endDate', dayjs(basicFilters.dateRange[1]).endOf('day').toISOString());
+    }
+    if (basicFilters.pixelType) params.append('pixelType', basicFilters.pixelType);
+    if (basicFilters.eventType) params.append('eventType', basicFilters.eventType);
+    if (basicFilters.conversionStatus) params.append('conversionStatus', basicFilters.conversionStatus);
+    if (basicFilters.transactionId) params.append('transactionId', basicFilters.transactionId);
+    if (basicFilters.trackingId) params.append('trackingId', basicFilters.trackingId);
+    if (basicFilters.minAmount) params.append('minAmount', basicFilters.minAmount);
+    if (basicFilters.maxAmount) params.append('maxAmount', basicFilters.maxAmount);
+    
+    // You could expand this to include searchFilters, etc. if your API supports them
+    // Example: if (filters.searchFilters?.campaign) params.append('campaignName', filters.searchFilters.campaign);
+
+    return params.toString();
+  };
 
   const fetchCampaigns = async () => {
     setLoading(true);
@@ -65,11 +96,12 @@ const ConversionReportsPage = () => {
     }
   };
 
-  const fetchAllReports = async (page = 1, pageSize = 10) => {
+  const fetchAllReports = async (page = 1, pageSize = 10, filters = appliedFilters) => {
     setReportsLoading(true);
     setError(null);
+    const filterQuery = buildFilterQuery(filters);
     try {
-      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}`);
+      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&${filterQuery}`);
       
       if (response.data?.success) {
         const reports = response.data.data.pixelTrackings || [];
@@ -84,7 +116,9 @@ const ConversionReportsPage = () => {
           total: total,
         }));
         
-        message.success(`${reports.length} reports loaded successfully!`);
+        if (page === 1) { // Only show success message on initial load/filter, not on pagination
+          message.success(`${reports.length} reports loaded successfully!`);
+        }
       } else {
         throw new Error(response.data?.message || "Failed to fetch reports.");
       }
@@ -103,13 +137,15 @@ const ConversionReportsPage = () => {
     }
   };
 
-  const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
+  const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10, filters = appliedFilters) => {
     if (!campaignId) return;
     
     setReportsLoading(true);
     setError(null);
+    const filterQuery = buildFilterQuery(filters);
+
     try {
-      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}`);
+      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}&${filterQuery}`);
       
       if (response.data?.success) {
         const reports = response.data.data.pixelTrackings || [];
@@ -130,7 +166,9 @@ const ConversionReportsPage = () => {
           setCampaignDetails(campaign);
         }
 
-        message.success(`${reports.length} reports loaded successfully!`);
+        if (page === 1) {
+          message.success(`${reports.length} reports loaded successfully!`);
+        }
       } else {
         throw new Error(response.data?.message || "Failed to fetch reports.");
       }
@@ -148,15 +186,20 @@ const ConversionReportsPage = () => {
       setReportsLoading(false);
     }
   };
+  
+  // Handler for applying filters from the modal
+  const handleApplyFilters = (filters) => {
+    setAppliedFilters(filters);
+    // Re-fetch data with the new filters, resetting to page 1
+    if (selectedCampaign) {
+      fetchCampaignReports(selectedCampaign, 1, pagination.pageSize, filters);
+    } else {
+      fetchAllReports(1, pagination.pageSize, filters);
+    }
+  };
 
   const handleCampaignChange = (campaignId) => {
     setSelectedCampaign(campaignId);
-    setPagination(prev => ({
-      ...prev,
-      current: 1,
-      total:100
-    }));
-    
     if (campaignId) {
       fetchCampaignReports(campaignId, 1, pagination.pageSize);
     } else {
@@ -450,6 +493,14 @@ const ConversionReportsPage = () => {
           onClose={() => setError(null)}
         />
       )}
+      
+      {/* Filter modal component */}
+      <ConversionReportFilter
+        visible={isFilterVisible}
+        onClose={() => setIsFilterVisible(false)}
+        onApply={handleApplyFilters}
+        initialValues={appliedFilters}
+      />
 
       <Card style={{ marginBottom: "24px" }}>
         <Row gutter={[16, 16]} align="middle">
@@ -481,6 +532,13 @@ const ConversionReportsPage = () => {
             <div style={{ textAlign: "right", marginTop: "24px" }}>
               <Space>
                 <Button
+                  icon={<FilterOutlined />}
+                  onClick={() => setIsFilterVisible(true)}
+                  type="primary"
+                >
+                  Advanced Filters
+                </Button>
+                <Button
                   icon={<ReloadOutlined />}
                   onClick={handleRefresh}
                   loading={reportsLoading}
@@ -501,33 +559,6 @@ const ConversionReportsPage = () => {
           </Col>
         </Row>
 
-        {campaignDetails && (
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "16px",
-              backgroundColor: "#f5f5f5",
-              borderRadius: "8px",
-            }}
-          >
-            <Row gutter={16}>
-              <Col span={12}>
-                <strong>Campaign:</strong>{" "}
-                {campaignDetails.name || campaignDetails.title}
-              </Col>
-              <Col span={12}>
-                <strong>Status:</strong>{" "}
-                <Tag
-                  color={
-                    campaignDetails.status === "active" ? "green" : "orange"
-                  }
-                >
-                  {campaignDetails.status?.toUpperCase()}
-                </Tag>
-              </Col>
-            </Row>
-          </div>
-        )}
       </Card>
 
       <Card
@@ -568,4 +599,4 @@ const ConversionReportsPage = () => {
   );
 };
 
-export default ConversionReportsPage;
+export default ConversionReportsPage; 
