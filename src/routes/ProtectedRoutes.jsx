@@ -138,10 +138,37 @@ const ProtectedRoutes = () => {
             path="/reports/conversion"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
-                <ConversionReportsPage />
+                <ConversionReportsPage name={"Conversion"} />
               </ProtectedRoute>
             }
           />
+            <Route
+            path="/reports/publisher"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
+                <ConversionReportsPage name={"Publisher"} />
+              </ProtectedRoute>
+            }
+          />
+
+  <Route
+            path="/reports/advertisher"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
+                <ConversionReportsPage name ={"Advertisher"} />
+              </ProtectedRoute>
+            }
+          />
+
+  <Route
+            path="/reports/conversion-campaign"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
+                <ConversionReportsPage name={"camapign"}/>
+              </ProtectedRoute>
+            }
+          />
+
 
           <Route
             path="/reports/campaign"

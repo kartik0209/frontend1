@@ -14,6 +14,7 @@ import {
   Tabs,
   Divider,
   message,
+  Drawer,
 } from 'antd';
 import {
   FilterOutlined,
@@ -290,30 +291,51 @@ const ConversionReportFilter = ({
   };
 
   return (
-    <Modal
-      title={
-        <Space>
-          <FilterOutlined />
-          <span>Advanced Report Filters</span>
-        </Space>
-      }
-      open={visible}
-      onCancel={onClose}
-      width={1200}
-      footer={[
-        <Button key="clear" icon={<ClearOutlined />} onClick={clearAllFilters}>
-          Clear All
-        </Button>,
-        <Button key="cancel" onClick={onClose}>
-          Cancel
-        </Button>,
-        <Button key="submit" type="primary" onClick={handleSubmit}>
-          Apply Filters
-        </Button>,
-      ]}
-      style={{ top: 20 }}
-      bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
-    >
+    
+<Drawer
+  title={
+    <Space>
+      <FilterOutlined />
+      <span>Advanced Report Filters</span>
+    </Space>
+  }
+  placement="right"
+  closable={true}
+  onClose={onClose}
+  open={visible}
+  width={1800}
+  mask={true}
+  maskClosable={false}
+  destroyOnClose={true}
+  headerStyle={{
+    borderBottom: '1px solid #f0f0f0',
+    padding: '16px 24px'
+  }}
+  bodyStyle={{
+    padding: '0',
+    height: 'calc(100vh - 108px)',
+    overflow: 'hidden'
+  }}
+  footerStyle={{
+    textAlign: 'right',
+    borderTop: '1px solid #f0f0f0',
+    padding: '12px 24px'
+  }}
+  footer={
+    <Space>
+      <Button icon={<ClearOutlined />} onClick={clearAllFilters}>
+        Clear All
+      </Button>
+      <Button onClick={onClose}>
+        Cancel
+      </Button>
+      <Button type="primary" onClick={handleSubmit}>
+        Apply Filters
+      </Button>
+    </Space>
+  }
+>
+
       <Form form={form} layout="vertical">
         <Tabs defaultActiveKey="1" type="card">
           {/* Report Options Tab */}
@@ -613,7 +635,7 @@ const ConversionReportFilter = ({
           </TabPane>
         </Tabs>
       </Form>
-    </Modal>
+    </Drawer>
   );
 };
 

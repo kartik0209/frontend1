@@ -379,7 +379,7 @@ const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
   return (
     <div style={{ padding: "24px" }}>
       <div style={{ marginBottom: "24px" }}>
-        <Title level={2}>Conversion Reports</Title>
+        <Title level={2}>Click Reports</Title>
       </div>
 
       {error && (

@@ -168,6 +168,15 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                 Conversion Report
               </Menu.Item>
               <Menu.Item key="/reports/campaign" icon={<FileTextOutlined />}>
+              Click Report
+              </Menu.Item>
+                 <Menu.Item key="/reports/publisher" icon={<FileTextOutlined />}>
+                Publisher Report
+              </Menu.Item>
+                 <Menu.Item key="/reports/advertisher" icon={<FileTextOutlined />}>
+                Advertisher Report
+              </Menu.Item>
+                 <Menu.Item key="/reports/conversion-campaign" icon={<FileTextOutlined />}>
                 Campaign Report
               </Menu.Item>
             </SubMenu>

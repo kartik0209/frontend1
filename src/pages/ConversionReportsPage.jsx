@@ -25,7 +25,7 @@ import ConversionReportFilter from "../components/campaign/ConversionRepotFilter
 const { Option } = Select;
 const { Title } = Typography;
 
-const ConversionReportsPage = () => {
+const ConversionReportsPage = ({name}) => {
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [campaignDetails, setCampaignDetails] = useState(null);
@@ -480,7 +480,7 @@ const ConversionReportsPage = () => {
   return (
     <div style={{ padding: "24px" }}>
       <div style={{ marginBottom: "24px" }}>
-        <Title level={2}>Conversion Reports</Title>
+        <Title level={2}>{name} Reports</Title>
       </div>
 
       {error && (

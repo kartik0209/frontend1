@@ -1,5 +1,5 @@
 import React from "react";
-import { Form, Input, Switch, Select, InputNumber, Card, Row, Col, Tag, Button, Upload } from "antd";
+import { Form, Input, Switch, Select, InputNumber, Card, Row, Col, Tag, Button, Upload, message } from "antd";
 import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
 
 const { TextArea } = Input;
@@ -18,6 +18,30 @@ const AdvancedSettingsSection = ({ form, formState, updateFormState }) => {
     const newLanguages = formState.languages.filter(lang => lang !== langToRemove);
     updateFormState({ languages: newLanguages });
   };
+
+// Add this handler function in your AdvancedSettingsSection component:
+
+const handleThumbnailUpload = (file) => {
+  // Validate file type
+  const isImage = file.type.startsWith('image/');
+  if (!isImage) {
+    message.error('You can only upload image files!');
+    return false;
+  }
+  
+  // Validate file size (optional - 5MB limit)
+  const isLt5M = file.size / 1024 / 1024 < 5;
+  if (!isLt5M) {
+    message.error('Image must be smaller than 5MB!');
+    return false;
+  }
+  
+  // Pass the image file to your form state or parent component
+  updateFormState({ thumbnailFile: file });
+  
+  // Prevent default upload behavior
+  return false;
+};
 
   return (
     <Card title="Advanced Settings" className="campaign-form__section">
@@ -163,11 +187,25 @@ const AdvancedSettingsSection = ({ form, formState, updateFormState }) => {
         <Input placeholder="Enter KPI details" />
       </Form.Item>
 
-      <Form.Item label="Thumbnail" name="thumbnail">
-        <Upload>
-          <Button icon={<UploadOutlined />}>Upload Thumbnail</Button>
-        </Upload>
-      </Form.Item>
+     <Form.Item label="Thumbnail" name="thumbnail">
+  <Upload
+    accept="image/*"
+    showUploadList={false}
+    beforeUpload={handleThumbnailUpload}
+    maxCount={1}
+  >
+    <Button icon={<UploadOutlined />}>
+      {formState.thumbnailFile ? 'Change Thumbnail' : 'Upload Thumbnail'}
+    </Button>
+  </Upload>
+  {formState.thumbnailFile && (
+    <div style={{ marginTop: 8 }}>
+      <Tag color="green" closable onClose={() => updateFormState({ thumbnailFile: null })}>
+        {formState.thumbnailFile.name}
+      </Tag>
+    </div>
+  )}
+</Form.Item>
 
       <Form.Item label="Terms and Conditions" name="termsConditions">
         <TextArea rows={4} placeholder="Enter terms and conditions..." />
