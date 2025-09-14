@@ -120,15 +120,12 @@ const CampaignViewModal = ({ visible, onClose, campaignData }) => {
             {campaignData.visibility ? campaignData.visibility.toUpperCase() : 'N/A'}
           </Tag>
         </Descriptions.Item>
-
-        {/* Advertiser Information */}
-        <Descriptions.Item label="Advertiser ID">
-          {campaignData.advertiserId || "N/A"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Advertiser Name">
-          {campaignData.advertiser || "N/A"}
-        </Descriptions.Item>
-
+<Descriptions.Item label="Advertiser ID">
+  {campaignData.advertiser?.id || campaignData.advertiserId || "N/A"}
+</Descriptions.Item>
+<Descriptions.Item label="Advertiser Name">
+  {campaignData.advertiser?.name || "N/A"}
+</Descriptions.Item>
         {/* Campaign Details */}
         <Descriptions.Item label="Objective">
           <Tag color={getObjectiveColor(campaignData.objective)}>

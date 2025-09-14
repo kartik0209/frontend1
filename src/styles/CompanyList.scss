@@ -1,16 +1,3 @@
-// // Variables
-// $background-light: #f0f2f5;
-// $card-bg: #ffffff;
-
-// // Use the gradient for the button background
-// $primary-gradient: linear-gradient(135deg, $primary-dark, $primary-dark-light);
-
-// $secondary-text: #595959;
-// $border-radius: 4px;
-// $spacing-base: 24px;
-// $spacing-sm: 16px;
-// $spacing-xs: 8px;
-
 @use './Variable' as *;
 
 
@@ -19,6 +6,39 @@
   background-color: $background-light;
   min-height: 100vh;
   padding: $spacing-base;
+
+
+  
+  // ...your existing code
+
+  &__table-container {
+    background-color: $card-bg;
+    padding: $spacing-base;
+    border-radius: $border-radius;
+
+    // ✅ Decrease table font size
+    .ant-table {
+      font-size: 12px !important;
+    }
+
+    // ✅ Decrease cell padding
+    .ant-table-cell {
+      padding: 4px 8px !important; // adjust as needed
+      font-size: 12px !important;
+    }
+
+    // ✅ Decrease header font size
+    .ant-table-thead > tr > th {
+      font-size: 12px !important;
+      padding: 6px 8px !important;
+    }
+
+    // ✅ Decrease body font size
+    .ant-table-tbody > tr > td {
+      font-size: 12px !important;
+      padding: 6px 8px !important;
+    }
+  }
 
   &__header {
     background-color: $card-bg;
@@ -35,14 +55,14 @@
 
       .company-list-page__title {
         margin: 0;
-        font-size: 24px;
+        font-size: 18px; /* Reduced from 20px (20% less) */
         font-weight: 600;
       }
 
       .company-list-page__subtitle {
         margin: $spacing-xs 0 0;
         color: $secondary-text;
-        font-size: 14px;
+        font-size: 11.2px; /* Reduced from 14px (20% less) */
       }
     }
 

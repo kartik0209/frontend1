@@ -3,3 +3,46 @@
     padding: 0;
     box-sizing: border-box;
 }
+
+html {
+  font-size: 80%; // Decrease base font size by 20%
+}
+
+/* ==============================
+   Global Ant Design Table Styles
+   ============================== */
+
+.ant-table {
+  font-size: 12px !important; // default row text size
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Header cells */
+.ant-table-thead > tr > th {
+  font-size: 14px !important;
+  font-weight: 600; // keep headers distinct
+  padding: 6px 8px !important;
+  margin: 0 !important;
+}
+
+/* Body cells */
+.ant-table-tbody > tr > td {
+  font-size: 12px !important;
+  padding: 4px 8px !important;
+  margin: 0 !important;
+}
+
+/* Optional: make table compact overall */
+.ant-table-small {
+  font-size: 12px !important;
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 4px 6px !important;
+  }
+}
+
+/* Optional: Pagination font-size match */
+.ant-pagination {
+  font-size: 12px !important;
+}

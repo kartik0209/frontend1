@@ -296,14 +296,14 @@ const ConversionReportFilter = ({
   title={
     <Space>
       <FilterOutlined />
-      <span>Advanced Report Filters</span>
+      <span>Advanced Report Filters </span>
     </Space>
   }
   placement="right"
   closable={true}
   onClose={onClose}
   open={visible}
-  width={1800}
+  width={1200}
   mask={true}
   maskClosable={false}
   destroyOnClose={true}
@@ -314,7 +314,8 @@ const ConversionReportFilter = ({
   bodyStyle={{
     padding: '0',
     height: 'calc(100vh - 108px)',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    marginLeft:"10px"
   }}
   footerStyle={{
     textAlign: 'right',

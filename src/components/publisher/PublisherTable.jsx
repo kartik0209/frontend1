@@ -165,7 +165,7 @@ const PublisherTable = ({
             onClick: () => {
               onDetail(record); // Use the onDetail function passed from the parent
             },
-            style: { cursor: "pointer" }, // Change cursor to indicate it's clickable
+            style: { cursor: "pointer" , fontSize: "12px"}, // Change cursor to indicate it's clickable
           };
         }}
         pagination={{

@@ -410,7 +410,7 @@ const Users = () => {
       <Card className="users-header-card">
         <Row justify="space-between" align="middle">
           <Col>
-            <Title level={2} className="page-title">
+            <Title level={2} className="page-title" style={{fontSize:24}}>
               Users Management
             </Title>
             <Text type="secondary" className="page-subtitle">
@@ -421,7 +421,7 @@ const Users = () => {
             <Button
               type="primary"
               icon={<UserAddOutlined />}
-              size="large"
+              size="medium"
               onClick={handleAddUser}
               className="add-user-button"
             >
@@ -457,6 +457,7 @@ const Users = () => {
             showTotal: (total, range) =>
               `${range[0]}-${range[1]} of ${total} users`,
             className: "table-pagination",
+            style:{fontSize:"12px"}
           }}
           scroll={{ x: 1000 }}
           className="users-table"

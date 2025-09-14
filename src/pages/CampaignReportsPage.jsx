@@ -472,14 +472,6 @@ const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
         )}
       </Card>
 
-      <Card
-        title={selectedCampaign ? "Campaign Reports" : "All Campaign Reports"}
-        extra={
-          <span style={{ color: "#666" }}>
-            Total Records: {pagination.total}
-          </span>
-        }
-      >
         <Table
           columns={columns}
           dataSource={reportData}
@@ -488,6 +480,7 @@ const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
               record.trackingId || Math.random()
             }`
           }
+          style={{fontSize:"12px"}}
           pagination={{
             ...pagination,
             showSizeChanger: true,
@@ -505,7 +498,7 @@ const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
           bordered
           onChange={handleTableChange}
         />
-      </Card>
+      
     </div>
   );
 };

@@ -55,18 +55,21 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   const onOpenChange = (keys) => {
     setOpenKeys(keys);
   };
-
-  const handleMenuClick = ({ key }) => {
-    if (key === "logout") {
-      dispatch(logout());
-      toast.success("Logged out successfully!");
-      navigate("/");
-      return;
-    }
-    setSelectedKeys([key]);
-    navigate(key);
-  };
-
+const handleMenuClick = ({ key }) => {
+  if (key === "logout") {
+    dispatch(logout());
+    toast.success("Logged out successfully!");
+    navigate("/");
+    return;
+  }
+  
+  // Set selected keys and navigate
+  setSelectedKeys([key]);
+  navigate(key);
+  
+  // Auto-collapse sidebar after menu selection
+  setCollapsed(true);
+};
   const hasPermission = (perm) => permissions?.includes(perm);
 
   return (

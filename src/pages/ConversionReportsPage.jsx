@@ -477,6 +477,8 @@ const ConversionReportsPage = ({name}) => {
     fetchAllReports(1, 10);
   }, []);
 
+
+
   return (
     <div style={{ padding: "24px" }}>
       <div style={{ marginBottom: "24px" }}>
@@ -561,42 +563,36 @@ const ConversionReportsPage = ({name}) => {
 
       </Card>
 
-      <Card
-        title={selectedCampaign ? "Campaign Reports" : "All Campaign Reports"}
-        extra={
-          <span style={{ color: "#666" }}>
-            Total Records: {pagination.total}
-          </span>
-        }
-      >
-        <Table
-          columns={columns}
-          dataSource={reportData}
-          rowKey={(record) =>
-            `${record.id || record.transactionId || Math.random()}-${
-              record.trackingId || Math.random()
-            }`
-          }
-          pagination={{
-            ...pagination,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} records`,
-            pageSizeOptions: ["10", "20", "50", "100"],
-          }}
-          scroll={{ x: 1400 }}
-          loading={reportsLoading}
-          locale={{
-            emptyText: "No reports data available",
-          }}
-          size="middle"
-          bordered
-          onChange={handleTableChange}
-        />
-      </Card>
+   
+      <Table
+  columns={columns}
+  dataSource={reportData}
+  rowKey={(record) =>
+    `${record.id || record.transactionId || Math.random()}-${
+      record.trackingId || Math.random()
+    }`
+  }
+  style={{ fontSize: "12px", margin: 0, padding: 0 }}
+  pagination={{
+    ...pagination,
+    showSizeChanger: true,
+    showQuickJumper: true,
+    showTotal: (total, range) =>
+      `${range[0]}-${range[1]} of ${total} records`,
+    pageSizeOptions: ["10", "20", "50", "100"],
+  }}
+  scroll={{ x: 1400 }}
+  loading={reportsLoading}
+  locale={{
+    emptyText: "No reports data available",
+  }}
+  size="small"
+  bordered
+  onChange={handleTableChange}
+></Table>
     </div>
   );
 };
+
 
 export default ConversionReportsPage; 

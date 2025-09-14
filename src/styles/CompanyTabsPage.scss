@@ -83,16 +83,16 @@
     font-weight: 600;
 
     @include mobile-responsive {
-      font-size: 24px !important;
+      font-size: 18px !important;
     }
   }
 
   .page-description {
-    font-size: 16px;
+    font-size: 12px;
     color: $text-secondary;
 
     @include mobile-responsive {
-      font-size: 14px;
+      font-size: 12px;
     }
   }
 }
@@ -124,24 +124,24 @@
     }
 
     .ant-statistic-title {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 500;
       margin-bottom: 8px;
     }
 
     .ant-statistic-content {
       .ant-statistic-content-value {
-        font-size: 28px;
+        font-size: 22px;
         font-weight: 700;
 
         @include mobile-responsive {
-          font-size: 24px;
+          font-size: 20px;
         }
       }
 
       .anticon {
         margin-right: 8px;
-        font-size: 20px;
+        font-size: 15px;
       }
     }
 
@@ -186,7 +186,7 @@
 
         @include mobile-responsive {
           padding: 10px 16px;
-          font-size: 14px;
+          font-size: 12px;
         }
 
         .tab-label {
@@ -197,7 +197,7 @@
             padding: 2px 8px;
             background-color: $background-light;
             border-radius: 12px;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 600;
             color: $text-secondary;
             transition: all 0.2s ease;
@@ -231,7 +231,7 @@
 
         @include mobile-responsive {
           padding: 12px 8px;
-          font-size: 12px;
+          font-size: 10px;
         }
       }
 
@@ -290,7 +290,7 @@
       text-overflow: ellipsis;
 
       @include mobile-responsive {
-        font-size: 14px;
+        font-size: 12px;
       }
     }
 
@@ -315,7 +315,7 @@
     flex: 1;
 
     @include mobile-responsive {
-      font-size: 12px;
+      font-size: 10px;
     }
 
     .ant-typography-copy {
@@ -348,7 +348,7 @@
 
 .date-cell {
   color: $text-secondary;
-  font-size: 14px;
+  font-size: 12px;
 
   @include mobile-responsive {
     font-size: 12px;
@@ -360,7 +360,7 @@
   font-weight: 500;
   padding: 4px 12px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 10px;
   transition: background-color 0.2s ease, opacity 0.2s ease;
 
   &:hover {
@@ -443,7 +443,7 @@
 
   .ant-empty-description {
     color: $text-secondary;
-    font-size: 16px;
+    font-size: 12px;
 
     @include mobile-responsive {
       font-size: 14px;

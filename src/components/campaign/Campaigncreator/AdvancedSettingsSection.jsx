@@ -21,27 +21,14 @@ const AdvancedSettingsSection = ({ form, formState, updateFormState }) => {
 
 // Add this handler function in your AdvancedSettingsSection component:
 
-const handleThumbnailUpload = (file) => {
-  // Validate file type
-  const isImage = file.type.startsWith('image/');
-  if (!isImage) {
-    message.error('You can only upload image files!');
-    return false;
+// helper for Upload normalization
+const normFile = (e) => {
+  if (Array.isArray(e)) {
+    return e;
   }
-  
-  // Validate file size (optional - 5MB limit)
-  const isLt5M = file.size / 1024 / 1024 < 5;
-  if (!isLt5M) {
-    message.error('Image must be smaller than 5MB!');
-    return false;
-  }
-  
-  // Pass the image file to your form state or parent component
-  updateFormState({ thumbnailFile: file });
-  
-  // Prevent default upload behavior
-  return false;
+  return e?.fileList;
 };
+
 
   return (
     <Card title="Advanced Settings" className="campaign-form__section">
@@ -186,26 +173,48 @@ const handleThumbnailUpload = (file) => {
       <Form.Item label="KPI" name="kpi">
         <Input placeholder="Enter KPI details" />
       </Form.Item>
-
-     <Form.Item label="Thumbnail" name="thumbnail">
+<Form.Item
+  label="Thumbnail"
+  name="thumbnail"
+  valuePropName="fileList"
+  getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
+  rules={[{ required: true, message: "Please upload a thumbnail" }]}
+>
   <Upload
-    accept="image/*"
-    showUploadList={false}
-    beforeUpload={handleThumbnailUpload}
-    maxCount={1}
+    accept="image/*"          // ✅ only image types
+    maxCount={1}              // ✅ only one file at a time
+    listType="picture"
+    beforeUpload={(file) => {
+      // ✅ validate type
+      if (!file.type.startsWith("image/")) {
+        message.error("You can only upload image files!");
+        return Upload.LIST_IGNORE;
+      }
+
+      // ✅ validate size (5MB limit)
+      const isLt5M = file.size / 1024 / 1024 < 5;
+      if (!isLt5M) {
+        message.error("Image must be smaller than 5MB!");
+        return Upload.LIST_IGNORE;
+      }
+
+      // ✅ store latest file, replacing old one
+      updateFormState({ thumbnailFile: file });
+      return false; // prevent auto-upload
+    }}
+    onRemove={() => updateFormState({ thumbnailFile: null })}
   >
-    <Button icon={<UploadOutlined />}>
-      {formState.thumbnailFile ? 'Change Thumbnail' : 'Upload Thumbnail'}
-    </Button>
+    <Button icon={<UploadOutlined />}>Upload Thumbnail</Button>
   </Upload>
-  {formState.thumbnailFile && (
-    <div style={{ marginTop: 8 }}>
-      <Tag color="green" closable onClose={() => updateFormState({ thumbnailFile: null })}>
-        {formState.thumbnailFile.name}
-      </Tag>
-    </div>
-  )}
 </Form.Item>
+
+
+
+
+ 
+
+
+
 
       <Form.Item label="Terms and Conditions" name="termsConditions">
         <TextArea rows={4} placeholder="Enter terms and conditions..." />

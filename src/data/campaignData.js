@@ -12,7 +12,7 @@ export const baseColumns = [
     title: "Title",
     dataIndex: "title",
     key: "title",
-    width: 250,
+    width: 150,
     fixed: "left",
     className: "campaign-title-column",
   },

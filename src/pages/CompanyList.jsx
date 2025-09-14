@@ -212,6 +212,7 @@ const CompanyListPage = () => {
               columns={columns}
               pagination={{ pageSize: 10, showSizeChanger: true }}
               bordered
+              style={{fontSize:"12px"}}
               size="middle"
               scroll={{ x: 1300 }}
               locale={{ emptyText: 'No companies available' }}

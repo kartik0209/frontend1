@@ -82,37 +82,52 @@ const AdvertiserTable = ({
     };
 
     return [
-      {
-        key: "view",
-        label: (
-          <span>
-            <EyeOutlined /> View Details
-          </span>
-        ),
-        onClick: () => onView(record),
-      },
-      {
-        key: "edit",
-        label: (
-          <span>
-            <EditOutlined /> Edit Advertiser
-          </span>
-        ),
-        onClick: () => onEdit(record),
-      },
+ {
+  key: "view",
+  label: (
+    <span>
+      <EyeOutlined /> View Details
+    </span>
+  ),
+  onClick: (event) => {
+    event.domEvent.stopPropagation(); // ⛔ stop row click
+    onView(record); // ✅ open modal
+  },
+},
+
+      
       statusSubmenu,
       {
         type: "divider",
       },
+     
+
+
       {
-        key: "delete",
-        label: (
-          <span style={{ color: "red" }}>
-            <DeleteOutlined /> Delete Advertiser
-          </span>
-        ),
-        onClick: () => onDelete(record.id),
-      },
+  key: "edit",
+  label: (
+    <span>
+      <EditOutlined /> Edit Advertiser
+    </span>
+  ),
+  onClick: (event) => {
+    event.domEvent.stopPropagation();
+    onEdit(record);
+  },
+},
+{
+  key: "delete",
+  label: (
+    <span style={{ color: "red" }}>
+      <DeleteOutlined /> Delete Advertiser
+    </span>
+  ),
+  onClick: (event) => {
+    event.domEvent.stopPropagation();
+    onDelete(record.id);
+  },
+},
+
     ];
   };
 
@@ -139,6 +154,8 @@ const AdvertiserTable = ({
               border: "1px solid #d9d9d9",
               borderRadius: "6px",
             }}
+            onClick={(e) => e.stopPropagation()}
+
           />
         </Dropdown>
       );
@@ -170,7 +187,7 @@ const AdvertiserTable = ({
             onClick: () => {
               onDetails(record); // Use the onDetail function passed from the parent
             },
-            style: { cursor: "pointer" }, // Change cursor to indicate it's clickable
+            style: { cursor: "pointer" , fontSize: "12px"}, // Change cursor to indicate it's clickable
           };
         }}
       />

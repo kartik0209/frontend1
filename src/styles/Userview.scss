@@ -20,7 +20,7 @@
     .user-modal__profile-avatar {
         background: #e6f7ff;
         color: $primary-color;
-        font-size: 32px;
+        font-size: 22px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -37,7 +37,7 @@
     }
 
     .user-modal__profile-email {
-        font-size: 14px;
+        font-size: 12px;
     }
 
     .user-modal__descriptions {
@@ -50,12 +50,12 @@
             font-weight: 500;
         }
         .ant-descriptions-item-content {
-            font-size: 15px;
+            font-size: 12px;
         }
     }
 
     .user-modal__role-tag {
-        font-size: 13px;
+        font-size: 11px;
         text-transform: capitalize;
         padding: 0 10px;
     }
@@ -79,7 +79,7 @@
 
     .user-modal__additional-info-title {
         margin-bottom: 10px;
-        font-size: 16px;
+        font-size: 12px;
     }
 
     .user-modal__additional-info-content {
@@ -89,6 +89,6 @@
     .user-modal__info-row {
         display: flex;
         justify-content: space-between;
-        font-size: 14px;
+        font-size: 12px;
     }
 }

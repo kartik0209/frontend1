@@ -28,7 +28,7 @@
     }
 
     .page-subtitle {
-      font-size: 16px;
+      font-size: 13px;
       color: #666;
     }
 
@@ -128,7 +128,7 @@
 
         .user-name {
           font-weight: 500;
-          font-size: 14px;
+          font-size: 12px;
           margin-bottom: 2px;
           white-space: nowrap;
           overflow: hidden;
@@ -137,7 +137,7 @@
         }
 
         .user-email {
-          font-size: 12px;
+          font-size: 10px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -149,7 +149,7 @@
     .role-tag {
       font-weight: 500;
       border-radius: 6px;
-      font-size: 11px;
+      font-size: 8px;
       padding: 2px 8px;
       border: none;
     }
@@ -163,7 +163,7 @@
       .status-tag {
         font-weight: 500;
         border-radius: 6px;
-        font-size: 11px;
+        font-size: 8px;
         margin-right: 0;
       }
 
@@ -219,7 +219,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 18px;
+      font-size: 14px;
       font-weight: 600;
       color: #1a1a1a;
     }
@@ -287,11 +287,11 @@
       }
 
       .page-title {
-        font-size: 20px;
+        font-size: 15px;
       }
 
       .page-subtitle {
-        font-size: 14px;
+        font-size: 12px;
       }
     }
 
@@ -313,11 +313,11 @@
 
         .user-details {
           .user-name {
-            font-size: 13px;
+            font-size: 11px;
           }
 
           .user-email {
-            font-size: 11px;
+            font-size: 8px;
           }
         }
       }

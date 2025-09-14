@@ -83,9 +83,12 @@ const CampaignTable = ({
             <EyeOutlined /> View Details
           </span>
         ),
-        onClick: (event) => {
-         event.domEvent.stopPropagation()
-          onView(record)},
+      onClick: (event) => {
+  event.domEvent.stopPropagation();
+  console.log("VIEW RECORD:", record);
+  onView(record); 
+},
+
       },
    
       statusSubmenu,
@@ -158,7 +161,7 @@ const CampaignTable = ({
             onClick: () => {
               onDetail(record); // Use the onView function passed from the parent
             },
-            style: { cursor: "pointer" }, // Change cursor to indicate it's clickable
+            style: { cursor: "pointer" , fontSize:"12px"}, // Change cursor to indicate it's clickable
           };
         }}
         pagination={{
@@ -167,6 +170,7 @@ const CampaignTable = ({
           showTotal: (total, range) =>
             `${range[0]}-${range[1]} of ${total} items`,
           className: "table-pagination",
+          
         }}
         className="campaign-table"
         rowClassName={() => "campaign-row"}
