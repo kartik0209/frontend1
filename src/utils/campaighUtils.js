@@ -14,7 +14,7 @@ export const getCountryIso2 = (countryObj) => {
   return "ALL";
 };
 
-export const buildPayload = (values, formState) => {
+export const buildPayload = (values, formState,rawThumbnail) => {
   const payload = {
     advertiser_id: parseInt(values.companyId) || 1,
     objective: values.objective || "conversions",
@@ -84,7 +84,7 @@ export const buildPayload = (values, formState) => {
     visibility: values.visibility || "public",
     kpi: values.kpi || "",
     externalOfferId: values.externalOfferId || "",
-    thumbnail: values.thumbnail || "",
+    thumbnail: rawThumbnail || "",
     trackingDomain: values.primaryTrackingDomain || undefined,
     trackingSlug: values.title
       ? values.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")

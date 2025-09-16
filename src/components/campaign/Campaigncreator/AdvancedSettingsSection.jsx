@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Form, Input, Switch, Select, InputNumber, Card, Row, Col, Tag, Button, Upload, message } from "antd";
 import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
 
 const { TextArea } = Input;
 const { Option } = Select;
 
-const AdvancedSettingsSection = ({ form, formState, updateFormState }) => {
+const AdvancedSettingsSection = ({ form, formState, updateFormState ,setRawThumbnail }) => {
+
   const addLanguage = () => {
     const newLang = form.getFieldValue("newLanguage");
     if (newLang && !formState.languages.includes(newLang)) {
@@ -21,14 +22,28 @@ const AdvancedSettingsSection = ({ form, formState, updateFormState }) => {
 
 // Add this handler function in your AdvancedSettingsSection component:
 
-// helper for Upload normalization
-const normFile = (e) => {
-  if (Array.isArray(e)) {
-    return e;
-  }
-  return e?.fileList;
-};
 
+
+const uploadProps = {
+  beforeUpload: (file) => {
+    const isImage = file.type.startsWith("image/");
+    if (!isImage) {
+      message.error("You can only upload image files!");
+    }
+    const isLt5M = file.size / 1024 / 1024 < 5;
+    if (!isLt5M) {
+      message.error("Image must be smaller than 5MB!");
+    }
+    if (isImage && isLt5M) {
+      setRawThumbnail(file); // ✅ store raw File for FormData
+    }
+    return false; // stop auto upload
+  },
+  onRemove: () => {
+    setRawThumbnail(null);
+  },
+  maxCount: 1,
+};
 
   return (
     <Card title="Advanced Settings" className="campaign-form__section">
@@ -174,40 +189,16 @@ const normFile = (e) => {
         <Input placeholder="Enter KPI details" />
       </Form.Item>
 <Form.Item
-  label="Thumbnail"
   name="thumbnail"
+  label="Thumbnail"
   valuePropName="fileList"
   getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
   rules={[{ required: true, message: "Please upload a thumbnail" }]}
 >
-  <Upload
-    accept="image/*"          // ✅ only image types
-    maxCount={1}              // ✅ only one file at a time
-    listType="picture"
-    beforeUpload={(file) => {
-      // ✅ validate type
-      if (!file.type.startsWith("image/")) {
-        message.error("You can only upload image files!");
-        return Upload.LIST_IGNORE;
-      }
-
-      // ✅ validate size (5MB limit)
-      const isLt5M = file.size / 1024 / 1024 < 5;
-      if (!isLt5M) {
-        message.error("Image must be smaller than 5MB!");
-        return Upload.LIST_IGNORE;
-      }
-
-      // ✅ store latest file, replacing old one
-      updateFormState({ thumbnailFile: file });
-      return false; // prevent auto-upload
-    }}
-    onRemove={() => updateFormState({ thumbnailFile: null })}
-  >
+  <Upload {...uploadProps} listType="picture">
     <Button icon={<UploadOutlined />}>Upload Thumbnail</Button>
   </Upload>
 </Form.Item>
-
 
 
 

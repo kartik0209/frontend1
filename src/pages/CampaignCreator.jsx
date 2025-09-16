@@ -20,7 +20,7 @@ const { Title } = Typography;
 const CampaignForm = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  
+  const [rawThumbnail, setRawThumbnail] = useState(null);
   const {
     formState,
     updateFormState,
@@ -35,12 +35,13 @@ const CampaignForm = () => {
     try {
       setLoading(true);
       
-      const payload = buildPayload(values, formState);
+      const payload = buildPayload(values, formState ,rawThumbnail);
       const validationResult = validatePayload(payload);
       
       if (!validationResult.isValid) {
         throw new Error(validationResult.errors.join(", "));
       }
+
 
       console.log("Clean payload before API call:", payload);
 
@@ -138,6 +139,7 @@ const CampaignForm = () => {
             form={form}
             formState={formState} 
             updateFormState={updateFormState} 
+              setRawThumbnail={setRawThumbnail}
           />
           
           <FormActions loading={loading} form={form} />
