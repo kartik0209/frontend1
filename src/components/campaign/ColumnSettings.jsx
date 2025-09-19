@@ -41,7 +41,7 @@ const ColumnSettings = ({
       onClick={onSave}
       loading={saveLoading}
       type="primary"
-      className="save-btn"
+     className="select-all-btn"
     >
       Save
     </Button>
