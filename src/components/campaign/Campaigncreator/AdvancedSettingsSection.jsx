@@ -1,12 +1,29 @@
 import React, { useState } from "react";
-import { Form, Input, Switch, Select, InputNumber, Card, Row, Col, Tag, Button, Upload, message } from "antd";
+import {
+  Form,
+  Input,
+  Switch,
+  Select,
+  InputNumber,
+  Card,
+  Row,
+  Col,
+  Tag,
+  Button,
+  Upload,
+  message,
+} from "antd";
 import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
 
 const { TextArea } = Input;
 const { Option } = Select;
 
-const AdvancedSettingsSection = ({ form, formState, updateFormState ,setRawThumbnail }) => {
-
+const AdvancedSettingsSection = ({
+  form,
+  formState,
+  updateFormState,
+  setRawThumbnail,
+}) => {
   const addLanguage = () => {
     const newLang = form.getFieldValue("newLanguage");
     if (newLang && !formState.languages.includes(newLang)) {
@@ -16,34 +33,34 @@ const AdvancedSettingsSection = ({ form, formState, updateFormState ,setRawThumb
   };
 
   const removeLanguage = (langToRemove) => {
-    const newLanguages = formState.languages.filter(lang => lang !== langToRemove);
+    const newLanguages = formState.languages.filter(
+      (lang) => lang !== langToRemove
+    );
     updateFormState({ languages: newLanguages });
   };
 
-// Add this handler function in your AdvancedSettingsSection component:
+  // Add this handler function in your AdvancedSettingsSection component:
 
-
-
-const uploadProps = {
-  beforeUpload: (file) => {
-    const isImage = file.type.startsWith("image/");
-    if (!isImage) {
-      message.error("You can only upload image files!");
-    }
-    const isLt5M = file.size / 1024 / 1024 < 5;
-    if (!isLt5M) {
-      message.error("Image must be smaller than 5MB!");
-    }
-    if (isImage && isLt5M) {
-      setRawThumbnail(file); // ✅ store raw File for FormData
-    }
-    return false; // stop auto upload
-  },
-  onRemove: () => {
-    setRawThumbnail(null);
-  },
-  maxCount: 1,
-};
+  const uploadProps = {
+    beforeUpload: (file) => {
+      const isImage = file.type.startsWith("image/");
+      if (!isImage) {
+        message.error("You can only upload image files!");
+      }
+      const isLt5M = file.size / 1024 / 1024 < 5;
+      if (!isLt5M) {
+        message.error("Image must be smaller than 5MB!");
+      }
+      if (isImage && isLt5M) {
+        setRawThumbnail(file); // ✅ store raw File for FormData
+      }
+      return false; // stop auto upload
+    },
+    onRemove: () => {
+      setRawThumbnail(null);
+    },
+    maxCount: 1,
+  };
 
   return (
     <Card title="Advanced Settings" className="campaign-form__section">
@@ -103,12 +120,22 @@ const uploadProps = {
       <Form.Item label="Enable Duplicate Click Action">
         <Switch
           checked={formState.duplicateClickAction}
-          onChange={(checked) => updateFormState({ duplicateClickAction: checked })}
+          onChange={(checked) =>
+            updateFormState({ duplicateClickAction: checked })
+          }
         />
       </Form.Item>
 
-      <Form.Item label="Unique Click Session Duration (hours)" name="uniqueClickSessionDuration">
-        <InputNumber min={1} max={72} placeholder="12" style={{ width: "100%" }} />
+      <Form.Item
+        label="Unique Click Session Duration (hours)"
+        name="uniqueClickSessionDuration"
+      >
+        <InputNumber
+          min={1}
+          max={72}
+          placeholder="12"
+          style={{ width: "100%" }}
+        />
       </Form.Item>
 
       <Row gutter={16}>
@@ -161,11 +188,7 @@ const uploadProps = {
             </Form.Item>
           </Col>
           <Col>
-            <Button
-              type="dashed"
-              onClick={addLanguage}
-              icon={<PlusOutlined />}
-            >
+            <Button type="dashed" onClick={addLanguage} icon={<PlusOutlined />}>
               Add
             </Button>
           </Col>
@@ -188,24 +211,16 @@ const uploadProps = {
       <Form.Item label="KPI" name="kpi">
         <Input placeholder="Enter KPI details" />
       </Form.Item>
-<Form.Item
-  name="thumbnail"
-  label="Thumbnail"
-  valuePropName="fileList"
-  getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
-  rules={[{ required: true, message: "Please upload a thumbnail" }]}
->
-  <Upload {...uploadProps} listType="picture">
-    <Button icon={<UploadOutlined />}>Upload Thumbnail</Button>
-  </Upload>
-</Form.Item>
-
-
-
- 
-
-
-
+      <Form.Item
+        name="thumbnail"
+        label="Thumbnail"
+        valuePropName="fileList"
+        getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
+      >
+        <Upload {...uploadProps} listType="picture">
+          <Button icon={<UploadOutlined />}>Upload Thumbnail</Button>
+        </Upload>
+      </Form.Item>
 
       <Form.Item label="Terms and Conditions" name="termsConditions">
         <TextArea rows={4} placeholder="Enter terms and conditions..." />

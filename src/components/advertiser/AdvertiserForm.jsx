@@ -17,42 +17,42 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
   const [tags, setTags] = React.useState([]);
   const [inputVisible, setInputVisible] = React.useState(false);
   const [inputValue, setInputValue] = React.useState('');
-  const [states, setStates] = React.useState([]);
-  const [cities, setCities] = React.useState([]);
-  const [selectedCountry, setSelectedCountry] = React.useState('');
-  const [selectedState, setSelectedState] = React.useState('');
+ // const [states, setStates] = React.useState([]);
+ // const [cities, setCities] = React.useState([]);
+ // const [selectedCountry, setSelectedCountry] = React.useState('');
+  //const [selectedState, setSelectedState] = React.useState('');
   const [phoneValue, setPhoneValue] = React.useState();
+//
+ // const allCountries = Country.getAllCountries();
 
-  const allCountries = Country.getAllCountries();
 
-
-  const currencyOptions = currencyCodes.data.map((currency) => ({
-  code: currency.code,
-  label: `${currency.code} - ${currency.currency}`,
-}));
+//   const currencyOptions = currencyCodes.data.map((currency) => ({
+//   code: currency.code,
+//   label: `${currency.code} - ${currency.currency}`,
+// }));
   
-  const handleCountryChange = (value) => {
-    setSelectedCountry(value);
-    setSelectedState('');
-    setCities([]);
+//   const handleCountryChange = (value) => {
+//     setSelectedCountry(value);
+//     setSelectedState('');
+//     setCities([]);
     
-    const countryStates = State.getStatesOfCountry(value);
-    setStates(countryStates);
+//     const countryStates = State.getStatesOfCountry(value);
+//     setStates(countryStates);
     
-    form.setFieldsValue({ 
-      state: undefined, 
-      city: undefined 
-    });
-  };
+//     form.setFieldsValue({ 
+//       state: undefined, 
+//       city: undefined 
+//     });
+//   };
 
-  const handleStateChange = (value) => {
-    setSelectedState(value);
+  // const handleStateChange = (value) => {
+  //   setSelectedState(value);
     
-    const stateCities = City.getCitiesOfState(selectedCountry, value);
-    setCities(stateCities);
+  //   const stateCities = City.getCitiesOfState(selectedCountry, value);
+  //   setCities(stateCities);
     
-    form.setFieldsValue({ city: undefined });
-  };
+  //   form.setFieldsValue({ city: undefined });
+  // };
 
   const handlePhoneChange = (value) => {
     setPhoneValue(value);
@@ -122,14 +122,24 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
           <Form.Item
-            label="Company Name"
+            label="Company/ Organaizor Name"
             name="companyName"
-            rules={[{ required: true, message: "Please enter company name" }]}
+           
           >
-            <Input placeholder="Enter company name" />
+            <Input placeholder="Enter company / organigore name" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12}>
+
+            <Col xs={24} sm={12}>
+          <Form.Item
+            label="Managers"
+            name="managers"
+            rules={[{ required: true, message: "Please enter manager name" }]}
+          >
+            <Input placeholder="Enter manager name" />
+          </Form.Item>
+        </Col>
+        {/* <Col xs={24} sm={12}>
           <Form.Item
             label="Phone"
             name="phone"
@@ -144,7 +154,7 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
               countryCallingCodeEditable={false}
             />
           </Form.Item>
-        </Col>
+        </Col> */}
       </Row>
 
       <Row gutter={[16, 16]}>
@@ -195,16 +205,8 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
       )}
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Managers"
-            name="managers"
-            rules={[{ required: true, message: "Please enter manager name" }]}
-          >
-            <Input placeholder="Enter manager name" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
+    
+        {/* <Col xs={24} sm={12}>
           <Form.Item
             label="Website URL"
             name="website_url"
@@ -214,10 +216,10 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
           >
             <Input placeholder="Enter website URL" />
           </Form.Item>
-        </Col>
+        </Col> */}
       </Row>
 
-      <Row gutter={[16, 16]}>
+      {/* <Row gutter={[16, 16]}>
         <Col xs={24} sm={8}>
           <Form.Item
             label="Country"
@@ -324,22 +326,11 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
             </Select>
           </Form.Item>
         </Col>
-      </Row>
+      </Row> */}
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Notifications"
-            name="notify"
-            valuePropName="checked"
-            initialValue={true}
-          >
-            <Switch checkedChildren="On" unCheckedChildren="Off" />
-          </Form.Item>
-        </Col>
-      </Row>
+  
 
-      <Row gutter={[16, 16]}>
+      {/* <Row gutter={[16, 16]}>
         <Col xs={24}>
           <Form.Item
             label="Tags"
@@ -375,7 +366,7 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
             </div>
           </Form.Item>
         </Col>
-      </Row>
+      </Row> */}
 
       <Row gutter={[16, 16]}>
         <Col xs={24}>
@@ -392,6 +383,87 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
           </Form.Item>
         </Col>
       </Row>
+
+
+<Row gutter={[16, 16]}>
+  <Col xs={24}>
+    <h3 style={{ marginTop: 24, marginBottom: 16, fontWeight: 600 }}>Signup Questions</h3>
+  </Col>
+</Row>
+
+<Row gutter={[16, 16]}>
+  <Col xs={24} sm={12}>
+    <Form.Item
+      label="Phone"
+      name="phone"
+      rules={[{ required: true, message: "Please enter phone number" }]}
+    >
+      <PhoneInput
+        placeholder="Enter phone number"
+        value={phoneValue}
+        onChange={handlePhoneChange}
+        defaultCountry="US"
+        international
+        countryCallingCodeEditable={false}
+      />
+    </Form.Item>
+  </Col>
+  <Col xs={24} sm={12}>
+    <Form.Item
+      label="Company Name"
+      name="company"
+      rules={[{ required: true, message: "Please enter company name" }]}
+    >
+      <Input placeholder="Enter company name" />
+    </Form.Item>
+  </Col>
+</Row>
+
+<Row gutter={[16, 16]}>
+  <Col xs={24} sm={12}>
+    <Form.Item
+      label="Entity Type"
+      name="entity_type"
+      rules={[{ required: true, message: "Please select entity type" }]}
+    >
+      <Select placeholder="Select entity type">
+        <Option value="Agency">Agency</Option>
+        <Option value="Direct Advertiser">Direct Advertiser</Option>
+        <Option value="Network">Network</Option>
+        <Option value="Individual">Individual</Option>
+      </Select>
+    </Form.Item>
+  </Col>
+  <Col xs={24} sm={12}>
+    <Form.Item
+      label="Website URL"
+      name="website_url"
+      rules={[
+        { required: true, message: "Please enter website URL" },
+        { type: "url", message: "Please enter valid URL" }
+      ]}
+    >
+      <Input placeholder="Enter website URL" />
+    </Form.Item>
+  </Col>
+</Row>
+
+<Row gutter={[16, 16]}>
+  <Col xs={24}>
+    <Form.Item
+      name="notify"
+      valuePropName="checked"
+      initialValue={false}
+    >
+      <Switch 
+        checkedChildren="Yes" 
+        unCheckedChildren="No" 
+      /> 
+      <span style={{ marginLeft: 8 }}>Notify this user by email</span>
+    </Form.Item>
+  </Col>
+</Row>
+
 
       <div className="form-actions">
         <Space>

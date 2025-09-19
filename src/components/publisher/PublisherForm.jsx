@@ -1,11 +1,50 @@
-// src/components/publisher/PublisherForm.jsx
 import React from "react";
-import { Form, Row, Col, Input, Select, Switch, Button, Space } from "antd";
+import {
+  Form,
+  Row,
+  Col,
+  Input,
+  Select,
+  Switch,
+  Button,
+  Space,
+  Divider,
+} from "antd";
 
 const { Option } = Select;
 const { TextArea } = Input;
 
-const PublisherForm = ({ form, onFinish, onCancel, loading, isEdit = false }) => {
+const PublisherForm = ({
+  form,
+  onFinish,
+  onCancel,
+  loading,
+  isEdit = false,
+}) => {
+  const [showAdvancedSetup, setShowAdvancedSetup] = React.useState(false);
+
+  const handleAdvancedSetupToggle = (checked) => {
+    setShowAdvancedSetup(checked);
+    if (!checked) {
+      // Clear advanced setup fields when toggle is off
+      form.setFieldsValue({
+        password: "",
+        managers: "",
+        phone_secondary: "",
+        microsoft_teams: "",
+        address: "",
+        city_secondary: "",
+        state_secondary: "",
+        zip_code_secondary: "",
+        tags: [],
+        tax_id: "",
+        country_secondary: "",
+        username: "",
+        note: "",
+      });
+    }
+  };
+
   return (
     <Form
       form={form}
@@ -13,236 +52,309 @@ const PublisherForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =>
       onFinish={onFinish}
       className="publisher-form"
     >
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Name"
-            name="name"
-            rules={[{ required: true, message: "Please enter name" }]}
-          >
-            <Input placeholder="Enter name" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Username"
-            name="username"
-            rules={[{ required: true, message: "Please enter username" }]}
-          >
-            <Input placeholder="Enter username" />
-          </Form.Item>
-        </Col>
-      </Row>
+      {/* Basic Details Section */}
+      <div style={{ marginBottom: 24 }}>
+        <h3 style={{ marginBottom: 16, fontWeight: 600, color: "#1890ff" }}>
+          Basic Details
+        </h3>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Email"
-            name="email"
-            rules={[
-              { required: true, message: "Please enter email" },
-              { type: "email", message: "Please enter valid email" }
-            ]}
-          >
-            <Input placeholder="Enter email address" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: "Please enter password" }]}
-          >
-            <Input.Password placeholder="Enter password" />
-          </Form.Item>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Full Name"
+              name="name"
+              rules={[{ required: true, message: "Please enter full name" }]}
+            >
+              <Input placeholder="Full name of the publisher" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Email"
+              name="email"
+              rules={[
+                { required: true, message: "Please enter email" },
+                { type: "email", message: "Please enter valid email" },
+              ]}
+            >
+              <Input placeholder="Unique Publisher Email" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Status"
-            name="status"
-            rules={[{ required: true, message: "Please select status" }]}
-          >
-            <Select placeholder="Select status">
-              <Option value="Pending">Pending</Option>
-              <Option value="Active">Active</Option>
-             
-              <Option value="Disabled">Disabled</Option>
-              <Option value="Rejected">Rejected</Option>
-              <Option value="Banned">Banned</Option>
-            </Select>
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Country"
-            name="country"
-            rules={[{ required: true, message: "Please enter country" }]}
-          >
-            <Input placeholder="Enter country" />
-          </Form.Item>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Account Status"
+              name="status"
+              rules={[{ required: true, message: "Please select status" }]}
+              initialValue="Active"
+            >
+              <Select placeholder="Select status">
+                <Option value="Pending">Pending</Option>
+                <Option value="Active">Active</Option>
+                <Option value="Inactive">Inactive</Option>
+                <Option value="Suspended">Suspended</Option>
+                <Option value="Disabled">Disabled</Option>
+                <Option value="Rejected">Rejected</Option>
+                <Option value="Banned">Banned</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Country" name="country">
+              <Input placeholder="[IN] India" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={8}>
-          <Form.Item
-            label="City"
-            name="city"
-            rules={[{ required: true, message: "Please enter city" }]}
-          >
-            <Input placeholder="Enter city" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Form.Item
-            label="State"
-            name="state"
-            rules={[{ required: true, message: "Please enter state" }]}
-          >
-            <Input placeholder="Enter state" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Form.Item
-            label="ZIP Code"
-            name="zip_code"
-            rules={[{ required: true, message: "Please enter ZIP code" }]}
-          >
-            <Input placeholder="Enter ZIP code" />
-          </Form.Item>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Company (Optional)" name="companyName">
+              <Input placeholder="Company/Organization name" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Referred By" name="referred_by">
+              <Input placeholder="Referred By" />
+            </Form.Item>
+          </Col>
+        </Row>
+      </div>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Phone"
-            name="phone"
-            rules={[{ required: true, message: "Please enter phone number" }]}
-          >
-            <Input placeholder="Enter phone number" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Entity Type"
-            name="entity_type"
-            rules={[{ required: true, message: "Please select entity type" }]}
-          >
-            <Select placeholder="Select entity type">
-              <Option value="Individual">Individual</Option>
-              <Option value="Company">Company</Option>
-              <Option value="Partnership">Partnership</Option>
-            </Select>
-          </Form.Item>
-        </Col>
-      </Row>
+      <Divider />
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item label="IM Type" name="im_type">
-            <Select placeholder="Select IM type">
-              <Option value="Skype">Skype</Option>
-              <Option value="WhatsApp">WhatsApp</Option>
-              <Option value="Telegram">Telegram</Option>
-              <Option value="Discord">Discord</Option>
-            </Select>
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item label="IM Username" name="im_username">
-            <Input placeholder="Enter IM username" />
-          </Form.Item>
-        </Col>
-      </Row>
+      {/* Signup Questions Section */}
+      <div style={{ marginBottom: 24 }}>
+        <h3 style={{ marginBottom: 16, fontWeight: 600, color: "#1890ff" }}>
+          Signup Questions
+        </h3>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item label="Promotion Method" name="promotion_method">
-            <Select placeholder="Select promotion method">
-              <Option value="Social Media">Social Media</Option>
-              <Option value="Email Marketing">Email Marketing</Option>
-              <Option value="Content Marketing">Content Marketing</Option>
-              <Option value="Paid Advertising">Paid Advertising</Option>
-              <Option value="Influencer Marketing">Influencer Marketing</Option>
-            </Select>
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item label="Reference ID" name="reference_id">
-            <Input placeholder="Enter reference ID" />
-          </Form.Item>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Company Name" name="company">
+              <Input placeholder="Company Name" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Company Address" name="companyAddress">
+              <Input placeholder="Company Address" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item label="Tax ID" name="tax_id">
-            <Input placeholder="Enter tax ID" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item label="Referred By" name="referred_by">
-            <Input placeholder="Enter referrer name" />
-          </Form.Item>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Entity Type" name="entity_type">
+              <Input placeholder="Entity Type" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Country" name="country_secondary">
+              <Input placeholder="Country" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item label="Managers" name="managers">
-            <Input placeholder="Enter managers (comma separated)" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item label="Currency" name="currency">
-            <Select placeholder="Select currency">
-              <Option value="USD">USD</Option>
-              <Option value="EUR">EUR</Option>
-              <Option value="GBP">GBP</Option>
-              <Option value="INR">INR</Option>
-              <Option value="CAD">CAD</Option>
-              <Option value="AUD">AUD</Option>
-            </Select>
-          </Form.Item>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Form.Item label="City" name="city">
+              <Input placeholder="City" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Region/State" name="state">
+              <Input placeholder="Region/State" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item label="Tags" name="tags">
-            <Select
-              mode="tags"
-              placeholder="Enter tags"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item label="Notify" name="notify" valuePropName="checked">
-            <Switch checkedChildren="Yes" unCheckedChildren="No" />
-          </Form.Item>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Zip Code" name="zip_code">
+              <Input placeholder="Zip Code" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item label="IM Type" name="im_type">
+              <Input placeholder="IM Type" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12}>
-          <Form.Item label="Company Name" name="companyName">
-            <Input placeholder="Enter company name" />
-          </Form.Item>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Form.Item label="IM Username" name="im_username">
+              <Input placeholder="IM Username" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Promotion Method" name="promotion_method">
+              <Input placeholder="Promotion Method" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-      <Row gutter={[16, 16]}>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Form.Item label="Phone" name="phone">
+              <Input placeholder="Phone" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              name="notify"
+              valuePropName="checked"
+              initialValue={false}
+              style={{ marginTop: 30 }}
+            >
+              <Switch checkedChildren="Yes" unCheckedChildren="No" />
+              <span style={{ marginLeft: 8 }}>Notify this user by email</span>
+            </Form.Item>
+          </Col>
+        </Row>
+      </div>
+
+      <Divider />
+
+      {/* Advanced Setup Toggle */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24}>
-          <Form.Item label="Company Address" name="companyAddress">
-            <TextArea rows={3} placeholder="Enter company address" />
+          <Form.Item>
+            <Switch
+              checked={showAdvancedSetup}
+              onChange={handleAdvancedSetupToggle}
+              checkedChildren="Advanced Setup ON"
+              unCheckedChildren="Advanced Setup OFF"
+              style={{ marginRight: 8 }}
+            />
+            <span
+              style={{
+                fontWeight: 600,
+                color: showAdvancedSetup ? "#1890ff" : "#666",
+              }}
+            >
+              Advanced Setup
+            </span>
           </Form.Item>
         </Col>
       </Row>
+
+      {/* Advanced Setup Fields - Only show when toggle is ON */}
+      {showAdvancedSetup && (
+        <div
+          style={{
+            backgroundColor: "#fafafa",
+            padding: 16,
+            borderRadius: 6,
+            marginBottom: 24,
+          }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Password (Optional)" name="password">
+                <Input.Password placeholder="Leave empty to Auto Generate" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Account Manager (Optional)" name="managers">
+                <Input placeholder="Account Manager" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Phone (Optional)" name="phone_secondary">
+                <Input placeholder="Phone number" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Skype (Optional)" name="microsoft_teams">
+                <Input placeholder="Skype" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Address (Optional)" name="address">
+                <Input placeholder="Address" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item label="City (Optional)" name="city_secondary">
+                <Input placeholder="City" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item label="State (Optional)" name="state_secondary">
+                <Input placeholder="State" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Zipcode (Optional)" name="zip_code_secondary">
+                <Input placeholder="Zipcode" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Tags (Optional)" name="tags">
+                <Select
+                  mode="tags"
+                  placeholder="Publisher tags"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Tax ID (Optional)" name="tax_id">
+                <Input placeholder="Tax ID" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Country (Optional)" name="country_secondary">
+                <Select placeholder="Select country" showSearch>
+                  <Option value="USA">USA</Option>
+                  <Option value="Canada">Canada</Option>
+                  <Option value="UK">UK</Option>
+                  <Option value="India">India</Option>
+                  <Option value="Australia">Australia</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Username (Optional)" name="username">
+                <Input placeholder="Username of the publisher" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24}>
+              <Form.Item label="Notes (Optional)" name="note">
+                <TextArea
+                  rows={4}
+                  placeholder="Enter notes"
+                  maxLength={500}
+                  showCount
+                />
+                <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+                  The content will not be displayed to advertiser or publisher
+                </div>
+              </Form.Item>
+            </Col>
+          </Row>
+        </div>
+      )}
 
       <div className="form-actions">
         <Space>

@@ -295,7 +295,7 @@
 // Right Sidebar Drawer specific styles
 .ant-drawer-right {
   .ant-drawer-content-wrapper {
-    width: 500px !important;
+    //width: 500px !important;
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
   }
 
@@ -552,6 +552,7 @@
         justify-content: flex-end;
       }
     }
+
 
     .ant-drawer-right .ant-drawer-content-wrapper {
       width: 450px !important;

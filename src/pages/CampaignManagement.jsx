@@ -25,6 +25,68 @@ const [editModalVisible, setEditModalVisible] = useState(false);
 
 
 
+// 1. Add these state variables in CampaignManagement component
+const [saveLoading, setSaveLoading] = useState(false);
+
+// 2. Add these API functions in CampaignManagement component
+const saveColumnPreferences = async () => {
+  setSaveLoading(true);
+  try {
+    const selectedFields = Object.keys(visibleColumns).filter(key => visibleColumns[key]);
+    
+    const response = await apiClient.post('/common/user-preference', {
+      form: 'campaign',
+      fields: selectedFields
+    });
+    
+    if (response.data && response.data.success) {
+      message.success('Column preferences saved successfully!');
+      setColumnSettingsVisible(false);
+    } else {
+      throw new Error(response.data?.message || 'Failed to save preferences');
+    }
+  } catch (error) {
+    console.error('Error saving preferences:', error);
+    message.error(error.response?.data?.message || 'Failed to save preferences');
+  } finally {
+    setSaveLoading(false);
+  }
+};
+
+const fetchColumnPreferences = async () => {
+  try {
+    const response = await apiClient.get('/common/user-preference/campaign');
+    
+    if (response.data && response.data.success && response.data.data) {
+      const savedFields = response.data.data.fields || [];
+      const newVisibleColumns = {};
+      
+      // Set all columns to false first
+      columnOptions.forEach((col) => {
+        newVisibleColumns[col.key] = false;
+      });
+      
+      // Set saved fields to true
+      savedFields.forEach((field) => {
+        if (newVisibleColumns.hasOwnProperty(field)) {
+          newVisibleColumns[field] = true;
+        }
+      });
+      
+      setVisibleColumns(newVisibleColumns);
+    }
+  } catch (error) {
+    console.error('Error fetching column preferences:', error);
+    // If no preferences found, use default columns
+  }
+};
+
+// 3. Update the useEffect to fetch preferences on component mount
+useEffect(() => {
+  fetchCampaigns();
+  fetchColumnPreferences(); // Add this line
+}, []);
+
 
 
 
@@ -529,6 +591,8 @@ const handleStatusChange = async (campaignId, newStatus) => {
         onColumnChange={handleColumnChange}
         onSelectAll={handleSelectAll}
         onClearAll={handleClearAll}
+        onSave={saveColumnPreferences} // Add this
+  saveLoading={saveLoading} // Add this
       />
     </div>
   );

@@ -10,6 +10,8 @@ const ColumnSettings = ({
   onColumnChange,
   onSelectAll,
   onClearAll,
+    onSave, // Add this new prop
+  saveLoading, // Add this new prop for loading state
 }) => {
   return (
     <Drawer
@@ -22,17 +24,27 @@ const ColumnSettings = ({
       placement="right"
       onClose={onClose}
       open={visible}
-      width={400}
+      width={250}
       className="column-settings-drawer"
     >
       <div className="column-controls">
         <Space>
-          <Button size="small" onClick={onSelectAll} className="select-all-btn">
+          <Button size="small"  style={{fontSize:"15px"}} onClick={onSelectAll} className="select-all-btn">
             Select All
           </Button>
-          <Button size="small" onClick={onClearAll} className="clear-all-btn">
+          <Button size="small" style={{fontSize:"15px"}}  onClick={onClearAll} className="clear-all-btn">
             Clear All
           </Button>
+           <Button 
+      size="small" 
+      style={{fontSize:"15px"}} 
+      onClick={onSave}
+      loading={saveLoading}
+      type="primary"
+      className="save-btn"
+    >
+      Save
+    </Button>
         </Space>
       </div>
 

@@ -107,7 +107,7 @@ const CombinedPublisherManagement = ({
     setListLoading(true);
     setPublishersList([]);
     setSelectedPublisher(null);
-    setGeneratedLink("");
+   // setGeneratedLink("");
 
     try {
       const response = await apiClient.get(
@@ -142,52 +142,100 @@ const CombinedPublisherManagement = ({
     }
   }, [issaved]);
 
+
+
+
+  // Add this function after handleSave
+const forceRefreshData = async (retryCount = 0) => {
+  const maxRetries = 3;
+  try {
+    // Clear current data first
+    setPublishersList([]);
+    setListLoading(true);
+    
+    // Fetch with cache busting
+    const timestamp = Date.now();
+    const response = await apiClient.get(
+      `/common/publisher/${campaignId}/approved-publishers?nocache=${timestamp}&retry=${retryCount}`
+    );
+    
+    if (response.data?.success) {
+      setPublishersList(response.data.data || []);
+      setListLoading(false);
+      
+      // Also refresh the transfer list
+      await fetchPublishers();
+      return true;
+    } else {
+      throw new Error('Failed to fetch updated data');
+    }
+  } catch (error) {
+    if (retryCount < maxRetries) {
+      // Retry after increasing delay
+      setTimeout(() => {
+        forceRefreshData(retryCount + 1);
+      }, (retryCount + 1) * 1000);
+    } else {
+      setListLoading(false);
+      message.error('Failed to refresh data after multiple attempts. Please refresh the page.');
+    }
+  }
+};
   // Generate tracking link
-  const fetchAndSetLink = async (publisherId) => {
-    if (!publisherId) return;
+ // Generate tracking link
+const fetchAndSetLink = async (publisherId) => {
+  if (!publisherId) return;
 
-    setGenerateLoading(true);
-    try {
-      const requestData = {
-        campaignId: String(campaignId),
-        publisherIds: [String(publisherId)],
-      };
+  setGenerateLoading(true);
+  try {
+    const requestData = {
+      campaignId: String(campaignId),
+      publisherIds: [String(publisherId)],
+    };
 
-      if (linkOptions.addTrackingParam) {
+    if (linkOptions.addTrackingParam) {
+      // Only add parameters that have values (not empty strings)
+      if (additionalParams.p1.trim() !== "") {
         requestData.p1 = additionalParams.p1;
+      }
+      if (additionalParams.p2.trim() !== "") {
         requestData.p2 = additionalParams.p2;
+      }
+      if (additionalParams.p3.trim() !== "") {
         requestData.p3 = additionalParams.p3;
+      }
+      if (additionalParams.p4.trim() !== "") {
         requestData.p4 = additionalParams.p4;
       }
-
-      const response = await apiClient.post(
-        "/admin/campaign-assignment/assign",
-        requestData
-      );
-
-      if (response.data?.success && response.data.data.length > 0) {
-        const assignmentData = response.data.data[0];
-        let finalLink = assignmentData.publisherLink;
-
-        setGeneratedLink(finalLink);
-        message.success("Tracking link generated successfully!");
-      } else {
-        throw new Error(
-          response.data?.message || "Failed to generate tracking link"
-        );
-      }
-    } catch (error) {
-      message.error(error.message || "Failed to generate tracking link");
-      setGeneratedLink("");
-    } finally {
-      setGenerateLoading(false);
     }
-  };
 
+    const response = await apiClient.post(
+      "/admin/campaign-assignment/assign",
+      requestData
+    );
+
+    if (response.data?.success && response.data.data.length > 0) {
+      const assignmentData = response.data.data[0];
+      let finalLink = assignmentData.publisherLink;
+
+      setGeneratedLink(finalLink);
+      message.success("Tracking link generated successfully!");
+    } else {
+      throw new Error(
+        response.data?.message || "Failed to generate tracking link"
+      );
+    }
+  } catch (error) {
+    message.error(error.message || "Failed to generate tracking link");
+    setGeneratedLink("");
+  } finally {
+    setGenerateLoading(false);
+  }
+};
   // Handle publisher selection for tracking link
   const handlePublisherChange = (value) => {
     setSelectedPublisher(value);
-    setGeneratedLink("");
+  //  setGeneratedLink("");
 
     if (value) {
       fetchAndSetLink(value);
@@ -205,52 +253,47 @@ const CombinedPublisherManagement = ({
   };
 
   // Save approved publishers
-  const handleSave = async () => {
-    if (!targetKeys.length) {
-      message.warning('Please select at least one publisher to approve');
-      return;
+ // Save approved publishers
+// Save approved publishers
+const handleSave = async () => {
+  if (!targetKeys.length) {
+    message.warning('Please select at least one publisher to approve');
+    return;
+  }
+
+  setSaveLoading(true);
+  try {
+    const response = await apiClient.post('/common/publisher/approve', {
+      campaignId: Number(campaignId),
+      publisherIds: targetKeys.map(Number),
+    });
+
+    if (response.data?.success) {
+      message.success('Publishers approved successfully!');
+      
+      // Clear selections
+      setTargetKeys([]);
+      onApprovedPublishersChange?.([]);
+      
+      // Update state
+      const newSavedState = !issaved;
+      setIsSavedLocal(newSavedState);
+      setIsSaved?.(newSavedState);
+      
+      // Force refresh with retry logic
+      setTimeout(() => {
+        forceRefreshData();
+      }, 1500);
+      
+    } else {
+      throw new Error(response.data?.message || 'Failed to approve publishers');
     }
-
-    setSaveLoading(true);
-    try {
-      const response = await apiClient.post('/common/publisher/approve', {
-        campaignId: Number(campaignId),
-        publisherIds: targetKeys.map(Number),
-      });
-
-      if (response.data?.success) {
-        message.success('Publishers approved successfully!');
-        
-        // Immediately update the tracking link dropdown with newly approved publishers
-        const newlyApproved = allPublishers.filter(pub => 
-          targetKeys.includes(pub.key)
-        ).map(pub => ({
-          id: pub.id,
-          name: pub.name
-        }));
-        
-        // Add newly approved publishers to existing list
-        setPublishersList(prev => [...prev, ...newlyApproved]);
-        
-        setTargetKeys([]);
-        onApprovedPublishersChange?.([]);
-        
-        const newSavedState = !issaved;
-        setIsSavedLocal(newSavedState);
-        setIsSaved?.(newSavedState);
-
-        // Fetch updated data in background
-        fetchPublishers();
-        // Don't need to fetch approved publishers since we updated immediately above
-      } else {
-        throw new Error(response.data?.message || 'Failed to approve publishers');
-      }
-    } catch (error) {
-      message.error(error.message || 'Failed to save publisher approval');
-    } finally {
-      setSaveLoading(false);
-    }
-  };
+  } catch (error) {
+    message.error(error.message || 'Failed to save publisher approval');
+  } finally {
+    setSaveLoading(false);
+  }
+};
 
   // Link options change handler
   const handleLinkOptionChange = (option, checked) => {
@@ -268,10 +311,16 @@ const CombinedPublisherManagement = ({
       });
     }
 
-    if (generatedLink) {
-      setGeneratedLink("");
-    }
+   
   };
+
+  // Add this useEffect after your existing useEffects
+// Regenerate link when tracking parameters change
+useEffect(() => {
+  if (selectedPublisher && generatedLink && linkOptions.addTrackingParam) {
+    fetchAndSetLink(selectedPublisher);
+  }
+}, [additionalParams.p1, additionalParams.p2, additionalParams.p3, additionalParams.p4]);
 
   // Utility functions for tracking link
   const openLinkInNewTab = () => {
@@ -431,12 +480,15 @@ const CombinedPublisherManagement = ({
                         <Input
                           placeholder="P1 value"
                           value={additionalParams.p1}
-                          onChange={(e) =>
-                            setAdditionalParams((prev) => ({
-                              ...prev,
-                              p1: e.target.value,
-                            }))
-                          }
+                        // For P1 input onChange:
+onChange={(e) => {
+  setAdditionalParams((prev) => ({
+    ...prev,
+    p1: e.target.value,
+  }));
+}}
+
+// Similar for P2, P3, P4 - just update the parameter, the useEffect will handle regeneration
                           addonBefore="P1"
                         />
                       </Col>

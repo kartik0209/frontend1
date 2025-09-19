@@ -1,5 +1,5 @@
 // Publisher table column definitions and options
-
+import React from 'react';
 export const baseColumns = [
   {
     title: 'ID',
@@ -8,13 +8,74 @@ export const baseColumns = [
     width: 80,
     sorter: true,
   },
-  {
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
-    width: 150,
-    sorter: true,
-  },
+ // Import React at the top of the file
+
+
+// Update the Name column in baseColumns array - replace the existing name column with this:
+{
+  title: 'Name',
+  dataIndex: 'name',
+  key: 'name',
+  width: 200, // Increased width to accommodate email and copy button
+  sorter: true,
+  render: (name, record) =>
+    React.createElement('div', { style: { lineHeight: '1.4' } }, [
+      React.createElement('div', { 
+        key: 'name',
+        style: { 
+          fontWeight: '500', 
+          color: '#1890ff',
+          marginBottom: '2px'
+        }
+      }, name || 'N/A'),
+      React.createElement('div', { 
+        key: 'email-container',
+        style: { 
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px'
+        }
+      }, [
+        React.createElement('span', { 
+          key: 'email-text',
+          style: { 
+            fontSize: '12px', 
+            color: '#8c8c8c',
+            fontWeight: '400'
+          }
+        }, record.email || 'No email'),
+        record.email ? React.createElement('button', {
+          key: 'copy-btn',
+          style: {
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '2px 4px',
+            borderRadius: '3px',
+            fontSize: '10px',
+            color: '#1890ff',
+            opacity: '0.7'
+          },
+          onClick: (e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(record.email).then(() => {
+              // Optional: You can add a toast notification here
+              console.log('Email copied:', record.email);
+            });
+          },
+          onMouseEnter: (e) => {
+            e.target.style.opacity = '1';
+            e.target.style.backgroundColor = '#f0f0f0';
+          },
+          onMouseLeave: (e) => {
+            e.target.style.opacity = '0.7';
+            e.target.style.backgroundColor = 'transparent';
+          },
+          title: 'Copy email'
+        }, '📋') : null
+      ])
+    ])
+},
   {
     title: 'Username',
     dataIndex: 'username',

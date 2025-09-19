@@ -229,12 +229,12 @@ const AddUserForm = ({
             </Col>
             <Col span={12}>
               <Form.Item
-                name="skype"
-                label="Skype ID (Optional)"
+                name="Teams"
+                label="Teams ID (Optional)"
               >
                 <Input 
-                  prefix={<SkypeOutlined />}
-                  placeholder="Your Skype ID" 
+                  prefix={<TeamsOutlined />}
+                  placeholder="Your Teams ID" 
                 />
               </Form.Item>
             </Col>

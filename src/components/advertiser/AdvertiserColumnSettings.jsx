@@ -11,6 +11,8 @@ const AdvertiserColumnSettings = ({
   onColumnChange,
   onSelectAll,
   onClearAll,
+    onSave, // Add this new prop
+  saveLoading, // Add this new prop for loading state
 }) => {
   return (
     <Drawer
@@ -23,17 +25,27 @@ const AdvertiserColumnSettings = ({
       placement="right"
       onClose={onClose}
       open={visible}
-      width={400}
+      width={350}
       className="column-settings-drawer"
     >
       <div className="column-controls">
         <Space>
-          <Button size="small" onClick={onSelectAll} className="select-all-btn">
+          <Button size="small" style={{fontSize:"15px"}}  onClick={onSelectAll} className="select-all-btn">
             Select All
           </Button>
-          <Button size="small" onClick={onClearAll} className="clear-all-btn">
+          <Button size="small" style={{fontSize:"15px"}}  onClick={onClearAll} className="clear-all-btn">
             Clear All
           </Button>
+           <Button 
+      size="small" 
+      style={{fontSize:"15px"}} 
+      onClick={onSave}
+      loading={saveLoading}
+      type="primary"
+   className="select-all-btn"
+    >
+      Save
+    </Button>
         </Space>
       </div>
 

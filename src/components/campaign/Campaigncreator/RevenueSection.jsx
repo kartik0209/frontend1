@@ -30,6 +30,10 @@ const countryOptions = countries.map((country) => ({
 const { Option } = AntSelect;
 
 const RevenueSection = ({ formState, updateFormState }) => {
+
+  
+// Add this logic to determine if sale objective is selected
+const isSaleObjective = formState.objective === 'sale';
   return (
     <Card title="Revenue and Payout" className="campaign-form__section">
 
@@ -111,37 +115,56 @@ const RevenueSection = ({ formState, updateFormState }) => {
 
       
 
-      <Row gutter={16}>
-        <Col span={12}>
-          <Form.Item
-            label="Revenue"
-            name="revenue"
-            rules={[{ required: true, message: "Please enter revenue" }]}
-          >
-            <InputNumber
-              style={{ width: "100%" }}
-              placeholder="Revenue Eg: 5"
-              min={0}
-              step={0.01}
-            />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            label="Payout"
-            name="payout"
-            rules={[{ required: true, message: "Please enter payout" }]}
-          >
-            <InputNumber
-              style={{ width: "100%" }}
-              placeholder="Payout Eg: 2"
-              min={0}
-              step={0.01}
-            />
-          </Form.Item>
-        </Col>
-      </Row>
+    <Row gutter={16}>
+  <Col span={12}>
+    <Form.Item
+      label={isSaleObjective ? "Revenue (%)" : "Revenue"}
+      name="revenue"
+      rules={[{ required: true, message: "Please enter revenue" }]}
+    >
+      <InputNumber
+        style={{ width: "100%" }}
+        placeholder={isSaleObjective ? "Revenue % Eg: 50" : "Revenue Eg: 5"}
+        min={0}
+        max={isSaleObjective ? 100 : undefined}
+        step={0.01}
+        suffix={isSaleObjective ? "%" : undefined}
+        value={formState.revenue}
+        onChange={(value) => updateFormState({ revenue: value })}
+      />
+    </Form.Item>
+  </Col>
+  <Col span={12}>
+    <Form.Item
+      label={isSaleObjective ? "Payout (%)" : "Payout"}
+      name="payout"
+      rules={[{ required: true, message: "Please enter payout" }]}
+    >
+      <InputNumber
+        style={{ width: "100%" }}
+        placeholder={isSaleObjective ? "Payout % Eg: 25" : "Payout Eg: 2"}
+        min={0}
+        max={isSaleObjective ? 100 : undefined}
+        step={0.01}
+        suffix={isSaleObjective ? "%" : undefined}
+        value={formState.payout}
+        onChange={(value) => updateFormState({ payout: value })}
+      />
+    </Form.Item>
+  </Col>
+</Row>
 
+{isSaleObjective && (formState.revenue || 0) + (formState.payout || 0) > 100 && (
+  <div style={{ 
+    color: '#ff4d4f', 
+    fontSize: '14px', 
+    marginTop: '-16px', 
+    marginBottom: '16px',
+    textAlign: 'center'
+  }}>
+    Warning: Revenue + Payout cannot exceed 100%
+  </div>
+)}
      
     </Card>
   );

@@ -27,6 +27,66 @@ const PublisherManagement = () => {
   const [viewingPublisher, setViewingPublisher] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
+const [saveLoading, setSaveLoading] = useState(false);
+
+const saveColumnPreferences = async () => {
+  console.log('Saving column preferences:', visibleColumns);
+  setSaveLoading(true);
+  try {
+    const selectedFields = Object.keys(visibleColumns).filter(key => visibleColumns[key]);
+    
+    const response = await apiClient.post('/common/user-preference', {
+      form: 'publisher',
+      fields: selectedFields
+    });
+    
+    if (response.data && response.data.success) {
+      showSuccessModal('Preferences Saved', 'Column preferences saved successfully!');
+      setColumnSettingsVisible(false);
+    } else {
+      throw new Error(response.data?.message || 'Failed to save preferences');
+    }
+  } catch (error) {
+    console.error('Error saving preferences:', error);
+    showFailModal('Save Failed', error.response?.data?.message || 'Failed to save preferences');
+  } finally {
+    setSaveLoading(false);
+  }
+};
+
+const fetchColumnPreferences = async () => {
+  try {
+    const response = await apiClient.get('/common/user-preference/publisher');
+    
+    if (response.data && response.data.success && response.data.data) {
+      const savedFields = response.data.data.fields || [];
+      const newVisibleColumns = {};
+      
+      // Set all columns to false first
+      columnOptions.forEach((col) => {
+        newVisibleColumns[col.key] = false;
+      });
+      
+      // Set saved fields to true
+      savedFields.forEach((field) => {
+        if (newVisibleColumns.hasOwnProperty(field)) {
+          newVisibleColumns[field] = true;
+        }
+      });
+      
+      setVisibleColumns(newVisibleColumns);
+    }
+  } catch (error) {
+    console.error('Error fetching column preferences:', error);
+    // If no preferences found, use default columns
+  }
+};
+
+// 5. Update the useEffect to fetch preferences on component mount
+useEffect(() => {
+  fetchPublishers();
+  fetchColumnPreferences(); // Add this line
+}, []);
 
   const navigate=useNavigate();
   // Success and Fail modal states
@@ -461,6 +521,8 @@ const closeConfirmModal = () => {
         onColumnChange={handleColumnChange}
         onSelectAll={handleSelectAll}
         onClearAll={handleClearAll}
+          onSave={saveColumnPreferences} // Add this
+  saveLoading={saveLoading} // Add this
       />
 
       <PublisherModal
