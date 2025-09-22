@@ -16,16 +16,16 @@ import {
 import {
   ReloadOutlined,
   DownloadOutlined,
-  FilterOutlined, // Import FilterOutlined
+  FilterOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
-import ConversionReportFilter from "../components/campaign/ConversionRepotFilter"; // Import the filter component
+import ConversionReportFilter from "../components/campaign/ConversionRepotFilter";
 
 const { Option } = Select;
 const { Title } = Typography;
 
-const ConversionReportsPage = ({name}) => {
+const ConversionReportsPage = ({ name }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [campaignDetails, setCampaignDetails] = useState(null);
@@ -43,6 +43,19 @@ const ConversionReportsPage = ({name}) => {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState({});
 
+  // Determine groupBy based on name prop
+  const getGroupByFromName = (name) => {
+    if (!name) return "campaign";
+    
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes("campaign")) return "campaign";
+    if (nameLower.includes("publisher")) return "publisher";
+    if (nameLower.includes("daily") || nameLower.includes("day")) return "day";
+    return "campaign"; // default
+  };
+
+  const currentGroupBy = getGroupByFromName(name);
+
   // Helper function to build the query string from applied filters
   const buildFilterQuery = (filters) => {
     const params = new URLSearchParams();
@@ -50,20 +63,34 @@ const ConversionReportsPage = ({name}) => {
 
     const { basicFilters } = filters;
 
-    if (basicFilters.dateRange && basicFilters.dateRange[0] && basicFilters.dateRange[1]) {
-      params.append('startDate', dayjs(basicFilters.dateRange[0]).startOf('day').toISOString());
-      params.append('endDate', dayjs(basicFilters.dateRange[1]).endOf('day').toISOString());
+    if (
+      basicFilters.dateRange &&
+      basicFilters.dateRange[0] &&
+      basicFilters.dateRange[1]
+    ) {
+      params.append(
+        "startDate",
+        dayjs(basicFilters.dateRange[0]).startOf("day").format("YYYY-MM-DD")
+      );
+      params.append(
+        "endDate",
+        dayjs(basicFilters.dateRange[1]).endOf("day").format("YYYY-MM-DD")
+      );
     }
-    if (basicFilters.pixelType) params.append('pixelType', basicFilters.pixelType);
-    if (basicFilters.eventType) params.append('eventType', basicFilters.eventType);
-    if (basicFilters.conversionStatus) params.append('conversionStatus', basicFilters.conversionStatus);
-    if (basicFilters.transactionId) params.append('transactionId', basicFilters.transactionId);
-    if (basicFilters.trackingId) params.append('trackingId', basicFilters.trackingId);
-    if (basicFilters.minAmount) params.append('minAmount', basicFilters.minAmount);
-    if (basicFilters.maxAmount) params.append('maxAmount', basicFilters.maxAmount);
-    
-    // You could expand this to include searchFilters, etc. if your API supports them
-    // Example: if (filters.searchFilters?.campaign) params.append('campaignName', filters.searchFilters.campaign);
+    if (basicFilters.pixelType)
+      params.append("pixelType", basicFilters.pixelType);
+    if (basicFilters.eventType)
+      params.append("eventType", basicFilters.eventType);
+    if (basicFilters.conversionStatus)
+      params.append("conversionStatus", basicFilters.conversionStatus);
+    if (basicFilters.transactionId)
+      params.append("transactionId", basicFilters.transactionId);
+    if (basicFilters.trackingId)
+      params.append("trackingId", basicFilters.trackingId);
+    if (basicFilters.minAmount)
+      params.append("minAmount", basicFilters.minAmount);
+    if (basicFilters.maxAmount)
+      params.append("maxAmount", basicFilters.maxAmount);
 
     return params.toString();
   };
@@ -73,21 +100,27 @@ const ConversionReportsPage = ({name}) => {
     setError(null);
     try {
       const response = await apiClient.post("/admin/campaign/list", {});
-      
+
       if (response.data && response.data.success) {
-        const campaignData = response.data.data || response.data.campaigns || [];
+        const campaignData =
+          response.data.data || response.data.campaigns || [];
         const campaignsWithKeys = campaignData.map((campaign) => ({
           ...campaign,
           key: campaign.id || Math.random().toString(36).substring(2, 11),
         }));
         setCampaigns(campaignsWithKeys);
-        message.success(`${campaignsWithKeys.length} campaigns loaded successfully!`);
+        message.success(
+          `${campaignsWithKeys.length} campaigns loaded successfully!`
+        );
       } else {
         throw new Error(response.data?.message || "Failed to fetch campaigns");
       }
     } catch (error) {
       console.error("Error fetching campaigns:", error);
-      const errorMessage = error.response?.data?.message || error.message || "Failed to load campaigns";
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to load campaigns";
       message.error(errorMessage);
       setError(errorMessage);
       setCampaigns([]);
@@ -96,75 +129,44 @@ const ConversionReportsPage = ({name}) => {
     }
   };
 
-  const fetchAllReports = async (page = 1, pageSize = 10, filters = appliedFilters) => {
+  const fetchMainReports = async (
+    page = 1,
+    pageSize = 10,
+    filters = appliedFilters,
+    campaignId = null
+  ) => {
     setReportsLoading(true);
     setError(null);
     const filterQuery = buildFilterQuery(filters);
-    try {
-      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&${filterQuery}`);
-      
-      if (response.data?.success) {
-        const reports = response.data.data.pixelTrackings || [];
-        const total = response.data.data.total || response.data.totalCount || reports.length;
-        
-       setReportData(Array.isArray(reports) ? reports : []);
-
-        setPagination(prev => ({
-          ...prev,
-          current: page,
-          pageSize: pageSize,
-          total: total,
-        }));
-        
-        if (page === 1) { // Only show success message on initial load/filter, not on pagination
-          message.success(`${reports.length} reports loaded successfully!`);
-        }
-      } else {
-        throw new Error(response.data?.message || "Failed to fetch reports.");
-      }
-    } catch (err) {
-      console.error("Error fetching reports:", err);
-      const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
-      setError(errorMessage);
-      message.error(errorMessage);
-      setReportData([]);
-      setPagination(prev => ({
-        ...prev,
-        total: 0,
-      }));
-    } finally {
-      setReportsLoading(false);
-    }
-  };
-
-  const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10, filters = appliedFilters) => {
-    if (!campaignId) return;
     
-    setReportsLoading(true);
-    setError(null);
-    const filterQuery = buildFilterQuery(filters);
-
     try {
-      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}&${filterQuery}`);
+      let url = `/admin/report/main-report?page=${page}&pageSize=${pageSize}&groupBy=${currentGroupBy}`;
       
+      if (campaignId) {
+        url += `&campaignId=${campaignId}`;
+      }
+      
+      if (filterQuery) {
+        url += `&${filterQuery}`;
+      }
+
+      const response = await apiClient.get(url);
+
       if (response.data?.success) {
-        const reports = response.data.data.pixelTrackings || [];
-        const total = response.data.data.total || response.data.totalCount || reports.length;
-        
-        setReportData(reports);
-        setPagination(prev => ({
+        const reports = response.data.data?.reports || response.data.data || [];
+        const total =
+          response.data.data?.total ||
+          response.data.totalCount ||
+          reports.length;
+
+        setReportData(Array.isArray(reports) ? reports : []);
+
+        setPagination((prev) => ({
           ...prev,
           current: page,
           pageSize: pageSize,
           total: total,
         }));
-
-        if (response.data.campaign) {
-          setCampaignDetails(response.data.campaign);
-        } else {
-          const campaign = campaigns.find((c) => c.id === campaignId);
-          setCampaignDetails(campaign);
-        }
 
         if (page === 1) {
           message.success(`${reports.length} reports loaded successfully!`);
@@ -174,11 +176,14 @@ const ConversionReportsPage = ({name}) => {
       }
     } catch (err) {
       console.error("Error fetching reports:", err);
-      const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "An error occurred while fetching reports.";
       setError(errorMessage);
       message.error(errorMessage);
       setReportData([]);
-      setPagination(prev => ({
+      setPagination((prev) => ({
         ...prev,
         total: 0,
       }));
@@ -186,45 +191,47 @@ const ConversionReportsPage = ({name}) => {
       setReportsLoading(false);
     }
   };
-  
+
   // Handler for applying filters from the modal
   const handleApplyFilters = (filters) => {
-    setAppliedFilters(filters);
+    // Auto-select the appropriate groupBy option based on name
+    const updatedFilters = {
+      ...filters,
+      groupByOptions: {
+        ...filters.groupByOptions,
+        [currentGroupBy]: true,
+      },
+    };
+    
+    setAppliedFilters(updatedFilters);
     // Re-fetch data with the new filters, resetting to page 1
-    if (selectedCampaign) {
-      fetchCampaignReports(selectedCampaign, 1, pagination.pageSize, filters);
-    } else {
-      fetchAllReports(1, pagination.pageSize, filters);
-    }
+    fetchMainReports(1, pagination.pageSize, updatedFilters, selectedCampaign);
   };
 
   const handleCampaignChange = (campaignId) => {
     setSelectedCampaign(campaignId);
     if (campaignId) {
-      fetchCampaignReports(campaignId, 1, pagination.pageSize);
+      const campaign = campaigns.find((c) => c.id === campaignId);
+      setCampaignDetails(campaign);
     } else {
       setCampaignDetails(null);
-      fetchAllReports(1, pagination.pageSize);
     }
+    fetchMainReports(1, pagination.pageSize, appliedFilters, campaignId);
   };
 
   const handleTableChange = (paginationInfo) => {
     const { current, pageSize } = paginationInfo;
-    
-    if (selectedCampaign) {
-      fetchCampaignReports(selectedCampaign, current, pageSize);
-    } else {
-      fetchAllReports(current, pageSize);
-    }
+    fetchMainReports(current, pageSize, appliedFilters, selectedCampaign);
   };
 
   const handleRefresh = async () => {
     try {
-      if (selectedCampaign) {
-        await fetchCampaignReports(selectedCampaign, pagination.current, pagination.pageSize);
-      } else {
-        await fetchAllReports(pagination.current, pagination.pageSize);
-      }
+      await fetchMainReports(
+        pagination.current,
+        pagination.pageSize,
+        appliedFilters,
+        selectedCampaign
+      );
       await fetchCampaigns();
     } catch (error) {
       console.error("Error during refresh:", error);
@@ -241,16 +248,23 @@ const ConversionReportsPage = ({name}) => {
       let hasMoreData = true;
 
       while (hasMoreData) {
-        const url = selectedCampaign 
-          ? `/admin/report/conversion-trackings?page=${currentPage}&pageSize=${pageSize}&campaignId=${selectedCampaign}`
-          : `/admin/report/conversion-trackings?page=${currentPage}&pageSize=${pageSize}`;
+        const filterQuery = buildFilterQuery(appliedFilters);
+        let url = `/admin/report/main-report?page=${currentPage}&pageSize=${pageSize}&groupBy=${currentGroupBy}`;
         
+        if (selectedCampaign) {
+          url += `&campaignId=${selectedCampaign}`;
+        }
+        
+        if (filterQuery) {
+          url += `&${filterQuery}`;
+        }
+
         const response = await apiClient.get(url);
-        
+
         if (response.data?.success) {
-          const pageData = response.data.data || [];
+          const pageData = response.data.data?.reports || response.data.data || [];
           allData = [...allData, ...pageData];
-          
+
           if (pageData.length < pageSize) {
             hasMoreData = false;
           } else {
@@ -272,7 +286,11 @@ const ConversionReportsPage = ({name}) => {
           .map((col) => {
             const value = record[col.dataIndex];
             if (!value) return "N/A";
-            if (col.dataIndex.includes("Time") || col.dataIndex.includes("At")) {
+            if (
+              col.dataIndex.includes("Time") ||
+              col.dataIndex.includes("At") ||
+              col.dataIndex.includes("date")
+            ) {
               return dayjs(value).format("YYYY-MM-DD HH:mm:ss");
             }
             return typeof value === "string" ? `"${value}"` : value;
@@ -289,13 +307,17 @@ const ConversionReportsPage = ({name}) => {
         link.setAttribute("href", url);
         link.setAttribute(
           "download",
-          `conversion_reports_${selectedCampaign ? `campaign_${selectedCampaign}_` : "all_"}${dayjs().format("YYYY-MM-DD")}.csv`
+          `${currentGroupBy}_reports_${
+            selectedCampaign ? `campaign_${selectedCampaign}_` : "all_"
+          }${dayjs().format("YYYY-MM-DD")}.csv`
         );
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        message.success(`Report with ${allData.length} records exported successfully!`);
+        message.success(
+          `Report with ${allData.length} records exported successfully!`
+        );
       }
     } catch (error) {
       console.error("Export error:", error);
@@ -305,184 +327,212 @@ const ConversionReportsPage = ({name}) => {
     }
   };
 
-  const columns = [
+  // Dynamic columns based on groupBy type
+ const getColumns = () => {
+  // Common data columns for all cases
+  const dataColumns = [
     {
-      title: "Date",
-      dataIndex: "clickTime",
-      key: "clickTime",
-      render: (clickTime) =>
-        clickTime ? dayjs(clickTime).format("DD MMM YYYY") : "N/A",
-      sorter: false,
-      width: 120,
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      render: (value, record) => value || record.title || "N/A",
+      width: 200,
     },
     {
-      title: "Tracking ID",
-      dataIndex: "trackingId",
-      key: "trackingId",
-      render: (value) => value || "N/A",
+      title: "Clicks",
+      dataIndex: "grossClicks",
+      key: "grossClicks",
+      render: (value) => (parseInt(value) || 0).toLocaleString(),
       sorter: false,
+      align: "right",
       width: 100,
     },
     {
-      title: "Transaction ID",
-      dataIndex: "transactionId",
-      key: "transactionId",
-      render: (text) => text || "N/A",
-      width: 150,
+      title: "Conversions",
+      dataIndex: "totalConversions",
+      key: "totalConversions",
+      render: (value) => (parseInt(value) || 0).toLocaleString(),
+      sorter: false,
+      align: "right",
+      width: 120,
     },
     {
-      title: "Sale Amount",
-      dataIndex: "saleAmount",
-      key: "saleAmount",
-      render: (value, record) => {
-        if (!value) return "N/A";
-        const currency = record.currency || "$";
-        return `${currency}${parseFloat(value).toFixed(2)}`;
+      title: "Revenue",
+      dataIndex: "totalRevenue",
+      key: "totalRevenue",
+      render: (value) => {
+        if (!value || value === 0) return "$0.00";
+        return `$${parseFloat(value).toFixed(2)}`;
       },
       sorter: false,
       align: "right",
       width: 120,
     },
     {
-      title: "Currency",
-      dataIndex: "currency",
-      key: "currency",
-      render: (text) => text || "N/A",
-      width: 100,
+      title: "Payout",
+      dataIndex: "totalPayout",
+      key: "totalPayout",
+      render: (value) => {
+        if (!value || value === 0) return "$0.00";
+        return `$${parseFloat(value).toFixed(2)}`;
+      },
+      sorter: false,
+      align: "right",
+      width: 120,
     },
     {
-      title: "Click Count",
-      dataIndex: "clickCount",
-      key: "clickCount",
+      title: "Profit",
+      dataIndex: "totalProfit",
+      key: "totalProfit",
+      render: (value) => {
+        if (!value || value === 0) return "$0.00";
+        const profit = parseFloat(value);
+        return (
+          <span style={{ color: profit >= 0 ? 'green' : 'red' }}>
+            ${profit.toFixed(2)}
+          </span>
+        );
+      },
+      sorter: false,
+      align: "right",
+      width: 120,
+    },
+  ];
+
+  // Return the same columns for all groupBy cases
+  return dataColumns;
+};
+  // Common columns for all report types
+  const commonColumns = [
+    {
+      title: "Clicks",
+      dataIndex: "clicks",
+      key: "clicks",
       render: (value) => (value || 0).toLocaleString(),
       sorter: false,
       align: "right",
       width: 100,
     },
     {
-      title: "Session ID",
-      dataIndex: "sessionId",
-      key: "sessionId",
-      render: (text) =>
-        text ? (
-          <span style={{ fontFamily: "monospace", fontSize: "12px" }}>
-            {text.length > 12 ? `${text.substring(0, 12)}...` : text}
-          </span>
-        ) : (
-          "N/A"
-        ),
-      width: 130,
-    },
-    {
-      title: "Page URL",
-      dataIndex: "pageUrl",
-      key: "pageUrl",
-      render: (url) =>
-        url ? (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: "12px" }}
-          >
-            {url.length > 30 ? `${url.substring(0, 30)}...` : url}
-          </a>
-        ) : (
-          "N/A"
-        ),
-      width: 200,
-    },
-    {
-      title: "Pixel Type",
-      dataIndex: "pixelType",
-      key: "pixelType",
-      render: (type) => {
-        if (!type) return <Tag color="gray">N/A</Tag>;
-        const color = {
-          iframe: "blue",
-          image: "green",
-          sdk: "purple",
-        }[type.toLowerCase()] || "default";
-        return <Tag color={color}>{type.toUpperCase()}</Tag>;
-      },
-      width: 100,
-    },
-    {
-      title: "Event Type",
-      dataIndex: "eventType",
-      key: "eventType",
-      render: (type) => {
-        if (!type) return <Tag color="gray">N/A</Tag>;
-        const color = {
-          conversion: "gold",
-          lead: "blue",
-          signup: "green",
-        }[type.toLowerCase()] || "default";
-        return <Tag color={color}>{type.toUpperCase()}</Tag>;
-      },
-      width: 110,
-    },
-    {
-      title: "Conversion Time",
-      dataIndex: "conversionTime",
-      key: "conversionTime",
-      render: (conversionTime) =>
-        conversionTime
-          ? dayjs(conversionTime).format("DD MMM YYYY HH:mm")
-          : "N/A",
+      title: "Conversions",
+      dataIndex: "conversions",
+      key: "conversions",
+      render: (value) => (value || 0).toLocaleString(),
       sorter: false,
-      width: 140,
+      align: "right",
+      width: 120,
     },
     {
-      title: "Conversion Value",
-      dataIndex: "conversionValue",
-      key: "conversionValue",
+      title: "Revenue",
+      dataIndex: "revenue",
+      key: "revenue",
       render: (value, record) => {
-        if (!value || value === 0) return "N/A";
+        if (!value || value === 0) return "$0.00";
         const currency = record.currency || "$";
         return `${currency}${parseFloat(value).toFixed(2)}`;
+      },
+      sorter: false,
+      align: "right",
+      width: 120,
+    },
+    {
+      title: "Payout",
+      dataIndex: "payout",
+      key: "payout",
+      render: (value, record) => {
+        if (!value || value === 0) return "$0.00";
+        const currency = record.currency || "$";
+        return `${currency}${parseFloat(value).toFixed(2)}`;
+      },
+      sorter: false,
+      align: "right",
+      width: 120,
+    },
+    {
+      title: "Profit",
+      dataIndex: "profit",
+      key: "profit",
+      render: (value, record) => {
+        if (!value || value === 0) return "$0.00";
+        const currency = record.currency || "$";
+        const profit = parseFloat(value);
+        return (
+          <span style={{ color: profit >= 0 ? 'green' : 'red' }}>
+            {currency}{profit.toFixed(2)}
+          </span>
+        );
+      },
+      sorter: false,
+      align: "right",
+      width: 120,
+    },
+    {
+      title: "Conversion Rate",
+      dataIndex: "conversionRate",
+      key: "conversionRate",
+      render: (value) => {
+        if (!value || value === 0) return "0.00%";
+        return `${parseFloat(value).toFixed(2)}%`;
       },
       sorter: false,
       align: "right",
       width: 130,
     },
     {
-      title: "Conversion Status",
-      dataIndex: "conversionStatus",
-      key: "conversionStatus",
-      render: (status) => {
-        if (!status) return <Tag color="gray">N/A</Tag>;
-        const color = {
-          pending: "orange",
-          approved: "green",
-          rejected: "red",
-        }[status.toLowerCase()] || "default";
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+      title: "EPC",
+      dataIndex: "epc",
+      key: "epc",
+      render: (value, record) => {
+        if (!value || value === 0) return "$0.00";
+        const currency = record.currency || "$";
+        return `${currency}${parseFloat(value).toFixed(4)}`;
       },
-      width: 130,
-    },
-    {
-      title: "Created At",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (createdAt) =>
-        createdAt ? dayjs(createdAt).format("DD MMM YYYY HH:mm") : "N/A",
       sorter: false,
-      width: 140,
+      align: "right",
+      width: 100,
     },
   ];
 
+  const columns = [...getColumns()];
+
+  // Prepare initial filter values based on name prop
+  const getInitialFilterValues = () => {
+    const initialFilters = {
+      groupByOptions: {
+        [currentGroupBy]: true,
+      },
+      reportOptions: {
+        clicks: true,
+        conversions: true,
+        revenue: true,
+        payout: true,
+        profit: true,
+        conversionRate: true,
+        epc: true,
+      },
+    };
+    return initialFilters;
+  };
+
   useEffect(() => {
+    // Set initial filter values based on name prop
+    setAppliedFilters(getInitialFilterValues());
     fetchCampaigns();
-    fetchAllReports(1, 10);
-  }, []);
+    fetchMainReports(1, 10);
+  }, [name]);
 
 
 
+
+
+  
   return (
     <div style={{ padding: "24px" }}>
       <div style={{ marginBottom: "24px" }}>
         <Title level={2}>{name} Reports</Title>
+        <p style={{ color: "#666", marginTop: "8px" }}>
+          Viewing reports grouped by: <strong>{currentGroupBy}</strong>
+        </p>
       </div>
 
       {error && (
@@ -495,13 +545,16 @@ const ConversionReportsPage = ({name}) => {
           onClose={() => setError(null)}
         />
       )}
-      
+
       {/* Filter modal component */}
       <ConversionReportFilter
         visible={isFilterVisible}
         onClose={() => setIsFilterVisible(false)}
         onApply={handleApplyFilters}
-        initialValues={appliedFilters}
+        initialValues={{
+          ...appliedFilters,
+          ...getInitialFilterValues(),
+        }}
       />
 
       <Card style={{ marginBottom: "24px" }}>
@@ -560,39 +613,36 @@ const ConversionReportsPage = ({name}) => {
             </div>
           </Col>
         </Row>
-
       </Card>
 
-   
       <Table
-  columns={columns}
-  dataSource={reportData}
-  rowKey={(record) =>
-    `${record.id || record.transactionId || Math.random()}-${
-      record.trackingId || Math.random()
-    }`
-  }
-  style={{ fontSize: "12px", margin: 0, padding: 0 }}
-  pagination={{
-    ...pagination,
-    showSizeChanger: true,
-    showQuickJumper: true,
-    showTotal: (total, range) =>
-      `${range[0]}-${range[1]} of ${total} records`,
-    pageSizeOptions: ["10", "20", "50", "100"],
-  }}
-  scroll={{ x: 1400 }}
-  loading={reportsLoading}
-  locale={{
-    emptyText: "No reports data available",
-  }}
-  size="small"
-  bordered
-  onChange={handleTableChange}
-></Table>
+        columns={columns}
+        dataSource={reportData}
+        rowKey={(record) =>
+          `${record.id || record.campaignId || record.publisherId || Math.random()}-${
+            record.date || Math.random()
+          }`
+        }
+        style={{ fontSize: "12px", margin: 0, padding: 0 }}
+        pagination={{
+          ...pagination,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} records`,
+          pageSizeOptions: ["10", "20", "50", "100"],
+        }}
+        scroll={{ x: 1400 }}
+        loading={reportsLoading}
+        locale={{
+          emptyText: "No reports data available",
+        }}
+        size="small"
+        bordered
+        onChange={handleTableChange}
+      />
     </div>
   );
 };
 
-
-export default ConversionReportsPage; 
+export default ConversionReportsPage;

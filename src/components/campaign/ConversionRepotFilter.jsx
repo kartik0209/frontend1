@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Modal,
   Form,
@@ -15,13 +15,13 @@ import {
   Divider,
   message,
   Drawer,
-} from 'antd';
+} from "antd";
 import {
   FilterOutlined,
   SearchOutlined,
   SettingOutlined,
   ClearOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -34,7 +34,7 @@ const ConversionReportFilter = ({
   initialValues = {},
 }) => {
   const [form] = Form.useForm();
-  
+
   // Report Options State
   const [reportOptions, setReportOptions] = useState({
     uniqueClicks: false,
@@ -88,9 +88,9 @@ const ConversionReportFilter = ({
 
   // Search Filter State
   const [searchFilters, setSearchFilters] = useState({
-    campaign: '',
-    publisher: '',
-    advertiser: '',
+    campaign: "",
+    publisher: "",
+    advertiser: "",
     searchByCampaignIds: false,
     searchByPublisherIds: false,
     searchByAdvertiserIds: false,
@@ -162,102 +162,142 @@ const ConversionReportFilter = ({
     pixelType: null,
     eventType: null,
     conversionStatus: null,
-    transactionId: '',
-    trackingId: '',
+    transactionId: "",
+    trackingId: "",
     minAmount: null,
     maxAmount: null,
     ...initialValues.basicFilters,
   });
 
   // Search states
-  const [reportOptionsSearch, setReportOptionsSearch] = useState('');
-  const [groupBySearch, setGroupBySearch] = useState('');
+  const [reportOptionsSearch, setReportOptionsSearch] = useState("");
+  const [groupBySearch, setGroupBySearch] = useState("");
 
   // Handle changes
   const handleReportOptionChange = (option, checked) => {
-    setReportOptions(prev => ({
+    setReportOptions((prev) => ({
       ...prev,
-      [option]: checked
+      [option]: checked,
     }));
   };
 
   const handleSearchFilterChange = (field, value) => {
-    setSearchFilters(prev => ({
+    setSearchFilters((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleAdditionalFilterChange = (option, checked) => {
-    setAdditionalFilters(prev => ({
+    setAdditionalFilters((prev) => ({
       ...prev,
-      [option]: checked
+      [option]: checked,
     }));
   };
 
   const handleGroupByChange = (option, checked) => {
-    setGroupByOptions(prev => ({
+    setGroupByOptions((prev) => ({
       ...prev,
-      [option]: checked
+      [option]: checked,
     }));
   };
 
   const handleOtherOptionChange = (option, checked) => {
-    setOtherOptions(prev => ({
+    setOtherOptions((prev) => ({
       ...prev,
-      [option]: checked
+      [option]: checked,
     }));
   };
 
   const handleBasicFilterChange = (field, value) => {
-    setBasicFilters(prev => ({
+    setBasicFilters((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   // Clear functions
   const clearReportOptions = () => {
-    setReportOptions(Object.keys(reportOptions).reduce((acc, key) => ({ ...acc, [key]: false }), {}));
+    setReportOptions(
+      Object.keys(reportOptions).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
   };
 
   const selectAllReportOptions = () => {
-    setReportOptions(Object.keys(reportOptions).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+    setReportOptions(
+      Object.keys(reportOptions).reduce(
+        (acc, key) => ({ ...acc, [key]: true }),
+        {}
+      )
+    );
   };
 
   const clearGroupByOptions = () => {
-    setGroupByOptions(Object.keys(groupByOptions).reduce((acc, key) => ({ ...acc, [key]: false }), {}));
+    setGroupByOptions(
+      Object.keys(groupByOptions).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
   };
 
   const selectAllGroupByOptions = () => {
-    setGroupByOptions(Object.keys(groupByOptions).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+    setGroupByOptions(
+      Object.keys(groupByOptions).reduce(
+        (acc, key) => ({ ...acc, [key]: true }),
+        {}
+      )
+    );
   };
 
   const clearAllFilters = () => {
-    setReportOptions(Object.keys(reportOptions).reduce((acc, key) => ({ ...acc, [key]: false }), {}));
+    setReportOptions(
+      Object.keys(reportOptions).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
     setSearchFilters({
-      campaign: '',
-      publisher: '',
-      advertiser: '',
+      campaign: "",
+      publisher: "",
+      advertiser: "",
       searchByCampaignIds: false,
       searchByPublisherIds: false,
       searchByAdvertiserIds: false,
     });
-    setAdditionalFilters(Object.keys(additionalFilters).reduce((acc, key) => ({ ...acc, [key]: false }), {}));
-    setGroupByOptions(Object.keys(groupByOptions).reduce((acc, key) => ({ ...acc, [key]: false }), {}));
-    setOtherOptions(Object.keys(otherOptions).reduce((acc, key) => ({ ...acc, [key]: false }), {}));
+    setAdditionalFilters(
+      Object.keys(additionalFilters).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
+    setGroupByOptions(
+      Object.keys(groupByOptions).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
+    setOtherOptions(
+      Object.keys(otherOptions).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
     setBasicFilters({
       dateRange: null,
       pixelType: null,
       eventType: null,
       conversionStatus: null,
-      transactionId: '',
-      trackingId: '',
+      transactionId: "",
+      trackingId: "",
       minAmount: null,
       maxAmount: null,
     });
     form.resetFields();
-    message.success('All filter options reset to default');
+    message.success("All filter options reset to default");
   };
 
   const handleSubmit = () => {
@@ -269,74 +309,72 @@ const ConversionReportFilter = ({
       otherOptions,
       basicFilters,
     };
-    
+
     onApply(allFilters);
-    message.success('Filters applied successfully!');
+    message.success("Filters applied successfully!");
     onClose();
   };
 
   // Filter report options based on search
-  const filteredReportOptions = Object.keys(reportOptions).filter(key =>
+  const filteredReportOptions = Object.keys(reportOptions).filter((key) =>
     key.toLowerCase().includes(reportOptionsSearch.toLowerCase())
   );
 
   // Filter group by options based on search
-  const filteredGroupByOptions = Object.keys(groupByOptions).filter(key =>
+  const filteredGroupByOptions = Object.keys(groupByOptions).filter((key) =>
     key.toLowerCase().includes(groupBySearch.toLowerCase())
   );
 
   // Helper function to format option names
   const formatOptionName = (key) => {
-    return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    return key
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase());
   };
 
   return (
-    
-<Drawer
-  title={
-    <Space>
-      <FilterOutlined />
-      <span>Advanced Report Filters </span>
-    </Space>
-  }
-  placement="right"
-  closable={true}
-  onClose={onClose}
-  open={visible}
-  width={1200}
-  mask={true}
-  maskClosable={false}
-  destroyOnClose={true}
-  headerStyle={{
-    borderBottom: '1px solid #f0f0f0',
-    padding: '16px 24px'
-  }}
-  bodyStyle={{
-    padding: '0',
-    height: 'calc(100vh - 108px)',
-    overflow: 'hidden',
-    marginLeft:"10px"
-  }}
-  footerStyle={{
-    textAlign: 'right',
-    borderTop: '1px solid #f0f0f0',
-    padding: '12px 24px'
-  }}
-  footer={
-    <Space>
-      <Button icon={<ClearOutlined />} onClick={clearAllFilters}>
-        Clear All
-      </Button>
-      <Button onClick={onClose}>
-        Cancel
-      </Button>
-      <Button type="primary" onClick={handleSubmit}>
-        Apply Filters
-      </Button>
-    </Space>
-  }
->
-
+    <Drawer
+      title={
+        <Space>
+          <FilterOutlined />
+          <span>Advanced Report Filters </span>
+        </Space>
+      }
+      placement="right"
+      closable={true}
+      onClose={onClose}
+      open={visible}
+      width={1200}
+      mask={true}
+      maskClosable={false}
+      destroyOnClose={true}
+      headerStyle={{
+        borderBottom: "1px solid #f0f0f0",
+        padding: "16px 24px",
+      }}
+      bodyStyle={{
+        padding: "0",
+        height: "calc(100vh - 108px)",
+        overflow: "hidden",
+        marginLeft: "10px",
+      }}
+      footerStyle={{
+        textAlign: "right",
+        borderTop: "1px solid #f0f0f0",
+        padding: "12px 24px",
+      }}
+      footer={
+        <Space>
+          <Button icon={<ClearOutlined />} onClick={clearAllFilters}>
+            Clear All
+          </Button>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="primary" onClick={handleSubmit}>
+            Apply Filters
+          </Button>
+        </Space>
+      }
+    >
       <Form form={form} layout="vertical">
         <Tabs defaultActiveKey="1" type="card">
           {/* Report Options Tab */}
@@ -358,12 +396,8 @@ const ConversionReportFilter = ({
                   value={reportOptionsSearch}
                   onChange={(e) => setReportOptionsSearch(e.target.value)}
                 />
-                <Button onClick={clearReportOptions}>
-                  Clear
-                </Button>
-                <Button onClick={selectAllReportOptions}>
-                  Select All
-                </Button>
+                <Button onClick={clearReportOptions}>Clear</Button>
+                <Button onClick={selectAllReportOptions}>Select All</Button>
               </Space>
             </div>
             <Row gutter={[16, 8]}>
@@ -371,7 +405,9 @@ const ConversionReportFilter = ({
                 <Col span={6} key={option}>
                   <Checkbox
                     checked={reportOptions[option]}
-                    onChange={(e) => handleReportOptionChange(option, e.target.checked)}
+                    onChange={(e) =>
+                      handleReportOptionChange(option, e.target.checked)
+                    }
                   >
                     {formatOptionName(option)}
                   </Checkbox>
@@ -393,51 +429,72 @@ const ConversionReportFilter = ({
             <Row gutter={[24, 16]}>
               <Col span={8}>
                 <Form.Item label="Campaign">
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
                     <Checkbox
                       checked={searchFilters.searchByCampaignIds}
-                      onChange={(e) => handleSearchFilterChange('searchByCampaignIds', e.target.checked)}
+                      onChange={(e) =>
+                        handleSearchFilterChange(
+                          "searchByCampaignIds",
+                          e.target.checked
+                        )
+                      }
                     >
                       Search By IDs
                     </Checkbox>
                     <Input
                       placeholder="Start typing to search campaign"
                       value={searchFilters.campaign}
-                      onChange={(e) => handleSearchFilterChange('campaign', e.target.value)}
+                      onChange={(e) =>
+                        handleSearchFilterChange("campaign", e.target.value)
+                      }
                     />
                   </Space>
                 </Form.Item>
               </Col>
               <Col span={8}>
                 <Form.Item label="Publisher">
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
                     <Checkbox
                       checked={searchFilters.searchByPublisherIds}
-                      onChange={(e) => handleSearchFilterChange('searchByPublisherIds', e.target.checked)}
+                      onChange={(e) =>
+                        handleSearchFilterChange(
+                          "searchByPublisherIds",
+                          e.target.checked
+                        )
+                      }
                     >
                       Search By IDs
                     </Checkbox>
                     <Input
                       placeholder="Choose one or many Publisher"
                       value={searchFilters.publisher}
-                      onChange={(e) => handleSearchFilterChange('publisher', e.target.value)}
+                      onChange={(e) =>
+                        handleSearchFilterChange("publisher", e.target.value)
+                      }
                     />
                   </Space>
                 </Form.Item>
               </Col>
               <Col span={8}>
                 <Form.Item label="Advertiser">
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
                     <Checkbox
                       checked={searchFilters.searchByAdvertiserIds}
-                      onChange={(e) => handleSearchFilterChange('searchByAdvertiserIds', e.target.checked)}
+                      onChange={(e) =>
+                        handleSearchFilterChange(
+                          "searchByAdvertiserIds",
+                          e.target.checked
+                        )
+                      }
                     >
                       Search By IDs
                     </Checkbox>
                     <Input
                       placeholder="Choose one or many advertisers"
                       value={searchFilters.advertiser}
-                      onChange={(e) => handleSearchFilterChange('advertiser', e.target.value)}
+                      onChange={(e) =>
+                        handleSearchFilterChange("advertiser", e.target.value)
+                      }
                     />
                   </Space>
                 </Form.Item>
@@ -450,7 +507,9 @@ const ConversionReportFilter = ({
                 <Col span={4} key={option}>
                   <Checkbox
                     checked={additionalFilters[option]}
-                    onChange={(e) => handleAdditionalFilterChange(option, e.target.checked)}
+                    onChange={(e) =>
+                      handleAdditionalFilterChange(option, e.target.checked)
+                    }
                   >
                     {formatOptionName(option)}
                   </Checkbox>
@@ -478,12 +537,8 @@ const ConversionReportFilter = ({
                   value={groupBySearch}
                   onChange={(e) => setGroupBySearch(e.target.value)}
                 />
-                <Button onClick={clearGroupByOptions}>
-                  Clear
-                </Button>
-                <Button onClick={selectAllGroupByOptions}>
-                  Select All
-                </Button>
+                <Button onClick={clearGroupByOptions}>Clear</Button>
+                <Button onClick={selectAllGroupByOptions}>Select All</Button>
               </Space>
             </div>
             <Row gutter={[16, 8]}>
@@ -491,7 +546,9 @@ const ConversionReportFilter = ({
                 <Col span={6} key={option}>
                   <Checkbox
                     checked={groupByOptions[option]}
-                    onChange={(e) => handleGroupByChange(option, e.target.checked)}
+                    onChange={(e) =>
+                      handleGroupByChange(option, e.target.checked)
+                    }
                   >
                     {formatOptionName(option)}
                   </Checkbox>
@@ -515,7 +572,9 @@ const ConversionReportFilter = ({
                 <Col span={12} key={option}>
                   <Checkbox
                     checked={otherOptions[option]}
-                    onChange={(e) => handleOtherOptionChange(option, e.target.checked)}
+                    onChange={(e) =>
+                      handleOtherOptionChange(option, e.target.checked)
+                    }
                   >
                     {formatOptionName(option)}
                   </Checkbox>
@@ -538,9 +597,11 @@ const ConversionReportFilter = ({
               <Col xs={24} sm={12} md={8}>
                 <Form.Item label="Date Range">
                   <RangePicker
-                    style={{ width: '100%' }}
+                    style={{ width: "100%" }}
                     value={basicFilters.dateRange}
-                    onChange={(dates) => handleBasicFilterChange('dateRange', dates)}
+                    onChange={(dates) =>
+                      handleBasicFilterChange("dateRange", dates)
+                    }
                     format="DD MMM YYYY"
                   />
                 </Form.Item>
@@ -551,8 +612,10 @@ const ConversionReportFilter = ({
                     placeholder="Select Pixel Type"
                     allowClear
                     value={basicFilters.pixelType}
-                    onChange={(value) => handleBasicFilterChange('pixelType', value)}
-                    style={{ width: '100%' }}
+                    onChange={(value) =>
+                      handleBasicFilterChange("pixelType", value)
+                    }
+                    style={{ width: "100%" }}
                   >
                     <Option value="iframe">IFRAME</Option>
                     <Option value="image">IMAGE</Option>
@@ -566,8 +629,10 @@ const ConversionReportFilter = ({
                     placeholder="Select Event Type"
                     allowClear
                     value={basicFilters.eventType}
-                    onChange={(value) => handleBasicFilterChange('eventType', value)}
-                    style={{ width: '100%' }}
+                    onChange={(value) =>
+                      handleBasicFilterChange("eventType", value)
+                    }
+                    style={{ width: "100%" }}
                   >
                     <Option value="conversion">CONVERSION</Option>
                     <Option value="lead">LEAD</Option>
@@ -581,8 +646,10 @@ const ConversionReportFilter = ({
                     placeholder="Select Status"
                     allowClear
                     value={basicFilters.conversionStatus}
-                    onChange={(value) => handleBasicFilterChange('conversionStatus', value)}
-                    style={{ width: '100%' }}
+                    onChange={(value) =>
+                      handleBasicFilterChange("conversionStatus", value)
+                    }
+                    style={{ width: "100%" }}
                   >
                     <Option value="pending">PENDING</Option>
                     <Option value="approved">APPROVED</Option>
@@ -595,7 +662,9 @@ const ConversionReportFilter = ({
                   <Input
                     placeholder="Search Transaction ID"
                     value={basicFilters.transactionId}
-                    onChange={(e) => handleBasicFilterChange('transactionId', e.target.value)}
+                    onChange={(e) =>
+                      handleBasicFilterChange("transactionId", e.target.value)
+                    }
                     allowClear
                   />
                 </Form.Item>
@@ -605,7 +674,9 @@ const ConversionReportFilter = ({
                   <Input
                     placeholder="Search Tracking ID"
                     value={basicFilters.trackingId}
-                    onChange={(e) => handleBasicFilterChange('trackingId', e.target.value)}
+                    onChange={(e) =>
+                      handleBasicFilterChange("trackingId", e.target.value)
+                    }
                     allowClear
                   />
                 </Form.Item>
@@ -615,8 +686,10 @@ const ConversionReportFilter = ({
                   <InputNumber
                     placeholder="Min Amount"
                     value={basicFilters.minAmount}
-                    onChange={(value) => handleBasicFilterChange('minAmount', value)}
-                    style={{ width: '100%' }}
+                    onChange={(value) =>
+                      handleBasicFilterChange("minAmount", value)
+                    }
+                    style={{ width: "100%" }}
                     min={0}
                   />
                 </Form.Item>
@@ -626,8 +699,10 @@ const ConversionReportFilter = ({
                   <InputNumber
                     placeholder="Max Amount"
                     value={basicFilters.maxAmount}
-                    onChange={(value) => handleBasicFilterChange('maxAmount', value)}
-                    style={{ width: '100%' }}
+                    onChange={(value) =>
+                      handleBasicFilterChange("maxAmount", value)
+                    }
+                    style={{ width: "100%" }}
                     min={0}
                   />
                 </Form.Item>
