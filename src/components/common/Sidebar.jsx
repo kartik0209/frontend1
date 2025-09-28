@@ -164,11 +164,12 @@ const handleMenuClick = ({ key }) => {
               icon={<BarChartOutlined />}
               title="Reports"
             >
-              <Menu.Item
-                key="/reports/conversion"
+            
+                <Menu.Item
+                key="/reports/conversion-old"
                 icon={<FileTextOutlined />}
               >
-                Conversion Report
+                Conversion Report  
               </Menu.Item>
               <Menu.Item key="/reports/campaign" icon={<FileTextOutlined />}>
               Click Report
@@ -181,6 +182,9 @@ const handleMenuClick = ({ key }) => {
               </Menu.Item>
                  <Menu.Item key="/reports/conversion-campaign" icon={<FileTextOutlined />}>
                 Campaign Report
+              </Menu.Item>
+                <Menu.Item key="/reports/daily" icon={<FileTextOutlined />}>
+                Daily Report
               </Menu.Item>
             </SubMenu>
           )}

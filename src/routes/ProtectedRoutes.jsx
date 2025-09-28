@@ -10,6 +10,7 @@ import AdvertiserManagement from "../pages/AdvertiserManagement";
 import CampaignDetailPage from "../pages/CampaignDetailPage";
 import PublisherDetailsPage from "../pages/PublisherDetails";
 import AdvertiserDetailsPage from "../pages/AdvertiserDetailsPage";
+import ConversionReportsPageOld from "../pages/ConversionReportPage-Old";
 
 // Lazy load components for better performance
 const Dashboard = lazy(() => import("../pages/Dashboard"));
@@ -20,17 +21,15 @@ const CampaignCreator = lazy(() => import("../pages/CampaignCreator"));
 const CampaignManagement = lazy(() => import("../pages/CampaignManagement"));
 const PublisherManagement = lazy(() => import("../pages/PublisherManagement"));
 const CampaignReportsPage = lazy(() => import("../pages/CampaignReportsPage"));
-const ConversionReportsPage = lazy(() => import("../pages/ConversionReportsPage"));
-
-
+const ConversionReportsPage = lazy(() =>
+  import("../pages/ConversionReportsPage")
+);
 
 const ProtectedRoutes = () => {
   const { isAuthenticated, user, permissions } = useSelector(
     (state) => state.auth
   );
   const location = useLocation();
-
-
 
   // Redirect unauthenticated users to login
   if (!isAuthenticated) {
@@ -43,10 +42,7 @@ const ProtectedRoutes = () => {
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           {/* Only redirect root path to dashboard */}
-          <Route 
-            path="/" 
-            element={<Navigate to="/dashboard" replace />} 
-          />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           <Route
             path="/dashboard"
@@ -142,7 +138,16 @@ const ProtectedRoutes = () => {
               </ProtectedRoute>
             }
           />
-            <Route
+
+              <Route
+            path="/reports/conversion-old"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
+                <ConversionReportsPageOld name={"Conversion"} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/reports/publisher"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
@@ -151,24 +156,32 @@ const ProtectedRoutes = () => {
             }
           />
 
-  <Route
+          <Route
             path="/reports/advertisher"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
-                <ConversionReportsPage name ={"Advertisher"} />
+                <ConversionReportsPage name={"Advertisher"} />
               </ProtectedRoute>
             }
           />
 
-  <Route
+          <Route
             path="/reports/conversion-campaign"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
-                <ConversionReportsPage name={"camapign"}/>
+                <ConversionReportsPage name={"camapign"} />
               </ProtectedRoute>
             }
           />
 
+              <Route
+            path="/reports/daily"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
+                <ConversionReportsPage name={"daily"} />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/reports/campaign"

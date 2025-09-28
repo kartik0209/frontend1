@@ -50,6 +50,7 @@ const ConversionReportsPage = ({ name }) => {
     const nameLower = name.toLowerCase();
     if (nameLower.includes("campaign")) return "campaign";
     if (nameLower.includes("publisher")) return "publisher";
+    if (nameLower.includes("advertisher")) return "advertiser";
     if (nameLower.includes("daily") || nameLower.includes("day")) return "day";
     return "campaign"; // default
   };
@@ -331,6 +332,14 @@ const ConversionReportsPage = ({ name }) => {
  const getColumns = () => {
   // Common data columns for all cases
   const dataColumns = [
+
+    getGroupByFromName(name) === "day" ? {
+      title: "Day",
+      dataIndex: "Day",
+      key: "Day",
+      
+      width: 120,
+    }:
     {
       title: "Name",
       dataIndex: "name",
@@ -403,96 +412,7 @@ const ConversionReportsPage = ({ name }) => {
   return dataColumns;
 };
   // Common columns for all report types
-  const commonColumns = [
-    {
-      title: "Clicks",
-      dataIndex: "clicks",
-      key: "clicks",
-      render: (value) => (value || 0).toLocaleString(),
-      sorter: false,
-      align: "right",
-      width: 100,
-    },
-    {
-      title: "Conversions",
-      dataIndex: "conversions",
-      key: "conversions",
-      render: (value) => (value || 0).toLocaleString(),
-      sorter: false,
-      align: "right",
-      width: 120,
-    },
-    {
-      title: "Revenue",
-      dataIndex: "revenue",
-      key: "revenue",
-      render: (value, record) => {
-        if (!value || value === 0) return "$0.00";
-        const currency = record.currency || "$";
-        return `${currency}${parseFloat(value).toFixed(2)}`;
-      },
-      sorter: false,
-      align: "right",
-      width: 120,
-    },
-    {
-      title: "Payout",
-      dataIndex: "payout",
-      key: "payout",
-      render: (value, record) => {
-        if (!value || value === 0) return "$0.00";
-        const currency = record.currency || "$";
-        return `${currency}${parseFloat(value).toFixed(2)}`;
-      },
-      sorter: false,
-      align: "right",
-      width: 120,
-    },
-    {
-      title: "Profit",
-      dataIndex: "profit",
-      key: "profit",
-      render: (value, record) => {
-        if (!value || value === 0) return "$0.00";
-        const currency = record.currency || "$";
-        const profit = parseFloat(value);
-        return (
-          <span style={{ color: profit >= 0 ? 'green' : 'red' }}>
-            {currency}{profit.toFixed(2)}
-          </span>
-        );
-      },
-      sorter: false,
-      align: "right",
-      width: 120,
-    },
-    {
-      title: "Conversion Rate",
-      dataIndex: "conversionRate",
-      key: "conversionRate",
-      render: (value) => {
-        if (!value || value === 0) return "0.00%";
-        return `${parseFloat(value).toFixed(2)}%`;
-      },
-      sorter: false,
-      align: "right",
-      width: 130,
-    },
-    {
-      title: "EPC",
-      dataIndex: "epc",
-      key: "epc",
-      render: (value, record) => {
-        if (!value || value === 0) return "$0.00";
-        const currency = record.currency || "$";
-        return `${currency}${parseFloat(value).toFixed(4)}`;
-      },
-      sorter: false,
-      align: "right",
-      width: 100,
-    },
-  ];
-
+ 
   const columns = [...getColumns()];
 
   // Prepare initial filter values based on name prop
