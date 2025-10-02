@@ -12,8 +12,6 @@ export const columnOptions = [
   { key: "managers", label: "Managers" },
   { key: "website_url", label: "Website URL" },
   { key: "country", label: "Country" },
-  { key: "city", label: "City" },
-  { key: "currency", label: "Currency" },
   { key: "entity_type", label: "Entity Type" },
   { key: "tags", label: "Tags" },
   { key: "notes", label: "Notes" },
@@ -184,22 +182,6 @@ export const baseColumns = [
         : 'N/A',
   },
   {
-    title: "Country",
-    dataIndex: "country",
-    key: "country",
-    width: 120,
-    sorter: true,
-    ellipsis: true,
-  },
-  {
-    title: "City",
-    dataIndex: "city",
-    key: "city",
-    width: 120,
-    sorter: true,
-    ellipsis: true,
-  },
-  {
     title: "Currency",
     dataIndex: "currency",
     key: "currency",
@@ -229,25 +211,6 @@ export const baseColumns = [
     ],
   },
   {
-    title: "Tags",
-    dataIndex: "tags",
-    key: "tags",
-    width: 200,
-    ellipsis: true,
-    render: (tags) => {
-      if (!tags || tags.length === 0) return 'No tags';
-      const displayed = tags.slice(0, 2).map((tag, i) =>
-        React.createElement(Tag, { key: i, color: 'blue', style: { marginBottom: 4 } }, tag)
-      );
-      if (tags.length > 2) {
-        displayed.push(
-          React.createElement(Tag, { key: 'more', color: 'default' }, `+${tags.length - 2} more`)
-        );
-      }
-      return displayed;
-    },
-  },
-  {
     title: "Notes",
     dataIndex: "notes",
     key: "notes",
@@ -267,20 +230,20 @@ export const baseColumns = [
     render: (notify) =>
       React.createElement(Tag, { color: notify ? 'green' : 'red' }, notify ? 'Enabled' : 'Disabled'),
   },
-  {
-    title: "Created Date",
-    dataIndex: "created_at",
-    key: "created_at",
-    width: 120,
-    sorter: true,
-    render: (date) => (date ? new Date(date).toLocaleDateString() : 'N/A'),
-  },
-  {
-    title: "Last Updated",
-    dataIndex: "updated_at",
-    key: "updated_at",
-    width: 120,
-    sorter: true,
-    render: (date) => (date ? new Date(date).toLocaleDateString() : 'N/A'),
-  },
+  // {
+  //   title: "Created Date",
+  //   dataIndex: "created_at",
+  //   key: "created_at",
+  //   width: 120,
+  //   sorter: true,
+  //   render: (date) => (date ? new Date(date).toLocaleDateString() : 'N/A'),
+  // },
+  // {
+  //   title: "Last Updated",
+  //   dataIndex: "updated_at",
+  //   key: "updated_at",
+  //   width: 120,
+  //   sorter: true,
+  //   render: (date) => (date ? new Date(date).toLocaleDateString() : 'N/A'),
+  // },
 ];

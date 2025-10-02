@@ -1,56 +1,70 @@
 import React from "react";
-import { Form, Row, Col, Input, Select, Button, Space, Switch, Tag } from "antd";
+import {
+  Form,
+  Row,
+  Col,
+  Input,
+  Select,
+  Button,
+  Space,
+  Switch,
+  Tag,
+} from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { Country, State, City } from 'country-state-city';
-import PhoneInput from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
-import currencyList from 'currency-list';
+import { Country, State, City } from "country-state-city";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+import currencyList from "currency-list";
 import currencyCodes from "currency-codes";
 
 // Map the data to AntD Select options
 
-
 const { Option } = Select;
 const { TextArea } = Input;
 
-const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) => {
+const AdvertiserForm = ({
+  form,
+  onFinish,
+  onCancel,
+  loading,
+  isEdit = false,
+}) => {
   const [tags, setTags] = React.useState([]);
   const [inputVisible, setInputVisible] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState('');
- // const [states, setStates] = React.useState([]);
- // const [cities, setCities] = React.useState([]);
- // const [selectedCountry, setSelectedCountry] = React.useState('');
+  const [inputValue, setInputValue] = React.useState("");
+  // const [states, setStates] = React.useState([]);
+  // const [cities, setCities] = React.useState([]);
+  // const [selectedCountry, setSelectedCountry] = React.useState('');
   //const [selectedState, setSelectedState] = React.useState('');
   const [phoneValue, setPhoneValue] = React.useState();
-//
- // const allCountries = Country.getAllCountries();
+  //
+  // const allCountries = Country.getAllCountries();
 
+  //   const currencyOptions = currencyCodes.data.map((currency) => ({
+  //   code: currency.code,
+  //   label: `${currency.code} - ${currency.currency}`,
+  // }));
 
-//   const currencyOptions = currencyCodes.data.map((currency) => ({
-//   code: currency.code,
-//   label: `${currency.code} - ${currency.currency}`,
-// }));
-  
-//   const handleCountryChange = (value) => {
-//     setSelectedCountry(value);
-//     setSelectedState('');
-//     setCities([]);
-    
-//     const countryStates = State.getStatesOfCountry(value);
-//     setStates(countryStates);
-    
-//     form.setFieldsValue({ 
-//       state: undefined, 
-//       city: undefined 
-//     });
-//   };
+  //   const handleCountryChange = (value) => {
+  //     setSelectedCountry(value);
+  //     setSelectedState('');
+  //     setCities([]);
+
+  //     const countryStates = State.getStatesOfCountry(value);
+  //     setStates(countryStates);
+
+  //     form.setFieldsValue({
+  //       state: undefined,
+  //       city: undefined
+  //     });
+  //   };
 
   // const handleStateChange = (value) => {
   //   setSelectedState(value);
-    
+
   //   const stateCities = City.getCitiesOfState(selectedCountry, value);
   //   setCities(stateCities);
-    
+
   //   form.setFieldsValue({ city: undefined });
   // };
 
@@ -80,11 +94,11 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
       form.setFieldsValue({ tags: newTags });
     }
     setInputVisible(false);
-    setInputValue('');
+    setInputValue("");
   };
 
   React.useEffect(() => {
-    const formTags = form.getFieldValue('tags') || [];
+    const formTags = form.getFieldValue("tags") || [];
     setTags(formTags);
   }, [form]);
 
@@ -98,7 +112,7 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
           <Form.Item
-            label="Name"
+            label="Full Name"
             name="name"
             rules={[{ required: true, message: "Please enter name" }]}
           >
@@ -111,7 +125,7 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
             name="email"
             rules={[
               { required: true, message: "Please enter email" },
-              { type: "email", message: "Please enter valid email" }
+              { type: "email", message: "Please enter valid email" },
             ]}
           >
             <Input placeholder="Enter email address" />
@@ -121,21 +135,13 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
 
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
-          <Form.Item
-            label="Company/ Organaizor Name"
-            name="companyName"
-           
-          >
+          <Form.Item label="Company/ Organaizor Name" name="companyName">
             <Input placeholder="Enter company / organigore name" />
           </Form.Item>
         </Col>
 
-            <Col xs={24} sm={12}>
-          <Form.Item
-            label="Managers"
-            name="managers"
-            rules={[{ required: true, message: "Please enter manager name" }]}
-          >
+        <Col xs={24} sm={12}>
+          <Form.Item label=" Acount Managers" name="managers">
             <Input placeholder="Enter manager name" />
           </Form.Item>
         </Col>
@@ -160,10 +166,10 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
           <Form.Item
-            label="Status"
+            label=" Acount Status"
             name="status"
-            rules={[{ required: true, message: "Please select status" }]}
             initialValue="Pending"
+            rules={[{ required: true, message: "Please select status" }]}
           >
             <Select placeholder="Select status">
               <Option value="Pending">Pending</Option>
@@ -177,11 +183,7 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
           </Form.Item>
         </Col>
         <Col xs={24} sm={12}>
-          <Form.Item
-            label="Reference ID"
-            name="reference_id"
-            rules={[{ required: true, message: "Please enter reference ID" }]}
-          >
+          <Form.Item label="Reference ID" name="reference_id">
             <Input placeholder="Enter reference ID" />
           </Form.Item>
         </Col>
@@ -194,8 +196,7 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
               label="Password"
               name="password"
               rules={[
-                { required: true, message: "Please enter password" },
-                { min: 6, message: "Password must be at least 6 characters" }
+                { min: 6, message: "Password must be at least 6 characters" },
               ]}
             >
               <Input.Password placeholder="Enter password" />
@@ -205,7 +206,6 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
       )}
 
       <Row gutter={[16, 16]}>
-    
         {/* <Col xs={24} sm={12}>
           <Form.Item
             label="Website URL"
@@ -328,8 +328,6 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
         </Col>
       </Row> */}
 
-  
-
       {/* <Row gutter={[16, 16]}>
         <Col xs={24}>
           <Form.Item
@@ -370,13 +368,10 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
 
       <Row gutter={[16, 16]}>
         <Col xs={24}>
-          <Form.Item
-            label="Notes"
-            name="notes"
-          >
-            <TextArea 
-              rows={4} 
-              placeholder="Enter notes about the advertiser" 
+          <Form.Item label="Notes" name="notes">
+            <TextArea
+              rows={4}
+              placeholder="Enter notes about the advertiser"
               maxLength={500}
               showCount
             />
@@ -384,86 +379,79 @@ const AdvertiserForm = ({ form, onFinish, onCancel, loading, isEdit = false }) =
         </Col>
       </Row>
 
+      <Row gutter={[16, 16]}>
+        <Col xs={24}>
+          <h3 style={{ marginTop: 24, marginBottom: 16, fontWeight: 600 }}>
+            Signup Questions
+          </h3>
+        </Col>
+      </Row>
 
-<Row gutter={[16, 16]}>
-  <Col xs={24}>
-    <h3 style={{ marginTop: 24, marginBottom: 16, fontWeight: 600 }}>Signup Questions</h3>
-  </Col>
-</Row>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="Phone"
+            name="phone"
+            rules={[{ required: true, message: "Please enter phone number" }]}
+          >
+            <PhoneInput
+              placeholder="Enter phone number"
+              value={phoneValue}
+              onChange={handlePhoneChange}
+              defaultCountry="US"
+              international
+              countryCallingCodeEditable={false}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="Company Name"
+            name="company"
+            rules={[{ required: true, message: "Please enter company name" }]}
+          >
+            <Input placeholder="Enter company name" />
+          </Form.Item>
+        </Col>
+      </Row>
 
-<Row gutter={[16, 16]}>
-  <Col xs={24} sm={12}>
-    <Form.Item
-      label="Phone"
-      name="phone"
-      rules={[{ required: true, message: "Please enter phone number" }]}
-    >
-      <PhoneInput
-        placeholder="Enter phone number"
-        value={phoneValue}
-        onChange={handlePhoneChange}
-        defaultCountry="US"
-        international
-        countryCallingCodeEditable={false}
-      />
-    </Form.Item>
-  </Col>
-  <Col xs={24} sm={12}>
-    <Form.Item
-      label="Company Name"
-      name="company"
-      rules={[{ required: true, message: "Please enter company name" }]}
-    >
-      <Input placeholder="Enter company name" />
-    </Form.Item>
-  </Col>
-</Row>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="Entity Type"
+            name="entity_type"
+            rules={[{ required: true, message: "Please select entity type" }]}
+          >
+            <Select placeholder="Select entity type">
+              <Option value="Agency">Agency</Option>
+              <Option value="Direct Advertiser">Direct Advertiser</Option>
+              <Option value="Network">Network</Option>
+              <Option value="Individual">Individual</Option>
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="Website URL"
+            name="website_url"
+            rules={[
+              { required: true, message: "Please enter website URL" },
+              { type: "url", message: "Please enter valid URL" },
+            ]}
+          >
+            <Input placeholder="Enter website URL" />
+          </Form.Item>
+        </Col>
+      </Row>
 
-<Row gutter={[16, 16]}>
-  <Col xs={24} sm={12}>
-    <Form.Item
-      label="Entity Type"
-      name="entity_type"
-      rules={[{ required: true, message: "Please select entity type" }]}
-    >
-      <Select placeholder="Select entity type">
-        <Option value="Agency">Agency</Option>
-        <Option value="Direct Advertiser">Direct Advertiser</Option>
-        <Option value="Network">Network</Option>
-        <Option value="Individual">Individual</Option>
-      </Select>
-    </Form.Item>
-  </Col>
-  <Col xs={24} sm={12}>
-    <Form.Item
-      label="Website URL"
-      name="website_url"
-      rules={[
-        { required: true, message: "Please enter website URL" },
-        { type: "url", message: "Please enter valid URL" }
-      ]}
-    >
-      <Input placeholder="Enter website URL" />
-    </Form.Item>
-  </Col>
-</Row>
-
-<Row gutter={[16, 16]}>
-  <Col xs={24}>
-    <Form.Item
-      name="notify"
-      valuePropName="checked"
-      initialValue={false}
-    >
-      <Switch 
-        checkedChildren="Yes" 
-        unCheckedChildren="No" 
-      /> 
-      <span style={{ marginLeft: 8 }}>Notify this user by email</span>
-    </Form.Item>
-  </Col>
-</Row>
-
+      <Row gutter={[16, 16]}>
+        <Col xs={24}>
+          <Form.Item name="notify" valuePropName="checked" initialValue={false}>
+            <Switch checkedChildren="Yes" unCheckedChildren="No" />
+            <span style={{ marginLeft: 8 }}>Notify this user by email</span>
+          </Form.Item>
+        </Col>
+      </Row>
 
       <div className="form-actions">
         <Space>

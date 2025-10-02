@@ -156,12 +156,12 @@ const ConversionReportsPage = ({ name }) => {
       if (response.data?.success) {
         const reports = response.data.data?.reports || response.data.data || [];
         const total =
-          response.data.data?.total ||
+          response.data.total ||
           response.data.totalCount ||
           reports.length;
 
         setReportData(Array.isArray(reports) ? reports : []);
-
+console.log('Fetched reports:', true);
         setPagination((prev) => ({
           ...prev,
           current: page,
@@ -337,10 +337,30 @@ const ConversionReportsPage = ({ name }) => {
       title: "Day",
       dataIndex: "Day",
       key: "Day",
-      
       width: 120,
     }:
-    {
+    getGroupByFromName(name) === "campaign" ? {
+      title: "Campaign",
+      dataIndex: "campaign",
+      key: "campaign",
+      width:120,
+
+      render: (value, record) => value || record.campaign || "N/A",
+    }
+   : getGroupByFromName(name) === "publisher" ? {
+      title: "Publisher",
+      dataIndex: "publisher",
+      key: "publisher",
+      width:120,
+
+    } 
+   : getGroupByFromName(name) === "advertiser" ? {
+      title: "Advertiser",
+      dataIndex: "advertiser",
+      key: "advertiser",
+      width:120,
+    } 
+    : {
       title: "Name",
       dataIndex: "name",
       key: "name",
