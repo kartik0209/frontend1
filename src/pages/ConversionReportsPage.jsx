@@ -12,22 +12,33 @@ import {
   Tag,
   Typography,
   message,
+  DatePicker,
 } from "antd";
 import {
   ReloadOutlined,
   DownloadOutlined,
   FilterOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
 import ConversionReportFilter from "../components/campaign/ConversionRepotFilter";
+import "../styles/ConversionReportsPage.scss";
 
 const { Option } = Select;
 const { Title } = Typography;
+const { RangePicker } = DatePicker;
 
 const ConversionReportsPage = ({ name }) => {
   const [campaigns, setCampaigns] = useState([]);
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [publishers, setPublishers] = useState([]);
+  const [advertisers, setAdvertisers] = useState([]);
+  const [selectedCampaigns, setSelectedCampaigns] = useState([]);
+  const [selectedPublishers, setSelectedPublishers] = useState([]);
+  const [selectedAdvertisers, setSelectedAdvertisers] = useState([]);
+  const [dateRange, setDateRange] = useState(null);
+  const [dateRangeType, setDateRangeType] = useState("today"); // New state for dropdown selection
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const [campaignDetails, setCampaignDetails] = useState(null);
   const [reportData, setReportData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,14 +54,48 @@ const ConversionReportsPage = ({ name }) => {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState({});
 
+  // Date range presets
+  const getDateRangeByType = (type) => {
+    switch (type) {
+      case "today":
+        return [dayjs().startOf("day"), dayjs().endOf("day")];
+      case "yesterday":
+        return [
+          dayjs().subtract(1, "day").startOf("day"),
+          dayjs().subtract(1, "day").endOf("day"),
+        ];
+      case "last7days":
+        return [
+          dayjs().subtract(6, "day").startOf("day"),
+          dayjs().endOf("day"),
+        ];
+      case "last30days":
+        return [
+          dayjs().subtract(29, "day").startOf("day"),
+          dayjs().endOf("day"),
+        ];
+      case "thismonth":
+        return [dayjs().startOf("month"), dayjs().endOf("month")];
+      case "lastmonth":
+        return [
+          dayjs().subtract(1, "month").startOf("month"),
+          dayjs().subtract(1, "month").endOf("month"),
+        ];
+      case "custom":
+        return dateRange;
+      default:
+        return [dayjs().startOf("day"), dayjs().endOf("day")];
+    }
+  };
+
   // Determine groupBy based on name prop
   const getGroupByFromName = (name) => {
     if (!name) return "campaign";
-    
+
     const nameLower = name.toLowerCase();
     if (nameLower.includes("campaign")) return "campaign";
     if (nameLower.includes("publisher")) return "publisher";
-    if (nameLower.includes("advertisher")) return "advertiser";
+    if (nameLower.includes("advertiser")) return "advertiser";
     if (nameLower.includes("daily") || nameLower.includes("day")) return "day";
     return "campaign"; // default
   };
@@ -58,26 +103,23 @@ const ConversionReportsPage = ({ name }) => {
   const currentGroupBy = getGroupByFromName(name);
 
   // Helper function to build the query string from applied filters
-  const buildFilterQuery = (filters) => {
+  const buildFilterQuery = (filters, customDateRange = null) => {
     const params = new URLSearchParams();
+
+    // Handle date range
+    const activeDateRange = customDateRange || dateRange;
+    if (activeDateRange && activeDateRange[0] && activeDateRange[1]) {
+      params.append(
+        "startDate",
+        dayjs(activeDateRange[0]).format("YYYY-MM-DD")
+      );
+      params.append("endDate", dayjs(activeDateRange[1]).format("YYYY-MM-DD"));
+    }
+
     if (!filters || !filters.basicFilters) return params.toString();
 
     const { basicFilters } = filters;
 
-    if (
-      basicFilters.dateRange &&
-      basicFilters.dateRange[0] &&
-      basicFilters.dateRange[1]
-    ) {
-      params.append(
-        "startDate",
-        dayjs(basicFilters.dateRange[0]).startOf("day").format("YYYY-MM-DD")
-      );
-      params.append(
-        "endDate",
-        dayjs(basicFilters.dateRange[1]).endOf("day").format("YYYY-MM-DD")
-      );
-    }
     if (basicFilters.pixelType)
       params.append("pixelType", basicFilters.pixelType);
     if (basicFilters.eventType)
@@ -110,9 +152,6 @@ const ConversionReportsPage = ({ name }) => {
           key: campaign.id || Math.random().toString(36).substring(2, 11),
         }));
         setCampaigns(campaignsWithKeys);
-        message.success(
-          `${campaignsWithKeys.length} campaigns loaded successfully!`
-        );
       } else {
         throw new Error(response.data?.message || "Failed to fetch campaigns");
       }
@@ -122,9 +161,46 @@ const ConversionReportsPage = ({ name }) => {
         error.response?.data?.message ||
         error.message ||
         "Failed to load campaigns";
-      message.error(errorMessage);
       setError(errorMessage);
       setCampaigns([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPublishers = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.post("/common/publisher/list", {});
+
+      if (response.data && response.data.success) {
+        setPublishers(response.data.data || response.data.publishers || []);
+      } else {
+        throw new Error(response.data?.message || "Failed to fetch publishers");
+      }
+    } catch (error) {
+      console.error("Error fetching publishers:", error);
+      setPublishers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAdvertisers = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.post("/common/advertiser/list", {});
+
+      if (response.data.data && response.data.success) {
+        setAdvertisers(response.data.data || response.data.advertisers || []);
+      } else {
+        throw new Error(
+          response.data?.message || "Failed to fetch advertisers"
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching advertisers:", error);
+      setAdvertisers([]);
     } finally {
       setLoading(false);
     }
@@ -134,19 +210,30 @@ const ConversionReportsPage = ({ name }) => {
     page = 1,
     pageSize = 10,
     filters = appliedFilters,
-    campaignId = null
+    campaignIds = selectedCampaigns,
+    publisherIds = selectedPublishers,
+    advertiserIds = selectedAdvertisers,
+    customDateRange = null
   ) => {
     setReportsLoading(true);
     setError(null);
-    const filterQuery = buildFilterQuery(filters);
-    
+    const filterQuery = buildFilterQuery(filters, customDateRange);
+
     try {
       let url = `/admin/report/main-report?page=${page}&pageSize=${pageSize}&groupBy=${currentGroupBy}`;
-      
-      if (campaignId) {
-        url += `&campaignId=${campaignId}`;
+
+      if (campaignIds && campaignIds.length > 0) {
+        url += `&campaign=${campaignIds.join(",")}`;
       }
-      
+
+      if (publisherIds && publisherIds.length > 0) {
+        url += `&publisher=${publisherIds.join(",")}`;
+      }
+
+      if (advertiserIds && advertiserIds.length > 0) {
+        url += `&advertiser=${advertiserIds.join(",")}`;
+      }
+
       if (filterQuery) {
         url += `&${filterQuery}`;
       }
@@ -156,12 +243,11 @@ const ConversionReportsPage = ({ name }) => {
       if (response.data?.success) {
         const reports = response.data.data?.reports || response.data.data || [];
         const total =
-          response.data.total ||
-          response.data.totalCount ||
-          reports.length;
+          response.data.total || response.data.totalCount || reports.length;
 
         setReportData(Array.isArray(reports) ? reports : []);
-console.log('Fetched reports:', true);
+        console.log("Fetched reports:", true);
+
         setPagination((prev) => ({
           ...prev,
           current: page,
@@ -195,7 +281,6 @@ console.log('Fetched reports:', true);
 
   // Handler for applying filters from the modal
   const handleApplyFilters = (filters) => {
-    // Auto-select the appropriate groupBy option based on name
     const updatedFilters = {
       ...filters,
       groupByOptions: {
@@ -203,26 +288,94 @@ console.log('Fetched reports:', true);
         [currentGroupBy]: true,
       },
     };
-    
+
     setAppliedFilters(updatedFilters);
-    // Re-fetch data with the new filters, resetting to page 1
-    fetchMainReports(1, pagination.pageSize, updatedFilters, selectedCampaign);
+    fetchMainReports(1, pagination.pageSize, updatedFilters);
   };
 
-  const handleCampaignChange = (campaignId) => {
-    setSelectedCampaign(campaignId);
-    if (campaignId) {
-      const campaign = campaigns.find((c) => c.id === campaignId);
-      setCampaignDetails(campaign);
-    } else {
-      setCampaignDetails(null);
+  const handleCampaignChange = (campaignIds) => {
+    setSelectedCampaigns(campaignIds);
+    fetchMainReports(
+      1,
+      pagination.pageSize,
+      appliedFilters,
+      campaignIds,
+      selectedPublishers,
+      selectedAdvertisers
+    );
+  };
+
+  const handlePublisherChange = (publisherIds) => {
+    setSelectedPublishers(publisherIds);
+    fetchMainReports(
+      1,
+      pagination.pageSize,
+      appliedFilters,
+      selectedCampaigns,
+      publisherIds,
+      selectedAdvertisers
+    );
+  };
+
+  const handleAdvertiserChange = (advertiserIds) => {
+    setSelectedAdvertisers(advertiserIds);
+    fetchMainReports(
+      1,
+      pagination.pageSize,
+      appliedFilters,
+      selectedCampaigns,
+      selectedPublishers,
+      advertiserIds
+    );
+  };
+
+  const handleDateRangeChange = (dates) => {
+    setDateRange(dates);
+    if (dates) {
+      fetchMainReports(
+        1,
+        pagination.pageSize,
+        appliedFilters,
+        selectedCampaigns,
+        selectedPublishers,
+        selectedAdvertisers,
+        dates
+      );
     }
-    fetchMainReports(1, pagination.pageSize, appliedFilters, campaignId);
+  };
+
+  const handleDateRangeTypeChange = (type) => {
+    setDateRangeType(type);
+
+    if (type === "custom") {
+      setShowCustomDatePicker(true);
+    } else {
+      setShowCustomDatePicker(false);
+      const range = getDateRangeByType(type);
+      setDateRange(range);
+
+      fetchMainReports(
+        1,
+        pagination.pageSize,
+        appliedFilters,
+        selectedCampaigns,
+        selectedPublishers,
+        selectedAdvertisers,
+        range
+      );
+    }
   };
 
   const handleTableChange = (paginationInfo) => {
     const { current, pageSize } = paginationInfo;
-    fetchMainReports(current, pageSize, appliedFilters, selectedCampaign);
+    fetchMainReports(
+      current,
+      pageSize,
+      appliedFilters,
+      selectedCampaigns,
+      selectedPublishers,
+      selectedAdvertisers
+    );
   };
 
   const handleRefresh = async () => {
@@ -231,9 +384,14 @@ console.log('Fetched reports:', true);
         pagination.current,
         pagination.pageSize,
         appliedFilters,
-        selectedCampaign
+        selectedCampaigns,
+        selectedPublishers,
+        selectedAdvertisers
       );
       await fetchCampaigns();
+      await fetchPublishers();
+      await fetchAdvertisers();
+      message.success("Data refreshed successfully!");
     } catch (error) {
       console.error("Error during refresh:", error);
       message.error("Failed to refresh data");
@@ -251,11 +409,19 @@ console.log('Fetched reports:', true);
       while (hasMoreData) {
         const filterQuery = buildFilterQuery(appliedFilters);
         let url = `/admin/report/main-report?page=${currentPage}&pageSize=${pageSize}&groupBy=${currentGroupBy}`;
-        
-        if (selectedCampaign) {
-          url += `&campaignId=${selectedCampaign}`;
+
+        if (selectedCampaigns && selectedCampaigns.length > 0) {
+          url += `&campaign=${selectedCampaigns.join(",")}`;
         }
-        
+
+        if (selectedPublishers && selectedPublishers.length > 0) {
+          url += `&publisher=${selectedPublishers.join(",")}`;
+        }
+
+        if (selectedAdvertisers && selectedAdvertisers.length > 0) {
+          url += `&advertiser=${selectedAdvertisers.join(",")}`;
+        }
+
         if (filterQuery) {
           url += `&${filterQuery}`;
         }
@@ -263,7 +429,8 @@ console.log('Fetched reports:', true);
         const response = await apiClient.get(url);
 
         if (response.data?.success) {
-          const pageData = response.data.data?.reports || response.data.data || [];
+          const pageData =
+            response.data.data?.reports || response.data.data || [];
           allData = [...allData, ...pageData];
 
           if (pageData.length < pageSize) {
@@ -308,9 +475,7 @@ console.log('Fetched reports:', true);
         link.setAttribute("href", url);
         link.setAttribute(
           "download",
-          `${currentGroupBy}_reports_${
-            selectedCampaign ? `campaign_${selectedCampaign}_` : "all_"
-          }${dayjs().format("YYYY-MM-DD")}.csv`
+          `${currentGroupBy}_reports_${dayjs().format("YYYY-MM-DD")}.csv`
         );
         link.style.visibility = "hidden";
         document.body.appendChild(link);
@@ -329,113 +494,110 @@ console.log('Fetched reports:', true);
   };
 
   // Dynamic columns based on groupBy type
- const getColumns = () => {
-  // Common data columns for all cases
-  const dataColumns = [
-
-    getGroupByFromName(name) === "day" ? {
-      title: "Day",
-      dataIndex: "Day",
-      key: "Day",
-      width: 120,
-    }:
-    getGroupByFromName(name) === "campaign" ? {
-      title: "Campaign",
-      dataIndex: "campaign",
-      key: "campaign",
-      width:120,
-
-      render: (value, record) => value || record.campaign || "N/A",
-    }
-   : getGroupByFromName(name) === "publisher" ? {
-      title: "Publisher",
-      dataIndex: "publisher",
-      key: "publisher",
-      width:120,
-
-    } 
-   : getGroupByFromName(name) === "advertiser" ? {
-      title: "Advertiser",
-      dataIndex: "advertiser",
-      key: "advertiser",
-      width:120,
-    } 
-    : {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      render: (value, record) => value || record.title || "N/A",
-      width: 200,
-    },
-    {
-      title: "Clicks",
-      dataIndex: "grossClicks",
-      key: "grossClicks",
-      render: (value) => (parseInt(value) || 0).toLocaleString(),
-      sorter: false,
-      align: "right",
-      width: 100,
-    },
-    {
-      title: "Conversions",
-      dataIndex: "totalConversions",
-      key: "totalConversions",
-      render: (value) => (parseInt(value) || 0).toLocaleString(),
-      sorter: false,
-      align: "right",
-      width: 120,
-    },
-    {
-      title: "Revenue",
-      dataIndex: "totalRevenue",
-      key: "totalRevenue",
-      render: (value) => {
-        if (!value || value === 0) return "$0.00";
-        return `$${parseFloat(value).toFixed(2)}`;
+  const getColumns = () => {
+    const dataColumns = [
+      getGroupByFromName(name) === "day"
+        ? {
+            title: "Day",
+            dataIndex: "Day",
+            key: "Day",
+            width: 120,
+          }
+        : getGroupByFromName(name) === "campaign"
+        ? {
+            title: "Campaign",
+            dataIndex: "campaign",
+            key: "campaign",
+            width: 120,
+            render: (value, record) => value || record.campaign || "N/A",
+          }
+        : getGroupByFromName(name) === "publisher"
+        ? {
+            title: "Publisher",
+            dataIndex: "publisher",
+            key: "publisher",
+            width: 120,
+          }
+        : getGroupByFromName(name) === "advertiser"
+        ? {
+            title: "Advertiser",
+            dataIndex: "advertiser",
+            key: "advertiser",
+            width: 120,
+          }
+        : {
+            title: "Name",
+            dataIndex: "name",
+            key: "name",
+            render: (value, record) => value || record.title || "N/A",
+            width: 200,
+          },
+      {
+        title: "Clicks",
+        dataIndex: "grossClicks",
+        key: "grossClicks",
+        render: (value) => (parseInt(value) || 0).toLocaleString(),
+        sorter: false,
+        align: "right",
+        width: 100,
       },
-      sorter: false,
-      align: "right",
-      width: 120,
-    },
-    {
-      title: "Payout",
-      dataIndex: "totalPayout",
-      key: "totalPayout",
-      render: (value) => {
-        if (!value || value === 0) return "$0.00";
-        return `$${parseFloat(value).toFixed(2)}`;
+      {
+        title: "Conversions",
+        dataIndex: "totalConversions",
+        key: "totalConversions",
+        render: (value) => (parseInt(value) || 0).toLocaleString(),
+        sorter: false,
+        align: "right",
+        width: 120,
       },
-      sorter: false,
-      align: "right",
-      width: 120,
-    },
-    {
-      title: "Profit",
-      dataIndex: "totalProfit",
-      key: "totalProfit",
-      render: (value) => {
-        if (!value || value === 0) return "$0.00";
-        const profit = parseFloat(value);
-        return (
-          <span style={{ color: profit >= 0 ? 'green' : 'red' }}>
-            ${profit.toFixed(2)}
-          </span>
-        );
+      {
+        title: "Revenue",
+        dataIndex: "totalRevenue",
+        key: "totalRevenue",
+        render: (value) => {
+          if (!value || value === 0) return "$0.00";
+          return `$${parseFloat(value).toFixed(2)}`;
+        },
+        sorter: false,
+        align: "right",
+        width: 120,
       },
-      sorter: false,
-      align: "right",
-      width: 120,
-    },
-  ];
+      {
+        title: "Payout",
+        dataIndex: "totalPayout",
+        key: "totalPayout",
+        render: (value) => {
+          if (!value || value === 0) return "$0.00";
+          return `$${parseFloat(value).toFixed(2)}`;
+        },
+        sorter: false,
+        align: "right",
+        width: 120,
+      },
+      {
+        title: "Profit",
+        dataIndex: "totalProfit",
+        key: "totalProfit",
+        render: (value) => {
+          if (!value || value === 0) return "$0.00";
+          const profit = parseFloat(value);
+          return (
+            <span style={{ color: profit >= 0 ? "green" : "red" }}>
+              ${profit.toFixed(2)}
+            </span>
+          );
+        },
+        sorter: false,
+        align: "right",
+        width: 120,
+      },
+    ];
 
-  // Return the same columns for all groupBy cases
-  return dataColumns;
-};
-  // Common columns for all report types
- 
+    return dataColumns;
+  };
+
   const columns = [...getColumns()];
 
-  // Prepare initial filter values based on name prop
   const getInitialFilterValues = () => {
     const initialFilters = {
       groupByOptions: {
@@ -455,23 +617,27 @@ console.log('Fetched reports:', true);
   };
 
   useEffect(() => {
-    // Set initial filter values based on name prop
     setAppliedFilters(getInitialFilterValues());
     fetchCampaigns();
+    fetchPublishers();
+    fetchAdvertisers();
+
+    // Set initial date range to "today"
+    const initialRange = getDateRangeByType("today");
+    setDateRange(initialRange);
+    setDateRangeType("today");
+
     fetchMainReports(1, 10);
   }, [name]);
 
-
-
-
-
-  
   return (
-    <div style={{ padding: "24px" }}>
+    <div style={{ padding: "24px", background: "#f0f2f5" }}>
       <div style={{ marginBottom: "24px" }}>
-        <Title level={2}>{name} Reports</Title>
-        <p style={{ color: "#666", marginTop: "8px" }}>
-          Viewing reports grouped by: <strong>{currentGroupBy}</strong>
+        <Title level={2} style={{ marginBottom: "8px" }}>
+          {name} Reports
+        </Title>
+        <p style={{ color: "#666", fontSize: "14px" }}>
+          Viewing reports grouped by: <Tag color="blue">{currentGroupBy}</Tag>
         </p>
       </div>
 
@@ -486,7 +652,6 @@ console.log('Fetched reports:', true);
         />
       )}
 
-      {/* Filter modal component */}
       <ConversionReportFilter
         visible={isFilterVisible}
         onClose={() => setIsFilterVisible(false)}
@@ -497,20 +662,61 @@ console.log('Fetched reports:', true);
         }}
       />
 
-      <Card style={{ marginBottom: "24px" }}>
+      <Card
+        style={{
+          marginBottom: "24px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          borderRadius: "8px",
+        }}
+      >
         <Row gutter={[16, 16]} align="middle">
+          {/* Date Range Picker */}
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ marginBottom: "8px" }}>
-              <strong>Select Campaign:</strong>
+              <CalendarOutlined style={{ marginRight: "8px" }} />
+              <strong>Date Range:</strong>
             </div>
             <Select
+              style={{ width: "100%" }}
+              value={dateRangeType}
+              onChange={handleDateRangeTypeChange}
+            >
+              <Option value="today">Today</Option>
+              <Option value="yesterday">Yesterday</Option>
+              <Option value="last7days">Last 7 Days</Option>
+              <Option value="last30days">Last 30 Days</Option>
+              <Option value="thismonth">This Month</Option>
+              <Option value="lastmonth">Last Month</Option>
+              <Option value="custom">Custom</Option>
+            </Select>
+
+            {showCustomDatePicker && (
+              <RangePicker
+                style={{ width: "100%", marginTop: "8px" }}
+                value={dateRange}
+                onChange={handleDateRangeChange}
+                format="YYYY-MM-DD"
+                allowClear={false}
+                placeholder={["Start Date", "End Date"]}
+              />
+            )}
+          </Col>
+
+          {/* Campaign Dropdown */}
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <div style={{ marginBottom: "8px" }}>
+              <strong>Campaign:</strong>
+            </div>
+            <Select
+              mode="multiple"
               placeholder="All Campaigns"
               style={{ width: "100%" }}
-              value={selectedCampaign}
+              value={selectedCampaigns}
               onChange={handleCampaignChange}
               loading={loading}
               showSearch
               allowClear
+              maxTagCount="responsive"
               filterOption={(input, option) =>
                 option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
@@ -523,63 +729,161 @@ console.log('Fetched reports:', true);
             </Select>
           </Col>
 
-          <Col xs={24} sm={24} md={16} lg={18}>
-            <div style={{ textAlign: "right", marginTop: "24px" }}>
-              <Space>
-                <Button
-                  icon={<FilterOutlined />}
-                  onClick={() => setIsFilterVisible(true)}
-                  type="primary"
-                >
-                  Advanced Filters
-                </Button>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={handleRefresh}
-                  loading={reportsLoading}
-                >
-                  Refresh
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<DownloadOutlined />}
-                  disabled={pagination.total === 0}
-                  onClick={handleExportAll}
-                  loading={reportsLoading}
-                >
-                  Export All CSV
-                </Button>
-              </Space>
+          {/* Publisher Dropdown */}
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <div style={{ marginBottom: "8px" }}>
+              <strong>Publisher:</strong>
+            </div>
+            <Select
+              mode="multiple"
+              placeholder="All Publishers"
+              style={{ width: "100%" }}
+              value={selectedPublishers}
+              onChange={handlePublisherChange}
+              loading={loading}
+              showSearch
+              allowClear
+              maxTagCount="responsive"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {publishers.map((publisher) => (
+                <Option key={publisher.id} value={publisher.id}>
+                  {publisher.name || publisher.title}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+
+          {/* Advertiser Dropdown */}
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <div style={{ marginBottom: "8px" }}>
+              <strong>Advertiser:</strong>
+            </div>
+            <Select
+              mode="multiple"
+              placeholder="All Advertisers"
+              style={{ width: "100%" }}
+              value={selectedAdvertisers}
+              onChange={handleAdvertiserChange}
+              loading={loading}
+              showSearch
+              allowClear
+              maxTagCount="responsive"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {advertisers.map((advertiser) => (
+                <Option key={advertiser.id} value={advertiser.id}>
+                  {advertiser.name || advertiser.title}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+
+          {/* Action Buttons */}
+          <Col xs={24} sm={24} md={24} lg={24}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "12px",
+                marginTop: "8px",
+              }}
+            >
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={handleRefresh}
+                loading={reportsLoading}
+                shape="circle"
+                size="large"
+                title="Refresh"
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              />
+              <Button
+                type="primary"
+                icon={<DownloadOutlined />}
+                disabled={pagination.total === 0}
+                onClick={handleExportAll}
+                loading={reportsLoading}
+                shape="circle"
+                size="large"
+                title="Export All CSV"
+                style={{
+                  background: "#52c41a",
+                  borderColor: "#52c41a",
+                  width: "48px",
+                  height: "48px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              />
             </div>
           </Col>
         </Row>
       </Card>
 
-      <Table
-        columns={columns}
-        dataSource={reportData}
-        rowKey={(record) =>
-          `${record.id || record.campaignId || record.publisherId || Math.random()}-${
-            record.date || Math.random()
-          }`
-        }
-        style={{ fontSize: "12px", margin: 0, padding: 0 }}
-        pagination={{
-          ...pagination,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) =>
-            `${range[0]}-${range[1]} of ${total} records`,
-          pageSizeOptions: ["10", "20", "50", "100"],
+      <Card
+        style={{
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          borderRadius: "8px",
         }}
-        scroll={{ x: 1400 }}
-        loading={reportsLoading}
-        locale={{
-          emptyText: "No reports data available",
+      >
+        <Table
+          columns={columns}
+          dataSource={reportData}
+          rowKey={(record) =>
+            `${
+              record.id ||
+              record.campaignId ||
+              record.publisherId ||
+              Math.random()
+            }-${record.date || Math.random()}`
+          }
+          pagination={{
+            ...pagination,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} records`,
+            pageSizeOptions: ["10", "20", "50", "100"],
+          }}
+          scroll={{ x: 1400 }}
+          loading={reportsLoading}
+          locale={{
+            emptyText: "No reports data available",
+          }}
+          size="small"
+          bordered
+          onChange={handleTableChange}
+        />
+      </Card>
+
+      <Button
+        icon={<FilterOutlined />}
+        onClick={() => setIsFilterVisible(true)}
+        type="primary"
+        shape="circle"
+        size="large"
+        title="Advanced Filters"
+        className="filter-button"
+        style={{
+          width: "48px",
+          height: "48px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
-        size="small"
-        bordered
-        onChange={handleTableChange}
       />
     </div>
   );

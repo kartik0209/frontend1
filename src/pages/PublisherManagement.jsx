@@ -245,28 +245,28 @@ const closeConfirmModal = () => {
   });
 
   // Fetch publishers from API
-  const fetchPublishers = async () => {
-    setLoading(true);
-    try {
-      const response = await apiClient.post('/common/publisher/list', {
-        // Add any required parameters here
-        // For example: page: 1, limit: 100, etc.
-      });
-      
-      if (response.data && response.data.success) {
-        setPublishers(response.data.data || response.data.publishers || []);
-      //  showSuccessModal('Data Loaded', 'Publishers Added successfully!');
-      } else {
-        throw new Error(response.data?.message || 'Failed to fetch publishers');
+    const fetchPublishers = async () => {
+      setLoading(true);
+      try {
+        const response = await apiClient.post('/common/publisher/list', {
+          // Add any required parameters here
+          // For example: page: 1, limit: 100, etc.
+        });
+        
+        if (response.data && response.data.success) {
+          setPublishers(response.data.data || response.data.publishers || []);
+        //  showSuccessModal('Data Loaded', 'Publishers Added successfully!');
+        } else {
+          throw new Error(response.data?.message || 'Failed to fetch publishers');
+        }
+      } catch (error) {
+        console.error('Error fetching publishers:', error);
+        showFailModal('Load Failed', error.response?.data?.message || 'Failed to load publishers');
+        setPublishers([]); // Set empty array on error
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching publishers:', error);
-      showFailModal('Load Failed', error.response?.data?.message || 'Failed to load publishers');
-      setPublishers([]); // Set empty array on error
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   useEffect(() => {
     fetchPublishers();

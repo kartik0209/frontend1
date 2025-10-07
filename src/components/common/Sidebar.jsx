@@ -78,9 +78,10 @@ const handleMenuClick = ({ key }) => {
         <div className="toggle-btn" onClick={() => setCollapsed(!collapsed)}>
           {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         </div>
+        <img src={logo} alt="Logo" className="sidebar-logo" />
         {!collapsed && (
           <>
-            <img src={logo} alt="Logo" className="sidebar-logo" />
+            
             <div className="sidebar-info">
               <h2 className="sidebar-title">Admin Panel</h2>
               <p className="sidebar-subtitle">Welcome {user?.name}</p>
@@ -193,7 +194,7 @@ const handleMenuClick = ({ key }) => {
 
       <div className="sidebar-footer">
         <Menu mode="inline" theme="dark" onClick={handleMenuClick}>
-          <Menu.Item key="logout" icon={<LogoutOutlined />}>
+          <Menu.Item key="logout" icon={<LogoutOutlined style={{ fontSize:"20px" ,margin:"10px"}} />}>
             Logout
           </Menu.Item>
         </Menu>

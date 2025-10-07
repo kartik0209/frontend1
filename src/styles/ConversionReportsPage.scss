@@ -1,0 +1,35 @@
+@use './Variable' as *;
+
+
+.filter-button {
+  position: fixed;
+  right: 1px;              /* Distance from right edge */
+  top: 30%;                 /* Vertically center */
+ 
+  z-index: 1000;            /* Stay above other elements */
+  background-color: $dark-bg-light;
+  color: white;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.filter-button:hover {
+  background-color: $dark-bg-light;
+ 
+}
+
+
+@media (max-width: 768px) {
+  .filter-button {
+    right: 16px;
+    bottom: 80px;
+    top: auto;
+    transform: none;
+  }
+}

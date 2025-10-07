@@ -169,7 +169,7 @@ const ProtectedRoutes = () => {
             path="/reports/conversion-campaign"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
-                <ConversionReportsPage name={"camapign"} />
+                <ConversionReportsPage name={"Campaign"} />
               </ProtectedRoute>
             }
           />
@@ -178,7 +178,7 @@ const ProtectedRoutes = () => {
             path="/reports/daily"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
-                <ConversionReportsPage name={"daily"} />
+                <ConversionReportsPage name={"Daily"} />
               </ProtectedRoute>
             }
           />

@@ -16,16 +16,26 @@
   padding-bottom: env(safe-area-inset-bottom);  // mobile notch support
   box-sizing: border-box;
 
-  &.collapsed {
-    width: 80px;
+ &.collapsed {
+  width: 80px;
 
-    .sidebar-info,
-    .sidebar-title,
-    .sidebar-subtitle,
-    .sidebar-logo {
-      display: none;
-    }
+  .sidebar-info,
+  .sidebar-title,
+  .sidebar-subtitle {
+    display: none;
   }
+
+  .sidebar-logo {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .sidebar-header {
+    justify-content: center;       // center toggle + logo
+    padding: 1rem 0;
+  }
+}
+
 
   .sidebar-header {
     display: flex;
