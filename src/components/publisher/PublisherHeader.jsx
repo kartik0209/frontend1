@@ -21,12 +21,7 @@ const PublisherHeader = ({
   return (
     <div className="publisher-header">
       <div className="header-title">
-        <Title level={3} className="page-title">
-          Manage Publishers
-        </Title>
-        <Text type="secondary" className="page-subtitle">
-          View and manage all your publishers in one place
-        </Text>
+       
       </div>
       <Space className="header-actions">
         <Button
@@ -37,7 +32,7 @@ const PublisherHeader = ({
         >
           Add Publisher
         </Button>
-        <Button
+        {/* <Button
           type="primary"
           icon={<FilterOutlined />}
           onClick={onSearchClick}
@@ -51,7 +46,7 @@ const PublisherHeader = ({
           className="columns-btn"
         >
           Columns
-        </Button>
+        </Button> */}
         <Button
           icon={<DownloadOutlined />}
           onClick={onExport}

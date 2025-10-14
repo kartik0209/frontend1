@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Tag } from "antd";
+import { Button, Card, Input, Tag } from "antd";
 import AdvertiserHeader from "../components/advertiser/AdvertiserHeader";
 import AdvertiserTable from "../components/advertiser/AdvertiserTable";
 import AdvertiserSearchModal from "../components/advertiser/AdvertiserSearchModal";
@@ -14,6 +14,13 @@ import "../styles/AdvertiserManagement.scss";
 import AdvertiserTableSkeleton from "../components/skeletons/TableSkeleton";
 import ConfirmModal from "../components/model/ConfirmModal";
 import { useNavigate } from "react-router-dom";
+import AdvancedFilterDrawer from "../components/advertiser/AdvertiserAdvancedFilterDrawer";
+import {
+  FilterOutlined,
+  SearchOutlined,
+  DownloadOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 const AdvertiserManagement = () => {
   const [searchVisible, setSearchVisible] = useState(false);
   const [columnSettingsVisible, setColumnSettingsVisible] = useState(false);
@@ -26,6 +33,32 @@ const AdvertiserManagement = () => {
   const [viewingAdvertiser, setViewingAdvertiser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 const [saveLoading, setSaveLoading] = useState(false);
+
+const [isFilterVisible, setIsFilterVisible] = useState(false);
+const [searchText, setSearchText] = useState("");
+const [filteredAdvertisers, setFilteredAdvertisers] = useState([]);
+
+const handleQuickSearch = (e) => {
+  const value = e.target.value;
+  setSearchText(value);
+  
+  if (value.trim()) {
+    const filtered = advertisers.filter((advertiser) => {
+      const name = advertiser.full_name?.toLowerCase() || '';
+      const email = advertiser.email?.toLowerCase() || '';
+      const searchValue = value.toLowerCase();
+      
+      return name.includes(searchValue) || email.includes(searchValue);
+    });
+    setFilteredAdvertisers(filtered);
+  } else {
+    setFilteredAdvertisers(advertisers);
+  }
+};
+
+useEffect(() => {
+  setFilteredAdvertisers(advertisers);
+}, [advertisers]);
 
 const saveColumnPreferences = async () => {
   setSaveLoading(true);
@@ -504,96 +537,132 @@ useEffect(() => {
     onChange: setSelectedRowKeys,
   };
 
-  return (
-    <div className="advertiser-management">
-      <AdvertiserHeader
-        onSearchClick={() => setSearchVisible(true)}
-        onColumnsClick={() => setColumnSettingsVisible(true)}
-        onExport={handleExport}
-        onAddAdvertiser={handleAddAdvertiser}
-        onRefresh={fetchAdvertisers}
-      />
+ return (
+  <div className="advertiser-management">
+    {/* Floating Filter Button */}
+    <Button
+      icon={<FilterOutlined />}
+      onClick={() => setIsFilterVisible(true)}
+      type="primary"
+      shape="circle"
+      size="large"
+      title="Advanced Filters"
+      className="filter-button"
+    />
 
-      <Card className="advertiser-table-card">
-        {loading ? (
-          <AdvertiserTableSkeleton />
-        ) : (
-          <AdvertiserTable
-            advertisers={advertisers}
-            columns={visibleTableColumns}
-            loading={false}
-            rowSelection={rowSelection}
-            onEdit={handleEditAdvertiser}
-            onDelete={handleDeleteAdvertiser}
-            onView={handleViewAdvertiser}
-            onStatusChange={handleStatusChange}
-            onDetails={handledetails}
-            
+    {/* Unified Card - Everything in One */}
+    <Card className="advertiser-unified-card">
+      {/* Header Toolbar with Search and Buttons */}
+      <div className="card-header-toolbar">
+        {/* Left: Search Bar */}
+        <div className="search-section">
+          <Input
+            placeholder="Search by name or email..."
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={handleQuickSearch}
+            allowClear
+            className="quick-search"
           />
-        )}
-      </Card>
+        </div>
+        
+        {/* Right: Action Buttons */}
+        <div className="action-buttons">
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAddAdvertiser}
+            size="small"
+            className="add-btn"
+          >
+            Add Advertiser
+          </Button>
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={handleExport}
+            size="small"
+            className="export-btn"
+          >
+            Export
+          </Button>
+        </div>
+      </div>
 
-      <AdvertiserSearchModal
-        visible={searchVisible}
-        onClose={() => setSearchVisible(false)}
-        onSearch={handleSearch}
-        loading={loading}
-      />
+      {/* Table Section */}
+      {loading ? (
+        <AdvertiserTableSkeleton />
+      ) : (
+        <AdvertiserTable
+          advertisers={filteredAdvertisers}
+          columns={visibleTableColumns}
+          loading={loading}
+          rowSelection={rowSelection}
+          onEdit={handleEditAdvertiser}
+          onDelete={handleDeleteAdvertiser}
+          onView={handleViewAdvertiser}
+          onStatusChange={handleStatusChange}
+          onDetails={handledetails}
+        />
+      )}
+    </Card>
 
-      <AdvertiserColumnSettings
-        visible={columnSettingsVisible}
-        onClose={() => setColumnSettingsVisible(false)}
-        visibleColumns={visibleColumns}
-        columnOptions={columnOptions}
-        onColumnChange={handleColumnChange}
-        onSelectAll={handleSelectAll}
-        onClearAll={handleClearAll}
-        onSave={saveColumnPreferences} // Add this
-  saveLoading={saveLoading} // Add this
-      />
+    {/* Advanced Filter Drawer */}
+    <AdvancedFilterDrawer
+      visible={isFilterVisible}
+      onClose={() => setIsFilterVisible(false)}
+      onSearch={handleSearch}
+      searchLoading={loading}
+      visibleColumns={visibleColumns}
+      columnOptions={columnOptions}
+      onColumnChange={handleColumnChange}
+      onSelectAll={handleSelectAll}
+      onClearAll={handleClearAll}
+      onSave={saveColumnPreferences}
+      saveLoading={saveLoading}
+    />
 
-      <AdvertiserModal
-        visible={advertiserModalVisible}
-        onClose={() => setAdvertiserModalVisible(false)}
-        onSubmit={handleAdvertiserSubmit}
-        loading={loading}
-        editData={editingAdvertiser}
-        isEdit={isEditMode}
-      />
+    {/* Other Modals - Keep existing modals */}
+    <AdvertiserModal
+      visible={advertiserModalVisible}
+      onClose={() => setAdvertiserModalVisible(false)}
+      onSubmit={handleAdvertiserSubmit}
+      loading={loading}
+      editData={editingAdvertiser}
+      isEdit={isEditMode}
+    />
 
-      <AdvertiserViewModal
-        visible={viewModalVisible}
-        onClose={() => setViewModalVisible(false)}
-        advertiserData={viewingAdvertiser}
-      />
+    <AdvertiserViewModal
+      visible={viewModalVisible}
+      onClose={() => setViewModalVisible(false)}
+      advertiserData={viewingAdvertiser}
+    />
 
-      {/* Success and Fail Modals */}
-      <SuccessModal
-        open={successModal.open}
-        title={successModal.title}
-        message={successModal.message}
-        onClose={closeSuccessModal}
-      />
+    <SuccessModal
+      open={successModal.open}
+      title={successModal.title}
+      message={successModal.message}
+      onClose={closeSuccessModal}
+    />
 
-      <FailModal
-        open={failModal.open}
-        title={failModal.title}
-        message={failModal.message}
-        onOk={closeFailModal}
-      />
+    <FailModal
+      open={failModal.open}
+      title={failModal.title}
+      message={failModal.message}
+      onOk={closeFailModal}
+    />
 
-      <ConfirmModal
-        open={confirmModal.open}
-        title={confirmModal.title}
-        message={confirmModal.message}
-        onConfirm={confirmModal.onConfirm}
-        onCancel={closeConfirmModal}
-        confirmText="Yes, Delete"
-        cancelText="Cancel"
-        danger={confirmModal.danger}
-      />
-    </div>
-  );
+    <ConfirmModal
+      open={confirmModal.open}
+      title={confirmModal.title}
+      message={confirmModal.message}
+      onConfirm={confirmModal.onConfirm}
+      onCancel={closeConfirmModal}
+      confirmText="Yes, Delete"
+      cancelText="Cancel"
+      danger={confirmModal.danger}
+    />
+  </div>
+);
 };
 
 export default AdvertiserManagement;

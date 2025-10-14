@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, message, Tag } from "antd";
+import {Button, Card, Input, Tag, message } from "antd";
 import CampaignHeader from "../components/campaign/CampaignHeader";
 import CampaignTable from "../components/campaign/CampaignTable";
 import SearchModal from "../components/campaign/SearchModal";
@@ -11,6 +11,13 @@ import apiClient from "../services/apiServices";
 import "../styles/CampaignManagement.scss";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
 import { useNavigate } from "react-router-dom";
+import CampaignAdvancedFilterDrawer from "../components/campaign/CampaignAdvancedFilterDrawer";
+import {
+  FilterOutlined,
+  SearchOutlined,
+  DownloadOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 
 const CampaignManagement = () => {
   const navigate = useNavigate();
@@ -23,8 +30,33 @@ const CampaignManagement = () => {
 const [selectedCampaign, setSelectedCampaign] = useState(null);
 const [editModalVisible, setEditModalVisible] = useState(false);
 
+const [isFilterVisible, setIsFilterVisible] = useState(false);
+const [searchText, setSearchText] = useState("");
+const [filteredCampaigns, setFilteredCampaigns] = useState([]);
 
 
+const handleQuickSearch = (e) => {
+  const value = e.target.value;
+  setSearchText(value);
+  
+  if (value.trim()) {
+    const filtered = campaigns.filter((campaign) => {
+      const title = campaign.title?.toLowerCase() || '';
+      const advertiser = campaign.advertiser?.toLowerCase() || '';
+      const searchValue = value.toLowerCase();
+      
+      return title.includes(searchValue) || advertiser.includes(searchValue);
+    });
+    setFilteredCampaigns(filtered);
+  } else {
+    setFilteredCampaigns(campaigns);
+  }
+};
+
+// 4. ADD THIS USEEFFECT (add after other useEffects)
+useEffect(() => {
+  setFilteredCampaigns(campaigns);
+}, [campaigns]);
 // 1. Add these state variables in CampaignManagement component
 const [saveLoading, setSaveLoading] = useState(false);
 
@@ -532,19 +564,54 @@ const handleStatusChange = async (campaignId, newStatus) => {
   }
 };
 
-  return (
-    <div className="campaign-management">
-      <CampaignHeader
-        onSearchClick={() => setSearchVisible(true)}
-        onColumnsClick={() => setColumnSettingsVisible(true)}
-        onExport={handleExport}
-        onRefresh={fetchCampaigns}
-      />
+ return (
+  <div className="campaign-management">
+    {/* Floating Filter Button */}
+    <Button
+      icon={<FilterOutlined />}
+      onClick={() => setIsFilterVisible(true)}
+      type="primary"
+      shape="circle"
+      size="large"
+      title="Advanced Filters"
+      className="filter-button"
+    />
 
-      <Card className="campaign-table-card">
-      {loading ?<TableSkeleton/>:
+    {/* Unified Card - Everything in One */}
+    <Card className="campaign-unified-card">
+      {/* Header Toolbar with Search and Buttons */}
+      <div className="card-header-toolbar">
+        {/* Left: Search Bar */}
+        <div className="search-section">
+          <Input
+            placeholder="Search by title or advertiser..."
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={handleQuickSearch}
+            allowClear
+            className="quick-search"
+          />
+        </div>
+        
+        {/* Right: Action Buttons */}
+        <div className="action-buttons">
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={handleExport}
+            size="small"
+            className="export-btn"
+          >
+            Export
+          </Button>
+        </div>
+      </div>
+
+      {/* Table Section */}
+      {loading ? (
+        <TableSkeleton />
+      ) : (
         <CampaignTable
-          campaigns={campaigns}
+          campaigns={filteredCampaigns}
           columns={visibleTableColumns}
           loading={loading}
           rowSelection={rowSelection}
@@ -554,48 +621,45 @@ const handleStatusChange = async (campaignId, newStatus) => {
           onDetail={handledetails}
           onStatusChange={handleStatusChange}
         />
-      }
-        <CampaignViewModal
-          visible={viewModalVisible}
-          onClose={() => {
-            setViewModalVisible(false);
-            setSelectedCampaign(null);
-          }}
-          campaignData={selectedCampaign}
-        />
-        <CampaignModal
-          visible={editModalVisible}
-          onClose={() => {
-            setEditModalVisible(false);
-            setSelectedCampaign(null);
-          }}
-        
-          loading={loading}
-          editData={selectedCampaign}
-          isEdit={true}
-        />
-      </Card>
+      )}
 
-      <SearchModal
-        visible={searchVisible}
-        onClose={() => setSearchVisible(false)}
-        onSearch={handleSearch}
+      {/* Modals inside Card */}
+      <CampaignViewModal
+        visible={viewModalVisible}
+        onClose={() => {
+          setViewModalVisible(false);
+          setSelectedCampaign(null);
+        }}
+        campaignData={selectedCampaign}
+      />
+      <CampaignModal
+        visible={editModalVisible}
+        onClose={() => {
+          setEditModalVisible(false);
+          setSelectedCampaign(null);
+        }}
         loading={loading}
+        editData={selectedCampaign}
+        isEdit={true}
       />
+    </Card>
 
-      <ColumnSettings
-        visible={columnSettingsVisible}
-        onClose={() => setColumnSettingsVisible(false)}
-        visibleColumns={visibleColumns}
-        columnOptions={columnOptions}
-        onColumnChange={handleColumnChange}
-        onSelectAll={handleSelectAll}
-        onClearAll={handleClearAll}
-        onSave={saveColumnPreferences} // Add this
-  saveLoading={saveLoading} // Add this
-      />
-    </div>
-  );
+    {/* Advanced Filter Drawer */}
+    <CampaignAdvancedFilterDrawer
+      visible={isFilterVisible}
+      onClose={() => setIsFilterVisible(false)}
+      onSearch={handleSearch}
+      searchLoading={loading}
+      visibleColumns={visibleColumns}
+      columnOptions={columnOptions}
+      onColumnChange={handleColumnChange}
+      onSelectAll={handleSelectAll}
+      onClearAll={handleClearAll}
+      onSave={saveColumnPreferences}
+      saveLoading={saveLoading}
+    />
+  </div>
+);
 };
 
 export default CampaignManagement;

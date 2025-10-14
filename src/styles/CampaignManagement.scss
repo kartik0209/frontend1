@@ -25,6 +25,7 @@
   min-height: 100vh;
   background: #f0f2f5;
   padding: 24px;
+  position: relative;
 
   .campaign-header {
     @include flex-between;
@@ -79,6 +80,170 @@
     }
   }
 
+
+  .filter-button {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 999;
+    width: 56px;
+    height: 56px;
+    background: $dark-gradient;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+      background: $dark-gradient;
+    }
+
+    &:active {
+      transform: scale(1.05);
+    }
+
+    .anticon {
+      font-size: 20px;
+    }
+  }
+
+  // 2. ADD UNIFIED CARD STYLES (replace old .campaign-table-card)
+  .campaign-unified-card {
+    background: $white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+
+    .ant-card-body {
+      padding: 0;
+    }
+
+    // Header Toolbar inside card
+    .card-header-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: #fafafa;
+      border-bottom: 2px solid #f0f0f0;
+      gap: 16px;
+
+      // Left side - Search bar
+      .search-section {
+        flex: 1;
+        max-width: 400px;
+
+        .quick-search {
+          width: 100%;
+          height: 36px;
+          border-radius: 8px;
+          border: 1px solid #d9d9d9;
+          transition: all 0.3s ease;
+
+          .ant-input {
+            font-size: 14px;
+
+            &::placeholder {
+              color: #bfbfbf;
+            }
+          }
+
+          .anticon-search {
+            color: #8c8c8c;
+            font-size: 16px;
+          }
+
+          &:hover {
+            border-color: #1a237e;
+          }
+
+          &:focus-within {
+            border-color: #1a237e;
+            box-shadow: 0 0 0 2px rgba(26, 35, 126, 0.1);
+          }
+        }
+      }
+
+      // Right side - Action buttons
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+
+        .ant-btn {
+          height: 36px;
+          padding: 0 16px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 13px;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          .anticon {
+            font-size: 14px;
+          }
+
+          &:hover {
+            transform: translateY(-2px);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+
+        .export-btn {
+          background: $dark-gradient;
+          border: none;
+          color: white;
+          box-shadow: $box-shadow;
+
+          &:hover {
+            background: $dark-gradient;
+            box-shadow: 0 4px 10px rgba(26, 35, 126, 0.3);
+          }
+
+          &:focus {
+            background: $dark-gradient;
+          }
+        }
+      }
+    }
+
+    // Table section
+    .table-container {
+      padding: 0;
+
+      .ant-table {
+        .ant-table-thead > tr > th {
+          background: #fafafa;
+          font-weight: 600;
+          color: #262626;
+          font-size: 13px;
+          padding: 12px 16px;
+          border-bottom: 2px solid #f0f0f0;
+        }
+
+        .ant-table-tbody > tr > td {
+          padding: 12px 16px;
+          font-size: 13px;
+        }
+
+        .ant-table-tbody > tr:hover > td {
+          background: #f5f5f5;
+        }
+      }
+
+      .ant-pagination {
+        padding: 16px 24px;
+        margin: 0;
+      }
+    }
+  }
   .campaign-table-card {
     @include card-style;
     flex: 1;
@@ -455,5 +620,74 @@
 
   &:active {
     transform: translateY(0);
+  }
+}
+
+
+@media (max-width: 1024px) {
+  .campaign-management {
+    .campaign-unified-card {
+      .card-header-toolbar {
+        flex-wrap: wrap;
+        gap: 12px;
+
+        .search-section {
+          flex: 1 1 100%;
+          max-width: 100%;
+        }
+
+        .action-buttons {
+          flex: 1 1 100%;
+          justify-content: flex-end;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .campaign-management {
+    padding: 16px;
+
+    .campaign-unified-card {
+      .card-header-toolbar {
+        padding: 12px 16px;
+
+        .action-buttons {
+          width: 100%;
+          justify-content: space-between;
+
+          .ant-btn {
+            flex: 1;
+            justify-content: center;
+
+            span:not(.anticon) {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .campaign-management {
+    .campaign-unified-card {
+      .card-header-toolbar {
+        .action-buttons {
+          flex-direction: column;
+          gap: 8px;
+
+          .ant-btn {
+            width: 100%;
+
+            span:not(.anticon) {
+              display: inline;
+            }
+          }
+        }
+      }
+    }
   }
 }

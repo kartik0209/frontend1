@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -47,7 +46,7 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [statusLoading, setStatusLoading] = useState({});
-  
+
   // Modal states
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [selectedUserForView, setSelectedUserForView] = useState(null);
@@ -64,20 +63,27 @@ const Users = () => {
     try {
       const response = await apiClient.get("/admin/user/company-users");
       console.log("Fetched users response:", response);
-      
-      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+
+      if (
+        response.data &&
+        response.data.success &&
+        Array.isArray(response.data.data)
+      ) {
         setUsers(response.data.data);
       } else if (Array.isArray(response.data)) {
         setUsers(response.data);
       } else {
         setUsers([]);
-        console.warn("API response does not contain a valid users array:", response.data);
+        console.warn(
+          "API response does not contain a valid users array:",
+          response.data
+        );
       }
     } catch (error) {
       console.error("Error fetching users:", error);
       setFailModalData({
         title: "Failed to Load Users",
-        message: "Unable to fetch users from the server. Please try again."
+        message: "Unable to fetch users from the server. Please try again.",
       });
       setFailModalOpen(true);
       setUsers([]);
@@ -98,7 +104,9 @@ const Users = () => {
         console.log("User updated response:", response);
         setSuccessModalData({
           title: "User Updated Successfully",
-          message: `${values.name || selectedUser.name} has been updated successfully.`
+          message: `${
+            values.name || selectedUser.name
+          } has been updated successfully.`,
         });
       } else {
         const response = await apiClient.post(
@@ -108,7 +116,7 @@ const Users = () => {
         console.log("User created response:", response);
         setSuccessModalData({
           title: "User Created Successfully",
-          message: `${values.name} has been added to the system successfully.`
+          message: `${values.name} has been added to the system successfully.`,
         });
       }
 
@@ -119,7 +127,9 @@ const Users = () => {
       console.error("Error saving user:", error);
       setFailModalData({
         title: `Failed to ${editMode ? "Update" : "Create"} User`,
-        message: error.response?.data?.message || `Unable to ${editMode ? "update" : "create"} user. Please try again.`
+        message:
+          error.response?.data?.message ||
+          `Unable to ${editMode ? "update" : "create"} user. Please try again.`,
       });
       setFailModalOpen(true);
     } finally {
@@ -165,10 +175,10 @@ const Users = () => {
     try {
       const res = await apiClient.delete(`/admin/user/${userToDelete.id}`);
       console.log("Delete user response:", res);
-      
+
       setSuccessModalData({
         title: "User Deleted Successfully",
-        message: `${userToDelete.name} has been removed from the system.`
+        message: `${userToDelete.name} has been removed from the system.`,
       });
       setSuccessModalOpen(true);
       fetchUsers();
@@ -176,7 +186,9 @@ const Users = () => {
       console.error("Error deleting user:", error);
       setFailModalData({
         title: "Failed to Delete User",
-        message: error.response?.data?.message || "Unable to delete user. Please try again."
+        message:
+          error.response?.data?.message ||
+          "Unable to delete user. Please try again.",
       });
       setFailModalOpen(true);
     } finally {
@@ -199,7 +211,9 @@ const Users = () => {
 
       setSuccessModalData({
         title: "Status Updated Successfully",
-        message: `${user.name} has been ${newStatus === "Active" ? "activated" : "deactivated"} successfully.`
+        message: `${user.name} has been ${
+          newStatus === "Active" ? "activated" : "deactivated"
+        } successfully.`,
       });
       setSuccessModalOpen(true);
       fetchUsers();
@@ -207,7 +221,9 @@ const Users = () => {
       console.error("Error updating user status:", error);
       setFailModalData({
         title: "Failed to Update Status",
-        message: error.response?.data?.message || "Unable to update user status. Please try again."
+        message:
+          error.response?.data?.message ||
+          "Unable to update user status. Please try again.",
       });
       setFailModalOpen(true);
     } finally {
@@ -291,10 +307,10 @@ const Users = () => {
   // Format date for table display
   const formatTableDate = (dateString) => {
     if (!dateString) return <Text type="secondary">Never</Text>;
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -355,13 +371,14 @@ const Users = () => {
       key: "status",
       width: 150,
       render: (status, record) => {
-        const statusString = status && typeof status === "string" ? status : "Unknown";
+        const statusString =
+          status && typeof status === "string" ? status : "Unknown";
         const isActive = statusString === "Active" || statusString === "active";
 
         return (
           <div className="status-column">
-            <Tag 
-              color={isActive ? "success" : "default"} 
+            <Tag
+              color={isActive ? "success" : "default"}
               className="status-tag"
             >
               {statusString.toUpperCase()}
@@ -406,134 +423,129 @@ const Users = () => {
   ];
 
   return (
-    <div className="users-page">
-      <Card className="users-header-card">
-        <Row justify="space-between" align="middle">
-          <Col>
-            <Title level={2} className="page-title" style={{fontSize:24}}>
-              Users Management
-            </Title>
-            <Text type="secondary" className="page-subtitle">
-              Manage all users in your system ({filteredUsers.length} total)
-            </Text>
-          </Col>
-          <Col>
-            <Button
-              type="primary"
-              icon={<UserAddOutlined />}
-              size="medium"
-              onClick={handleAddUser}
-              className="add-user-button"
-            >
-              Add User
-            </Button>
-          </Col>
-        </Row>
-      </Card>
-
-      <Card className="users-content-card">
-        <div className="search-section">
-          <Input
-            placeholder="Search users by name, email, or role..."
-            prefix={<SearchOutlined className="search-icon" />}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            size="large"
-            style={{ width: 300 }}
-            allowClear
-            className="search-input"
-          />
-        </div>
-
-        <Table
-          columns={columns}
-          dataSource={filteredUsers}
-          loading={loading}
-          rowKey="id"
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} users`,
-            className: "table-pagination",
-            style:{fontSize:"12px"}
-          }}
-          scroll={{ x: 1000 }}
-          className="users-table"
-          rowClassName="users-table-row"
+   <div className="users-page">
+  <Card className="users-content-card">
+    {/* Search + Add User in one row */}
+    <Row
+      justify="space-between"
+      align="middle"
+      gutter={[16, 16]} // spacing between columns
+      className="search-add-row"
+    >
+      <Col xs={24} sm={18} md={18} lg={14} xl={18}>
+        <Input
+          placeholder="Search users by name, email, or role..."
+          prefix={<SearchOutlined className="search-icon" />}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          size="large"
+          allowClear
+          className="search-input"
+        
         />
-      </Card>
+      </Col>
 
-      {/* Add/Edit User Drawer */}
-      <Drawer
-        title={
-          <div className="drawer-title">
-            <UserOutlined />
-            {editMode ? "Edit User" : "Add New User"}
-          </div>
-        }
-        width={520}
-        onClose={handleCloseDrawer}
-        open={drawerVisible}
-        bodyStyle={{ paddingBottom: 80 }}
-        destroyOnClose={true}
-        maskClosable={false}
-        className="user-drawer"
-      >
-        <AddUserForm
-          onSubmit={handleFormSubmit}
-          onCancel={handleCloseDrawer}
-          loading={submitting}
-          initialValues={editMode ? selectedUser : {}}
-          showAdditionalFields={true}
-        />
-      </Drawer>
+      <Col xs={24} sm={6} md={6} lg={6} xl={6} style={{ textAlign: "right" }}>
+        <Button
+          type="primary"
+          icon={<UserAddOutlined />}
+          size="large"
+          onClick={handleAddUser}
+          className="add-user-button"
+          block={window.innerWidth < 576} // makes full width on small screens
+        >
+          Add User
+        </Button>
+      </Col>
+    </Row>
 
-      {/* User View Modal */}
-      <UserViewModal
-        visible={viewModalVisible}
-        onClose={() => {
-          setViewModalVisible(false);
-          setSelectedUserForView(null);
+    {/* Users Table */}
+    <div className="table-wrapper" style={{marginTop:"20px"}}>
+      <Table
+        columns={columns}
+        dataSource={filteredUsers}
+        loading={loading}
+        rowKey="id"
+        pagination={{
+          pageSize: 15,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
         }}
-        userData={selectedUserForView}
-      />
-
-      {/* Success Modal */}
-      <SuccessModal
-        open={successModalOpen}
-        title={successModalData.title}
-        message={successModalData.message}
-        onClose={() => setSuccessModalOpen(false)}
-        autoClose={true}
-        autoCloseDelay={4000}
-      />
-
-      {/* Fail Modal */}
-      <FailModal
-        open={failModalOpen}
-        title={failModalData.title}
-        message={failModalData.message}
-        onOk={() => setFailModalOpen(false)}
-        showCancel={false}
-      />
-
-      {/* Confirm Delete Modal */}
-      <ConfirmModal
-        open={confirmModalOpen}
-        title="Delete User"
-        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone and will remove all associated data.`}
-        onConfirm={confirmDeleteUser}
-        onCancel={() => {
-          setConfirmModalOpen(false);
-          setUserToDelete(null);
-        }}
-        confirmText="Delete User"
-        cancelText="Cancel"
-        danger={true}
+        scroll={{ x: "max-content" }}
+        className="users-table"
+        rowClassName="users-table-row"
       />
     </div>
+  </Card>
+
+  {/* Add/Edit Drawer */}
+  <Drawer
+    title={
+      <div className="drawer-title">
+        <UserOutlined />
+        {editMode ? "Edit User" : "Add New User"}
+      </div>
+    }
+    width={520}
+    onClose={handleCloseDrawer}
+    open={drawerVisible}
+    bodyStyle={{ paddingBottom: 80 }}
+    destroyOnClose
+    maskClosable={false}
+    className="user-drawer"
+  >
+    <AddUserForm
+      onSubmit={handleFormSubmit}
+      onCancel={handleCloseDrawer}
+      loading={submitting}
+      initialValues={editMode ? selectedUser : {}}
+      showAdditionalFields
+    />
+  </Drawer>
+
+  {/* View, Success, Fail, and Confirm Modals */}
+  <UserViewModal
+    visible={viewModalVisible}
+    onClose={() => {
+      setViewModalVisible(false);
+      setSelectedUserForView(null);
+    }}
+    userData={selectedUserForView}
+  />
+
+  <SuccessModal
+    open={successModalOpen}
+    title={successModalData.title}
+    message={successModalData.message}
+    onClose={() => setSuccessModalOpen(false)}
+    autoClose
+    autoCloseDelay={4000}
+  />
+
+  <FailModal
+    open={failModalOpen}
+    title={failModalData.title}
+    message={failModalData.message}
+    onOk={() => setFailModalOpen(false)}
+    showCancel={false}
+  />
+
+  <ConfirmModal
+    open={confirmModalOpen}
+    title="Delete User"
+    message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone and will remove all associated data.`}
+    onConfirm={confirmDeleteUser}
+    onCancel={() => {
+      setConfirmModalOpen(false);
+      setUserToDelete(null);
+    }}
+    confirmText="Delete User"
+    cancelText="Cancel"
+    danger
+  />
+</div>
+
   );
 };
 

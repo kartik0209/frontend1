@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Tag } from "antd";
+import { Button, Card, Input, Tag } from "antd";
 import PublisherHeader from "../components/publisher/PublisherHeader";
 import PublisherTable from "../components/publisher/PublisherTable";
 import PublisherSearchModal from "../components/publisher/PublisherSearchModal";
@@ -14,7 +14,15 @@ import "../styles/PublisherManagement.scss";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
 import ConfirmModal from "../components/model/ConfirmModal";
 import { useNavigate } from "react-router-dom";
-
+import AdvancedFilterDrawer from "../components/publisher/AdvancedFilterDrawer";
+import {
+  ReloadOutlined,
+  DownloadOutlined,
+  FilterOutlined,
+  CalendarOutlined,
+  SearchOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 const PublisherManagement = () => {
   const [searchVisible, setSearchVisible] = useState(false);
   const [columnSettingsVisible, setColumnSettingsVisible] = useState(false);
@@ -26,79 +34,92 @@ const PublisherManagement = () => {
   const [editingPublisher, setEditingPublisher] = useState(null);
   const [viewingPublisher, setViewingPublisher] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  //const [publishers, setPublishers] = useState([]);
+const [filteredPublishers, setFilteredPublishers] = useState([]);
+  //const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  //const [isFilterVisible, setIsFilterVisible] = useState(false);
+  
+  const saveColumnPreferences = async () => {
+    console.log("Saving column preferences:", visibleColumns);
+    setSaveLoading(true);
+    try {
+      const selectedFields = Object.keys(visibleColumns).filter(
+        (key) => visibleColumns[key]
+      );
 
-const [saveLoading, setSaveLoading] = useState(false);
-
-const saveColumnPreferences = async () => {
-  console.log('Saving column preferences:', visibleColumns);
-  setSaveLoading(true);
-  try {
-    const selectedFields = Object.keys(visibleColumns).filter(key => visibleColumns[key]);
-    
-    const response = await apiClient.post('/common/user-preference', {
-      form: 'publisher',
-      fields: selectedFields
-    });
-    
-    if (response.data && response.data.success) {
-      showSuccessModal('Preferences Saved', 'Column preferences saved successfully!');
-      setColumnSettingsVisible(false);
-    } else {
-      throw new Error(response.data?.message || 'Failed to save preferences');
-    }
-  } catch (error) {
-    console.error('Error saving preferences:', error);
-    showFailModal('Save Failed', error.response?.data?.message || 'Failed to save preferences');
-  } finally {
-    setSaveLoading(false);
-  }
-};
-
-const fetchColumnPreferences = async () => {
-  try {
-    const response = await apiClient.get('/common/user-preference/publisher');
-    
-    if (response.data && response.data.success && response.data.data) {
-      const savedFields = response.data.data.fields || [];
-      const newVisibleColumns = {};
-      
-      // Set all columns to false first
-      columnOptions.forEach((col) => {
-        newVisibleColumns[col.key] = false;
+      const response = await apiClient.post("/common/user-preference", {
+        form: "publisher",
+        fields: selectedFields,
       });
-      
-      // Set saved fields to true
-      savedFields.forEach((field) => {
-        if (newVisibleColumns.hasOwnProperty(field)) {
-          newVisibleColumns[field] = true;
-        }
-      });
-      
-      setVisibleColumns(newVisibleColumns);
+
+      if (response.data && response.data.success) {
+        showSuccessModal(
+          "Preferences Saved",
+          "Column preferences saved successfully!"
+        );
+        setColumnSettingsVisible(false);
+      } else {
+        throw new Error(response.data?.message || "Failed to save preferences");
+      }
+    } catch (error) {
+      console.error("Error saving preferences:", error);
+      showFailModal(
+        "Save Failed",
+        error.response?.data?.message || "Failed to save preferences"
+      );
+    } finally {
+      setSaveLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching column preferences:', error);
-    // If no preferences found, use default columns
-  }
-};
+  };
 
-// 5. Update the useEffect to fetch preferences on component mount
-useEffect(() => {
-  fetchPublishers();
-  fetchColumnPreferences(); // Add this line
-}, []);
+  const fetchColumnPreferences = async () => {
+    try {
+      const response = await apiClient.get("/common/user-preference/publisher");
 
-  const navigate=useNavigate();
+      if (response.data && response.data.success && response.data.data) {
+        const savedFields = response.data.data.fields || [];
+        const newVisibleColumns = {};
+
+        // Set all columns to false first
+        columnOptions.forEach((col) => {
+          newVisibleColumns[col.key] = false;
+        });
+
+        // Set saved fields to true
+        savedFields.forEach((field) => {
+          if (newVisibleColumns.hasOwnProperty(field)) {
+            newVisibleColumns[field] = true;
+          }
+        });
+
+        setVisibleColumns(newVisibleColumns);
+      }
+    } catch (error) {
+      console.error("Error fetching column preferences:", error);
+      // If no preferences found, use default columns
+    }
+  };
+
+  // 5. Update the useEffect to fetch preferences on component mount
+  useEffect(() => {
+    fetchPublishers();
+    fetchColumnPreferences(); // Add this line
+  }, []);
+
+  const navigate = useNavigate();
   // Success and Fail modal states
   const [successModal, setSuccessModal] = useState({
     open: false,
-    title: '',
-    message: ''
+    title: "",
+    message: "",
   });
   const [failModal, setFailModal] = useState({
     open: false,
-    title: '',
-    message: ''
+    title: "",
+    message: "",
   });
 
   const defaultVisibleColumns = {
@@ -130,7 +151,7 @@ useEffect(() => {
     setSuccessModal({
       open: true,
       title,
-      message
+      message,
     });
   };
 
@@ -138,52 +159,51 @@ useEffect(() => {
     setFailModal({
       open: true,
       title,
-      message
+      message,
     });
   };
 
   const closeSuccessModal = () => {
     setSuccessModal({
       open: false,
-      title: '',
-      message: ''
+      title: "",
+      message: "",
     });
   };
 
   const closeFailModal = () => {
     setFailModal({
       open: false,
-      title: '',
-      message: ''
+      title: "",
+      message: "",
     });
   };
   const [confirmModal, setConfirmModal] = useState({
-  open: false,
-  title: '',
-  message: '',
-  onConfirm: null,
-  danger: false
-});
-
-// Add this helper function with other modal helper functions
-const showConfirm = (title, message, onConfirm, danger = false) => {
-  setConfirmModal({
-    open: true,
-    title,
-    message,
-    onConfirm,
-    danger
+    open: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    danger: false,
   });
-};
 
-const closeConfirmModal = () => {
-  setConfirmModal(prev => ({ ...prev, open: false, onConfirm: null }));
-};
+  // Add this helper function with other modal helper functions
+  const showConfirm = (title, message, onConfirm, danger = false) => {
+    setConfirmModal({
+      open: true,
+      title,
+      message,
+      onConfirm,
+      danger,
+    });
+  };
 
+  const closeConfirmModal = () => {
+    setConfirmModal((prev) => ({ ...prev, open: false, onConfirm: null }));
+  };
 
   // Create allColumns with render functions
-  const allColumns = baseColumns.map(column => {
-    if (column.key === 'status') {
+  const allColumns = baseColumns.map((column) => {
+    if (column.key === "status") {
       return {
         ...column,
         render: (status) => (
@@ -195,7 +215,9 @@ const closeConfirmModal = () => {
                 ? "orange"
                 : status === "Suspended"
                 ? "purple"
-                : status === "Disabled" || status === "Rejected" || status === "Banned"
+                : status === "Disabled" ||
+                  status === "Rejected" ||
+                  status === "Banned"
                 ? "red"
                 : "default"
             }
@@ -206,15 +228,15 @@ const closeConfirmModal = () => {
         ),
       };
     }
-    
-    if (column.key === 'full_name') {
+
+    if (column.key === "full_name") {
       return {
         ...column,
         render: (text) => <span className="publisher-name">{text}</span>,
       };
     }
 
-    if (column.key === 'entity_type') {
+    if (column.key === "entity_type") {
       return {
         ...column,
         render: (entityType) => (
@@ -225,7 +247,7 @@ const closeConfirmModal = () => {
       };
     }
 
-    if (column.key === 'notify_by_email') {
+    if (column.key === "notify_by_email") {
       return {
         ...column,
         render: (value) => (
@@ -234,39 +256,42 @@ const closeConfirmModal = () => {
       };
     }
 
-    if (column.key === 'created_at' || column.key === 'updated_at') {
+    if (column.key === "created_at" || column.key === "updated_at") {
       return {
         ...column,
-        render: (date) => date ? new Date(date).toLocaleDateString() : "N/A",
+        render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
       };
     }
-    
+
     return column;
   });
 
   // Fetch publishers from API
-    const fetchPublishers = async () => {
-      setLoading(true);
-      try {
-        const response = await apiClient.post('/common/publisher/list', {
-          // Add any required parameters here
-          // For example: page: 1, limit: 100, etc.
-        });
-        
-        if (response.data && response.data.success) {
-          setPublishers(response.data.data || response.data.publishers || []);
+  const fetchPublishers = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.post("/common/publisher/list", {
+        // Add any required parameters here
+        // For example: page: 1, limit: 100, etc.
+      });
+
+      if (response.data && response.data.success) {
+        setPublishers(response.data.data || response.data.publishers || []);
         //  showSuccessModal('Data Loaded', 'Publishers Added successfully!');
-        } else {
-          throw new Error(response.data?.message || 'Failed to fetch publishers');
-        }
-      } catch (error) {
-        console.error('Error fetching publishers:', error);
-        showFailModal('Load Failed', error.response?.data?.message || 'Failed to load publishers');
-        setPublishers([]); // Set empty array on error
-      } finally {
-        setLoading(false);
+      } else {
+        throw new Error(response.data?.message || "Failed to fetch publishers");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching publishers:", error);
+      showFailModal(
+        "Load Failed",
+        error.response?.data?.message || "Failed to load publishers"
+      );
+      setPublishers([]); // Set empty array on error
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchPublishers();
@@ -281,27 +306,37 @@ const closeConfirmModal = () => {
     try {
       // Filter out empty values
       const searchParams = Object.keys(values).reduce((acc, key) => {
-        if (values[key] !== undefined && values[key] !== null && values[key] !== '') {
+        if (
+          values[key] !== undefined &&
+          values[key] !== null &&
+          values[key] !== ""
+        ) {
           acc[key] = values[key];
         }
         return acc;
       }, {});
-      
-      const response = await apiClient.post('/common/publisher/list', searchParams);
-      
-      console.log('Search response:', response);
-      console.log('Search values:', values);
-      console.log('Filtered search params:', searchParams);
-             
+
+      const response = await apiClient.post(
+        "/common/publisher/list",
+        searchParams
+      );
+
+      console.log("Search response:", response);
+      console.log("Search values:", values);
+      console.log("Filtered search params:", searchParams);
+
       if (response.data && response.data.success) {
         setPublishers(response.data.data || response.data.publishers || []);
-        showSuccessModal('Search Complete', 'Search completed successfully!');
+        showSuccessModal("Search Complete", "Search completed successfully!");
       } else {
-        throw new Error(response.data?.message || 'Search failed');
+        throw new Error(response.data?.message || "Search failed");
       }
     } catch (error) {
-      console.error('Search error:', error);
-      showFailModal('Search Failed', error.response?.data?.message || 'Search failed');
+      console.error("Search error:", error);
+      showFailModal(
+        "Search Failed",
+        error.response?.data?.message || "Search failed"
+      );
     } finally {
       setLoading(false);
       setSearchVisible(false);
@@ -326,54 +361,78 @@ const closeConfirmModal = () => {
   };
 
   const handledetails = (publisher) => {
-  navigate(`/publisher/${publisher.id}`);
-}
+    navigate(`/publisher/${publisher.id}`);
+  };
 
- const handleDeletePublisher = async (publisherId) => {
-  showConfirm(
-    'Delete Publisher',
-    'Are you sure you want to delete this publisher? This action cannot be undone.',
-    async () => {
-      try {
-        setLoading(true);
-        const response = await apiClient.delete(`/common/publisher/${publisherId}`);
-        
-        if (response.data && response.data.success) {
-          showSuccessModal('Publisher Deleted', 'Publisher deleted successfully!');
-          fetchPublishers(); // Refresh the list
-        } else {
-          throw new Error(response.data?.message || 'Failed to delete publisher');
+  const handleDeletePublisher = async (publisherId) => {
+    showConfirm(
+      "Delete Publisher",
+      "Are you sure you want to delete this publisher? This action cannot be undone.",
+      async () => {
+        try {
+          setLoading(true);
+          const response = await apiClient.delete(
+            `/common/publisher/${publisherId}`
+          );
+
+          if (response.data && response.data.success) {
+            showSuccessModal(
+              "Publisher Deleted",
+              "Publisher deleted successfully!"
+            );
+            fetchPublishers(); // Refresh the list
+          } else {
+            throw new Error(
+              response.data?.message || "Failed to delete publisher"
+            );
+          }
+        } catch (error) {
+          console.error("Error deleting publisher:", error);
+          showFailModal(
+            "Delete Failed",
+            error.response?.data?.message || "Failed to delete publisher"
+          );
+        } finally {
+          setLoading(false);
+          closeConfirmModal();
         }
-      } catch (error) {
-        console.error('Error deleting publisher:', error);
-        showFailModal('Delete Failed', error.response?.data?.message || 'Failed to delete publisher');
-      } finally {
-        setLoading(false);
-        closeConfirmModal();
-      }
-    },
-    true // danger = true for delete action
-  );
-};
+      },
+      true // danger = true for delete action
+    );
+  };
 
   const handleStatusChange = async (publisherId, newStatus) => {
     try {
-      console.log('Changing status for publisher:', publisherId, 'to', newStatus);
+      console.log(
+        "Changing status for publisher:",
+        publisherId,
+        "to",
+        newStatus
+      );
       setLoading(true);
-      const response = await apiClient.patch(`/common/publisher/${publisherId}/status`, {
-        status: newStatus
-      });
-      console.log('Status change response:', response);
-      
+      const response = await apiClient.patch(
+        `/common/publisher/${publisherId}/status`,
+        {
+          status: newStatus,
+        }
+      );
+      console.log("Status change response:", response);
+
       if (response.data && response.data.success) {
-        showSuccessModal('Status Updated', `Publisher status updated to ${newStatus}!`);
+        showSuccessModal(
+          "Status Updated",
+          `Publisher status updated to ${newStatus}!`
+        );
         fetchPublishers(); // Refresh the list
       } else {
-        throw new Error(response.data?.message || 'Failed to update status');
+        throw new Error(response.data?.message || "Failed to update status");
       }
     } catch (error) {
-      console.error('Error updating status:', error);
-      showFailModal('Status Update Failed', error.response?.data?.message || 'Failed to update status');
+      console.error("Error updating status:", error);
+      showFailModal(
+        "Status Update Failed",
+        error.response?.data?.message || "Failed to update status"
+      );
     } finally {
       setLoading(false);
     }
@@ -383,29 +442,36 @@ const closeConfirmModal = () => {
     try {
       setLoading(true);
       let response;
-      
+
       if (isEditMode && editingPublisher) {
-        response = await apiClient.put(`/common/publisher/${editingPublisher.id}`, values);
+        response = await apiClient.put(
+          `/common/publisher/${editingPublisher.id}`,
+          values
+        );
       } else {
-        response = await apiClient.post('/common/publisher', values);
+        response = await apiClient.post("/common/publisher", values);
       }
-      console.log('Publisher submit response:', response);
-      
+      console.log("Publisher submit response:", response);
+
       if (response.data && response.data.success) {
         showSuccessModal(
-          `Publisher ${isEditMode ? 'Updated' : 'Created'}`, 
-          `Publisher ${isEditMode ? 'updated' : 'created'} successfully!`
+          `Publisher ${isEditMode ? "Updated" : "Created"}`,
+          `Publisher ${isEditMode ? "updated" : "created"} successfully!`
         );
         setPublisherModalVisible(false);
         fetchPublishers(); // Refresh the list
       } else {
-        throw new Error(response.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} publisher`);
+        throw new Error(
+          response.data?.message ||
+            `Failed to ${isEditMode ? "update" : "create"} publisher`
+        );
       }
     } catch (error) {
-      console.error('Error submitting publisher:', error);
+      console.error("Error submitting publisher:", error);
       showFailModal(
-        `Publisher ${isEditMode ? 'Update' : 'Creation'} Failed`,
-        error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} publisher`
+        `Publisher ${isEditMode ? "Update" : "Creation"} Failed`,
+        error.response?.data?.message ||
+          `Failed to ${isEditMode ? "update" : "create"} publisher`
       );
     } finally {
       setLoading(false);
@@ -416,20 +482,22 @@ const closeConfirmModal = () => {
     try {
       const headers = visibleTableColumns.map((col) => col.title).join(",");
       const rows = publishers.map((publisher) =>
-        visibleTableColumns.map((col) => {
-          const value = publisher[col.dataIndex];
-          // Handle special cases for export
-          if (col.key === 'status' || col.key === 'entity_type') {
+        visibleTableColumns
+          .map((col) => {
+            const value = publisher[col.dataIndex];
+            // Handle special cases for export
+            if (col.key === "status" || col.key === "entity_type") {
+              return value || "";
+            }
+            if (col.key === "notify_by_email") {
+              return value ? "Yes" : "No";
+            }
+            if (col.key === "created_at" || col.key === "updated_at") {
+              return value ? new Date(value).toLocaleDateString() : "";
+            }
             return value || "";
-          }
-          if (col.key === 'notify_by_email') {
-            return value ? "Yes" : "No";
-          }
-          if (col.key === 'created_at' || col.key === 'updated_at') {
-            return value ? new Date(value).toLocaleDateString() : "";
-          }
-          return value || "";
-        }).join(",")
+          })
+          .join(",")
       );
       const csvContent = [headers, ...rows].join("\n");
 
@@ -446,10 +514,13 @@ const closeConfirmModal = () => {
       link.click();
       document.body.removeChild(link);
 
-      showSuccessModal('Export Complete', 'Publisher data exported successfully!');
+      showSuccessModal(
+        "Export Complete",
+        "Publisher data exported successfully!"
+      );
     } catch (error) {
-      console.error('Export error:', error);
-      showFailModal('Export Failed', 'Failed to export publisher data');
+      console.error("Export error:", error);
+      showFailModal("Export Failed", "Failed to export publisher data");
     }
   };
 
@@ -481,50 +552,114 @@ const closeConfirmModal = () => {
     onChange: setSelectedRowKeys,
   };
 
-  return (
+
+   const handleQuickSearch = (e) => {
+    const value = e.target.value;
+    setSearchText(value);
+    
+    if (value.trim()) {
+      const filtered = publishers.filter((publisher) => {
+        const name = publisher.name?.toLowerCase() || '';
+        const email = publisher.email?.toLowerCase() || '';
+        const searchValue = value.toLowerCase();
+        
+        return name.includes(searchValue) || email.includes(searchValue);
+      });
+      setFilteredPublishers(filtered);
+    } else {
+      setFilteredPublishers(publishers);
+    }
+  };
+
+  // Update filtered data when publishers change
+  useEffect(() => {
+    setFilteredPublishers(publishers);
+  }, [publishers]);
+ return (
     <div className="publisher-management">
-      <PublisherHeader
-        onSearchClick={() => setSearchVisible(true)}
-        onColumnsClick={() => setColumnSettingsVisible(true)}
-        onExport={handleExport}
-        onAddPublisher={handleAddPublisher}
-        onRefresh={fetchPublishers}
+      {/* Floating Filter Button */}
+      <Button
+        icon={<FilterOutlined />}
+        onClick={() => setIsFilterVisible(true)}
+        type="primary"
+        shape="circle"
+        size="large"
+        title="Advanced Filters"
+        className="filter-button"
       />
 
-      <Card className="publisher-table-card">
-      {loading ? <TableSkeleton/>:
-        <PublisherTable
-          publishers={publishers}
-          columns={visibleTableColumns}
-          loading={loading}
-          rowSelection={rowSelection}
-          onEdit={handleEditPublisher}
-          onDelete={handleDeletePublisher}
-          onView={handleViewPublisher}
-          onStatusChange={handleStatusChange}
-          onDetail={handledetails}
-        />}
+      {/* Unified Card - Everything in One */}
+      <Card className="publisher-unified-card">
+        {/* Header Toolbar with Search and Buttons */}
+        <div className="card-header-toolbar">
+          {/* Left: Search Bar */}
+          <div className="search-section">
+            <Input
+              placeholder="Search by name or email..."
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={handleQuickSearch}
+              allowClear
+              className="quick-search"
+            />
+          </div>
+          
+          {/* Right: Action Buttons */}
+          <div className="action-buttons">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAddPublisher}
+              size="small"
+              className="add-btn"
+            >
+              Add Publisher
+            </Button>
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={handleExport}
+              size="small"
+              className="export-btn"
+            >
+              Export
+            </Button>
+          </div>
+        </div>
+
+        {/* Table Section */}
+        {loading ? (
+          <TableSkeleton />
+        ) : (
+          <PublisherTable
+            publishers={filteredPublishers}
+            columns={visibleTableColumns}
+            loading={loading}
+            rowSelection={rowSelection}
+            onEdit={handleEditPublisher}
+            onDelete={handleDeletePublisher}
+            onView={handleViewPublisher}
+            onStatusChange={handleStatusChange}
+            onDetail={handledetails}
+          />
+        )}
       </Card>
 
-      <PublisherSearchModal
-        visible={searchVisible}
-        onClose={() => setSearchVisible(false)}
+      {/* Advanced Filter Drawer */}
+      <AdvancedFilterDrawer
+        visible={isFilterVisible}
+        onClose={() => setIsFilterVisible(false)}
         onSearch={handleSearch}
-        loading={loading}
-      />
-
-      <PublisherColumnSettings
-        visible={columnSettingsVisible}
-        onClose={() => setColumnSettingsVisible(false)}
+        searchLoading={loading}
         visibleColumns={visibleColumns}
         columnOptions={columnOptions}
         onColumnChange={handleColumnChange}
         onSelectAll={handleSelectAll}
         onClearAll={handleClearAll}
-          onSave={saveColumnPreferences} // Add this
-  saveLoading={saveLoading} // Add this
+        onSave={saveColumnPreferences}
+        saveLoading={saveLoading}
       />
 
+      {/* Other Modals */}
       <PublisherModal
         visible={publisherModalVisible}
         onClose={() => setPublisherModalVisible(false)}
@@ -540,7 +675,6 @@ const closeConfirmModal = () => {
         publisherData={viewingPublisher}
       />
 
-      {/* Success Modal */}
       <SuccessModal
         open={successModal.open}
         title={successModal.title}
@@ -548,7 +682,6 @@ const closeConfirmModal = () => {
         onClose={closeSuccessModal}
       />
 
-      {/* Fail Modal */}
       <FailModal
         open={failModal.open}
         title={failModal.title}
@@ -557,17 +690,18 @@ const closeConfirmModal = () => {
       />
 
       <ConfirmModal
-  open={confirmModal.open}
-  title={confirmModal.title}
-  message={confirmModal.message}
-  onConfirm={confirmModal.onConfirm}
-  onCancel={closeConfirmModal}
-  confirmText="Yes, Delete"
-  cancelText="Cancel"
-  danger={confirmModal.danger}
-/>
+        open={confirmModal.open}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={closeConfirmModal}
+        confirmText="Yes, Delete"
+        cancelText="Cancel"
+        danger={confirmModal.danger}
+      />
     </div>
   );
+
 };
 
 export default PublisherManagement;

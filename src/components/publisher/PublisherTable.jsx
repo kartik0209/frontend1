@@ -147,7 +147,7 @@ const PublisherTable = ({
         </Dropdown>
       );
     },
-  };
+  }; 
 
   const tableColumns = [...columns, actionColumn];
 

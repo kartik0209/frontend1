@@ -20,14 +20,7 @@ const AdvertiserHeader = ({
 }) => {
   return (
     <div className="advertiser-header">
-      <div className="header-title">
-        <Title level={3} className="page-title">
-          Manage Advertisers
-        </Title>
-        <Text type="secondary" className="page-subtitle">
-          View and manage all your advertisers in one place
-        </Text>
-      </div>
+
       <Space className="header-actions">
         <Button
           type="primary"
@@ -37,7 +30,7 @@ const AdvertiserHeader = ({
         >
           Add Advertiser
         </Button>
-        <Button
+        {/* <Button
           type="primary"
           icon={<FilterOutlined />}
           onClick={onSearchClick}
@@ -51,7 +44,7 @@ const AdvertiserHeader = ({
           className="columns-btn"
         >
           Columns
-        </Button>
+        </Button> */}
         <Button
           icon={<DownloadOutlined />}
           onClick={onExport}

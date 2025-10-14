@@ -632,14 +632,7 @@ const ConversionReportsPage = ({ name }) => {
 
   return (
     <div style={{ padding: "24px", background: "#f0f2f5" }}>
-      <div style={{ marginBottom: "24px" }}>
-        <Title level={2} style={{ marginBottom: "8px" }}>
-          {name} Reports
-        </Title>
-        <p style={{ color: "#666", fontSize: "14px" }}>
-          Viewing reports grouped by: <Tag color="blue">{currentGroupBy}</Tag>
-        </p>
-      </div>
+
 
       {error && (
         <Alert
@@ -671,7 +664,7 @@ const ConversionReportsPage = ({ name }) => {
       >
         <Row gutter={[16, 16]} align="middle">
           {/* Date Range Picker */}
-          <Col xs={24} sm={12} md={8} lg={6}>
+          <Col xs={24} sm={12} md={8} lg={5}>
             <div style={{ marginBottom: "8px" }}>
               <CalendarOutlined style={{ marginRight: "8px" }} />
               <strong>Date Range:</strong>
@@ -831,15 +824,9 @@ const ConversionReportsPage = ({ name }) => {
             </div>
           </Col>
         </Row>
-      </Card>
 
-      <Card
-        style={{
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-          borderRadius: "8px",
-        }}
-      >
-        <Table
+        <Row style={{ marginTop: "24px" , padding: "0 14px" }}  >
+           <Table
           columns={columns}
           dataSource={reportData}
           rowKey={(record) =>
@@ -867,7 +854,10 @@ const ConversionReportsPage = ({ name }) => {
           bordered
           onChange={handleTableChange}
         />
+        </Row>
       </Card>
+
+ 
 
       <Button
         icon={<FilterOutlined />}

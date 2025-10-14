@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Sidebar from '../components/common/Sidebar';
+import Header from '../components/common/Header';
 
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -20,7 +21,6 @@ const Layout = ({ children }) => {
 
   return (
     <>
-   
       <div className="app-layout">
         {showSidebar && (
           <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -32,9 +32,10 @@ const Layout = ({ children }) => {
             ? `with-sidebar ${collapsed ? 'collapsed' : ''}` 
             : 'full-width'
         }`}>
-      
-          
-          {children}
+          {showSidebar && <Header />}
+          <div className="content-wrapper">
+            {children}
+          </div>
         </main>
       </div>
     </>
