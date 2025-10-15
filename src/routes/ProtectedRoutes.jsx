@@ -157,10 +157,10 @@ const ProtectedRoutes = () => {
           />
 
           <Route
-            path="/reports/advertisher"
+            path="/reports/advertiser"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS?.REPORTS_VIEW}>
-                <ConversionReportsPage name={"Advertisher"} />
+                <ConversionReportsPage name={"advertiser"} />
               </ProtectedRoute>
             }
           />

@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   DashboardOutlined,
   ThunderboltOutlined,
   FileTextOutlined,
@@ -13,6 +11,8 @@ import {
   PlusOutlined,
   EditOutlined,
   LogoutOutlined,
+  DoubleLeftOutlined,
+  DoubleRightOutlined,
 } from "@ant-design/icons";
 import { Menu } from "antd";
 import { toast } from "react-toastify";
@@ -55,33 +55,31 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   const onOpenChange = (keys) => {
     setOpenKeys(keys);
   };
-const handleMenuClick = ({ key }) => {
-  if (key === "logout") {
-    dispatch(logout());
-    toast.success("Logged out successfully!");
-    navigate("/");
-    return;
-  }
-  
-  // Set selected keys and navigate
-  setSelectedKeys([key]);
-  navigate(key);
-  
-  // Auto-collapse sidebar after menu selection
-  setCollapsed(true);
-};
+
+  const handleMenuClick = ({ key }) => {
+    if (key === "logout") {
+      dispatch(logout());
+      toast.success("Logged out successfully!");
+      navigate("/");
+      return;
+    }
+    
+    // Set selected keys and navigate
+    setSelectedKeys([key]);
+    navigate(key);
+    
+    // Auto-collapse sidebar after menu selection
+    setCollapsed(true);
+  };
+
   const hasPermission = (perm) => permissions?.includes(perm);
 
   return (
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
-        <div className="toggle-btn" onClick={() => setCollapsed(!collapsed)}>
-          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-        </div>
         <img src={logo} alt="Logo" className="sidebar-logo" />
         {!collapsed && (
           <>
-            
             <div className="sidebar-info">
               <h2 className="sidebar-title">Admin Panel</h2>
               <p className="sidebar-subtitle">Welcome {user?.name}</p>
@@ -165,39 +163,45 @@ const handleMenuClick = ({ key }) => {
               icon={<BarChartOutlined />}
               title="Reports"
             >
-            
-                <Menu.Item
+              <Menu.Item
                 key="/reports/conversion-old"
                 icon={<FileTextOutlined />}
               >
                 Conversion Report  
               </Menu.Item>
               <Menu.Item key="/reports/campaign" icon={<FileTextOutlined />}>
-              Click Report
+                Click Report
               </Menu.Item>
-                 <Menu.Item key="/reports/publisher" icon={<FileTextOutlined />}>
+              <Menu.Item key="/reports/publisher" icon={<FileTextOutlined />}>
                 Publisher Report
               </Menu.Item>
-                 <Menu.Item key="/reports/advertisher" icon={<FileTextOutlined />}>
-                Advertisher Report
+              <Menu.Item key="/reports/advertiser" icon={<FileTextOutlined />}>
+                advertiser Report
               </Menu.Item>
-                 <Menu.Item key="/reports/conversion-campaign" icon={<FileTextOutlined />}>
+              <Menu.Item key="/reports/conversion-campaign" icon={<FileTextOutlined />}>
                 Campaign Report
               </Menu.Item>
-                <Menu.Item key="/reports/daily" icon={<FileTextOutlined />}>
+              <Menu.Item key="/reports/daily" icon={<FileTextOutlined />}>
                 Daily Report
               </Menu.Item>
             </SubMenu>
           )}
+
+          
         </Menu>
       </div>
 
       <div className="sidebar-footer">
-        <Menu mode="inline" theme="dark" onClick={handleMenuClick}>
-          <Menu.Item key="logout" icon={<LogoutOutlined style={{ fontSize:"20px" ,margin:"10px"}} />}>
-            Logout
-          </Menu.Item>
-        </Menu>
+        <div className="collapse-btn"  onClick={() => setCollapsed(!collapsed)}>
+          {collapsed ? (
+            <DoubleRightOutlined style={{ fontSize: "20px" }} />
+          ) : (
+            <>
+              <DoubleLeftOutlined style={{ fontSize: "20px"  }} />
+              
+            </>
+          )}
+        </div>
       </div>
     </aside>
   );

@@ -479,11 +479,16 @@ const ConversionReportsPageOld = ({name}) => {
 
 
 
-  return (
-    <div style={{ padding: "24px" }}>
-      <div style={{ marginBottom: "24px" }}>
-        <Title level={2}>{name} Reports</Title>
-      </div>
+ // ============================================
+// CHANGES FOR ConversionReportsPageOld.jsx
+// ============================================
+
+// 1. IMPORTS ARE ALREADY CORRECT - No changes needed
+
+// 2. REPLACE THE ENTIRE RETURN STATEMENT WITH THIS:
+ return (
+    <div style={{ padding: "24px", background: "#f0f2f5" }}>
+
 
       {error && (
         <Alert
@@ -495,103 +500,92 @@ const ConversionReportsPageOld = ({name}) => {
           onClose={() => setError(null)}
         />
       )}
-      
-      {/* Filter modal component */}
+
       <ConversionReportFilter
         visible={isFilterVisible}
         onClose={() => setIsFilterVisible(false)}
         onApply={handleApplyFilters}
-        initialValues={appliedFilters}
+        initialValues={{
+          ...appliedFilters,
+          
+        }}
       />
 
-      <Card style={{ marginBottom: "24px" }}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <div style={{ marginBottom: "8px" }}>
-              <strong>Select Campaign:</strong>
-            </div>
-            <Select
-              placeholder="All Campaigns"
-              style={{ width: "100%" }}
-              value={selectedCampaign}
-              onChange={handleCampaignChange}
-              loading={loading}
-              showSearch
-              allowClear
-              filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-            >
-              {campaigns.map((campaign) => (
-                <Option key={campaign.id} value={campaign.id}>
-                  {campaign.name || campaign.title}
-                </Option>
-              ))}
-            </Select>
-          </Col>
+      <Card
+        style={{
+          marginBottom: "24px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          borderRadius: "8px",
+        }}
+      >
+       
 
-          <Col xs={24} sm={24} md={16} lg={18}>
-            <div style={{ textAlign: "right", marginTop: "24px" }}>
-              <Space>
-                <Button
-                  icon={<FilterOutlined />}
-                  onClick={() => setIsFilterVisible(true)}
-                  type="primary"
-                >
-                  Advanced Filters
-                </Button>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={handleRefresh}
-                  loading={reportsLoading}
-                >
-                  Refresh
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<DownloadOutlined />}
-                  disabled={pagination.total === 0}
-                  onClick={handleExportAll}
-                  loading={reportsLoading}
-                >
-                  Export All CSV
-                </Button>
-              </Space>
-            </div>
-          </Col>
+        <Row style={{ marginTop: "24px" , padding: "0 14px" }}  >
+           <Table
+          columns={columns}
+          dataSource={reportData}
+          rowKey={(record) =>
+            `${
+              record.id ||
+              record.campaignId ||
+              record.publisherId ||
+              Math.random()
+            }-${record.date || Math.random()}`
+          }
+          pagination={{
+            ...pagination,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} records`,
+            pageSizeOptions: ["10", "20", "50", "100"],
+          }}
+          scroll={{ x: 1400 }}
+          loading={reportsLoading}
+          locale={{
+            emptyText: "No reports data available",
+          }}
+          size="small"
+          bordered
+          onChange={handleTableChange}
+        />
         </Row>
-
       </Card>
 
-   
-      <Table
-  columns={columns}
-  dataSource={reportData}
-  rowKey={(record) =>
-    `${record.id || record.transactionId || Math.random()}-${
-      record.trackingId || Math.random()
-    }`
-  }
-  style={{ fontSize: "12px", margin: 0, padding: 0 }}
-  pagination={{
-    ...pagination,
-    showSizeChanger: true,
-    showQuickJumper: true,
-    showTotal: (total, range) =>
-      `${range[0]}-${range[1]} of ${total} records`,
-    pageSizeOptions: ["10", "20", "50", "100"],
-  }}
-  scroll={{ x: 1400 }}
-  loading={reportsLoading}
-  locale={{
-    emptyText: "No reports data available",
-  }}
-  size="small"
-  bordered
-  onChange={handleTableChange}
-></Table>
+ 
+
+      <Button
+        icon={<FilterOutlined />}
+        onClick={() => setIsFilterVisible(true)}
+        type="primary"
+        shape="circle"
+        size="large"
+        title="Advanced Filters"
+        className="filter-button"
+        style={{
+          width: "48px",
+          height: "48px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      />
     </div>
   );
+
+// 3. ALL OTHER CODE REMAINS THE SAME - No changes to:
+// - All state variables (keep as is)
+// - buildFilterQuery function
+// - fetchCampaigns function
+// - fetchAllReports function
+// - fetchCampaignReports function
+// - handleApplyFilters function
+// - handleCampaignChange function
+// - handleTableChange function
+// - handleRefresh function
+// - handleExportAll function
+// - columns definition
+// - useEffect
 };
 
 

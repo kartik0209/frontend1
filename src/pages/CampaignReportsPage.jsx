@@ -19,6 +19,8 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
+import { FilterOutlined } from "@ant-design/icons";
+import "../styles/ConversionReportsPage.scss";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -36,7 +38,8 @@ const ConversionReportsPage = () => {
     pageSize: 10,
     total: 0,
   });
-
+const [isFilterVisible, setIsFilterVisible] = useState(false);
+const [appliedFilters, setAppliedFilters] = useState({});
   const fetchCampaigns = async () => {
     setLoading(true);
     setError(null);
@@ -376,131 +379,173 @@ const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
     fetchAllReports(1, 10);
   }, []);
 
-  return (
-    <div style={{ padding: "24px" }}>
-      <div style={{ marginBottom: "24px" }}>
-        <Title level={2}>Click Reports</Title>
-      </div>
+ // ============================================
+// CHANGES FOR ConversionReportsPage.jsx
+// ============================================
 
-      {error && (
-        <Alert
-          message="Error"
-          description={error}
-          type="error"
-          closable
-          style={{ marginBottom: "24px" }}
-          onClose={() => setError(null)}
-        />
-      )}
+// 1. IMPORTS ARE ALREADY CORRECT - No changes needed
 
-      <Card style={{ marginBottom: "24px" }}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <div style={{ marginBottom: "8px" }}>
-              <strong>Select Campaign:</strong>
-            </div>
-            <Select
-              placeholder="All Campaigns"
-              style={{ width: "100%" }}
-              value={selectedCampaign}
-              onChange={handleCampaignChange}
-              loading={loading}
-              showSearch
-              allowClear
-              filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-            >
-              {campaigns.map((campaign) => (
-                <Option key={campaign.id} value={campaign.id}>
-                  {campaign.name || campaign.title}
-                </Option>
-              ))}
-            </Select>
-          </Col>
+// 2. REPLACE THE ENTIRE RETURN STATEMENT WITH THIS:
+return (
+  <div style={{ padding: "24px", background: "#f0f2f5" }}>
 
-          <Col xs={24} sm={24} md={16} lg={18}>
-            <div style={{ textAlign: "right", marginTop: "24px" }}>
-              <Space>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={handleRefresh}
-                  loading={reportsLoading}
-                >
-                  Refresh
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<DownloadOutlined />}
-                  disabled={pagination.total === 0}
-                  onClick={handleExportAll}
-                  loading={reportsLoading}
-                >
-                  Export All CSV
-                </Button>
-              </Space>
-            </div>
-          </Col>
-        </Row>
 
-        {campaignDetails && (
+    {error && (
+      <Alert
+        message="Error"
+        description={error}
+        type="error"
+        closable
+        style={{ marginBottom: "24px" }}
+        onClose={() => setError(null)}
+      />
+    )}
+
+    <Card
+      style={{
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        borderRadius: "8px",
+      }}
+    >
+      {/* Filters Row */}
+      <Row gutter={[12, 12]} align="middle" style={{ marginBottom: "16px" }}>
+        {/* Campaign Dropdown */}
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+            <strong>Campaign</strong>
+          </div>
+          <Select
+            placeholder="All Campaigns"
+            style={{ width: "100%" }}
+            value={selectedCampaign}
+            onChange={handleCampaignChange}
+            loading={loading}
+            showSearch
+            allowClear
+            size="small"
+            filterOption={(input, option) =>
+              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+          >
+            {campaigns.map((campaign) => (
+              <Option key={campaign.id} value={campaign.id}>
+                {campaign.name || campaign.title}
+              </Option>
+            ))}
+          </Select>
+        </Col>
+
+        {/* Action Buttons */}
+        <Col xs={24} sm={12} md={16} lg={18}>
           <div
             style={{
-              marginTop: "16px",
-              padding: "16px",
-              backgroundColor: "#f5f5f5",
-              borderRadius: "8px",
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "flex-end",
+              gap: "8px",
+              height: "100%",
+              paddingBottom: "2px",
             }}
           >
-            <Row gutter={16}>
-              <Col span={12}>
-                <strong>Campaign:</strong>{" "}
-                {campaignDetails.name || campaignDetails.title}
-              </Col>
-              <Col span={12}>
-                <strong>Status:</strong>{" "}
-                <Tag
-                  color={
-                    campaignDetails.status === "active" ? "green" : "orange"
-                  }
-                >
-                  {campaignDetails.status?.toUpperCase()}
-                </Tag>
-              </Col>
-            </Row>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleRefresh}
+              loading={reportsLoading}
+              size="small"
+              title="Refresh"
+            />
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              disabled={pagination.total === 0}
+              onClick={handleExportAll}
+              loading={reportsLoading}
+              size="small"
+              title="Export All CSV"
+              style={{
+                background: "#52c41a",
+                borderColor: "#52c41a",
+              }}
+            />
           </div>
-        )}
-      </Card>
+        </Col>
+      </Row>
 
-        <Table
-          columns={columns}
-          dataSource={reportData}
-          rowKey={(record) =>
-            `${record.id || record.transactionId || Math.random()}-${
-              record.trackingId || Math.random()
-            }`
-          }
-          style={{fontSize:"12px"}}
-          pagination={{
-            ...pagination,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} records`,
-            pageSizeOptions: ["10", "20", "50", "100"],
+      {/* Campaign Details */}
+      {campaignDetails && (
+        <div
+          style={{
+            marginBottom: "16px",
+            padding: "12px 16px",
+            backgroundColor: "#f5f5f5",
+            borderRadius: "8px",
           }}
-          scroll={{ x: 1400 }}
-          loading={reportsLoading}
-          locale={{
-            emptyText: "No reports data available",
-          }}
-          size="middle"
-          bordered
-          onChange={handleTableChange}
-        />
-      
-    </div>
-  );
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <strong style={{ fontSize: "13px" }}>Campaign:</strong>{" "}
+              <span style={{ fontSize: "13px" }}>
+                {campaignDetails.name || campaignDetails.title}
+              </span>
+            </Col>
+            <Col span={12}>
+              <strong style={{ fontSize: "13px" }}>Status:</strong>{" "}
+              <Tag
+                color={
+                  campaignDetails.status === "active" ? "green" : "orange"
+                }
+              >
+                {campaignDetails.status?.toUpperCase()}
+              </Tag>
+            </Col>
+          </Row>
+        </div>
+      )}
+
+      {/* Table */}
+      <Table
+        columns={columns}
+        dataSource={reportData}
+        rowKey={(record) =>
+          `${record.id || record.transactionId || Math.random()}-${
+            record.trackingId || Math.random()
+          }`
+        }
+        pagination={{
+          ...pagination,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} records`,
+          pageSizeOptions: ["10", "20", "50", "100"],
+        }}
+        scroll={{ x: 1400 }}
+        loading={reportsLoading}
+        locale={{
+          emptyText: "No reports data available",
+        }}
+        size="small"
+        bordered
+        onChange={handleTableChange}
+      />
+    </Card>
+  </div>
+);
+
+// 3. REMOVE UNUSED STATE VARIABLES (delete these lines):
+// - const [isFilterVisible, setIsFilterVisible] = useState(false);
+// - const [appliedFilters, setAppliedFilters] = useState({});
+
+// 4. ALL OTHER CODE REMAINS THE SAME - No changes to:
+// - fetchCampaigns
+// - fetchAllReports
+// - fetchCampaignReports
+// - handleCampaignChange
+// - handleTableChange
+// - handleRefresh
+// - handleExportAll
+// - columns definition
+// - useEffect
 };
 
 export default ConversionReportsPage;

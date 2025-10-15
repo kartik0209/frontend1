@@ -73,6 +73,22 @@
   .sidebar-nav,
   .sidebar-footer {
     /* share same menu‐item rules */
+
+
+    
+  .collapse-btn {
+    padding: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.65);
+    transition: all 0.3s;
+    
+    
+ 
+  }
+
     .ant-menu {
       background: transparent !important;
       border-right: none;

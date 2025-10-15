@@ -578,15 +578,16 @@ const [filteredPublishers, setFilteredPublishers] = useState([]);
  return (
     <div className="publisher-management">
       {/* Floating Filter Button */}
-      <Button
-        icon={<FilterOutlined />}
-        onClick={() => setIsFilterVisible(true)}
-        type="primary"
-        shape="circle"
-        size="large"
-        title="Advanced Filters"
-        className="filter-button"
-      />
+   <Button
+  icon={<FilterOutlined />}
+  onClick={() => setIsFilterVisible(true)}
+  type="primary"
+  size="large"
+  title="Advanced Filters"
+  className="filter-button"
+>
+
+</Button>
 
       {/* Unified Card - Everything in One */}
       <Card className="publisher-unified-card">

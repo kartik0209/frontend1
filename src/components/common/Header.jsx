@@ -17,7 +17,7 @@ const routeTitles = {
   '/reports/conversion': 'Conversion Reports',
   '/reports/conversion-old': 'Conversion Reports ',
   '/reports/publisher': 'Publisher Reports',
-  '/reports/advertisher': 'Advertiser Reports',
+  '/reports/advertiser': 'Advertiser Reports',
   '/reports/conversion-campaign': 'Campaign Reports',
   '/reports/daily': 'Daily Reports',
   '/reports/campaign': 'Click Reports',
