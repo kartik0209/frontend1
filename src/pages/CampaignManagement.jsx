@@ -581,7 +581,7 @@ const handleStatusChange = async (campaignId, newStatus) => {
     <Card className="campaign-unified-card">
       {/* Header Toolbar with Search and Buttons */}
       <div className="card-header-toolbar">
-        {/* Left: Search Bar */}
+        
         <div className="search-section">
           <Input
             placeholder="Search by title or advertiser..."

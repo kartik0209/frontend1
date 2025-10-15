@@ -21,11 +21,15 @@ import {
 import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
 import ConversionReportFilter from "../components/campaign/ConversionRepotFilter"; // Import the filter component
-
+import { useNavigate } from "react-router-dom";
+import "../styles/CampaignManagement.scss";
+import { SearchOutlined } from "@ant-design/icons";
+import { Input } from "antd";
 const { Option } = Select;
 const { Title } = Typography;
 
-const ConversionReportsPageOld = ({name}) => {
+const ConversionReportsPageOld = ({ name }) => {
+   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [campaignDetails, setCampaignDetails] = useState(null);
@@ -38,11 +42,13 @@ const ConversionReportsPageOld = ({name}) => {
     pageSize: 10,
     total: 0,
   });
-
+const [searchText, setSearchText] = useState("");
   // State for filter modal visibility and applied filters
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState({});
-
+const handleQuickSearch = (e) => {
+  setSearchText(e.target.value);
+};
   // Helper function to build the query string from applied filters
   const buildFilterQuery = (filters) => {
     const params = new URLSearchParams();
@@ -50,18 +56,35 @@ const ConversionReportsPageOld = ({name}) => {
 
     const { basicFilters } = filters;
 
-    if (basicFilters.dateRange && basicFilters.dateRange[0] && basicFilters.dateRange[1]) {
-      params.append('startDate', dayjs(basicFilters.dateRange[0]).startOf('day').toISOString());
-      params.append('endDate', dayjs(basicFilters.dateRange[1]).endOf('day').toISOString());
+    if (
+      basicFilters.dateRange &&
+      basicFilters.dateRange[0] &&
+      basicFilters.dateRange[1]
+    ) {
+      params.append(
+        "startDate",
+        dayjs(basicFilters.dateRange[0]).startOf("day").toISOString()
+      );
+      params.append(
+        "endDate",
+        dayjs(basicFilters.dateRange[1]).endOf("day").toISOString()
+      );
     }
-    if (basicFilters.pixelType) params.append('pixelType', basicFilters.pixelType);
-    if (basicFilters.eventType) params.append('eventType', basicFilters.eventType);
-    if (basicFilters.conversionStatus) params.append('conversionStatus', basicFilters.conversionStatus);
-    if (basicFilters.transactionId) params.append('transactionId', basicFilters.transactionId);
-    if (basicFilters.trackingId) params.append('trackingId', basicFilters.trackingId);
-    if (basicFilters.minAmount) params.append('minAmount', basicFilters.minAmount);
-    if (basicFilters.maxAmount) params.append('maxAmount', basicFilters.maxAmount);
-    
+    if (basicFilters.pixelType)
+      params.append("pixelType", basicFilters.pixelType);
+    if (basicFilters.eventType)
+      params.append("eventType", basicFilters.eventType);
+    if (basicFilters.conversionStatus)
+      params.append("conversionStatus", basicFilters.conversionStatus);
+    if (basicFilters.transactionId)
+      params.append("transactionId", basicFilters.transactionId);
+    if (basicFilters.trackingId)
+      params.append("trackingId", basicFilters.trackingId);
+    if (basicFilters.minAmount)
+      params.append("minAmount", basicFilters.minAmount);
+    if (basicFilters.maxAmount)
+      params.append("maxAmount", basicFilters.maxAmount);
+
     // You could expand this to include searchFilters, etc. if your API supports them
     // Example: if (filters.searchFilters?.campaign) params.append('campaignName', filters.searchFilters.campaign);
 
@@ -73,21 +96,27 @@ const ConversionReportsPageOld = ({name}) => {
     setError(null);
     try {
       const response = await apiClient.post("/admin/campaign/list", {});
-      
+
       if (response.data && response.data.success) {
-        const campaignData = response.data.data || response.data.campaigns || [];
+        const campaignData =
+          response.data.data || response.data.campaigns || [];
         const campaignsWithKeys = campaignData.map((campaign) => ({
           ...campaign,
           key: campaign.id || Math.random().toString(36).substring(2, 11),
         }));
         setCampaigns(campaignsWithKeys);
-        message.success(`${campaignsWithKeys.length} campaigns loaded successfully!`);
+        message.success(
+          `${campaignsWithKeys.length} campaigns loaded successfully!`
+        );
       } else {
         throw new Error(response.data?.message || "Failed to fetch campaigns");
       }
     } catch (error) {
       console.error("Error fetching campaigns:", error);
-      const errorMessage = error.response?.data?.message || error.message || "Failed to load campaigns";
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to load campaigns";
       message.error(errorMessage);
       setError(errorMessage);
       setCampaigns([]);
@@ -96,27 +125,37 @@ const ConversionReportsPageOld = ({name}) => {
     }
   };
 
-  const fetchAllReports = async (page = 1, pageSize = 10, filters = appliedFilters) => {
+  const fetchAllReports = async (
+    page = 1,
+    pageSize = 10,
+    filters = appliedFilters
+  ) => {
     setReportsLoading(true);
     setError(null);
     const filterQuery = buildFilterQuery(filters);
     try {
-      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&${filterQuery}`);
-      
+      const response = await apiClient.get(
+        `/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&${filterQuery}`
+      );
+
       if (response.data?.success) {
         const reports = response.data.data.pixelTrackings || [];
-        const total = response.data.data.total || response.data.totalCount || reports.length;
-        
-       setReportData(Array.isArray(reports) ? reports : []);
+        const total =
+          response.data.data.total ||
+          response.data.totalCount ||
+          reports.length;
 
-        setPagination(prev => ({
+        setReportData(Array.isArray(reports) ? reports : []);
+
+        setPagination((prev) => ({
           ...prev,
           current: page,
           pageSize: pageSize,
           total: total,
         }));
-        
-        if (page === 1) { // Only show success message on initial load/filter, not on pagination
+
+        if (page === 1) {
+          // Only show success message on initial load/filter, not on pagination
           message.success(`${reports.length} reports loaded successfully!`);
         }
       } else {
@@ -124,11 +163,14 @@ const ConversionReportsPageOld = ({name}) => {
       }
     } catch (err) {
       console.error("Error fetching reports:", err);
-      const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "An error occurred while fetching reports.";
       setError(errorMessage);
       message.error(errorMessage);
       setReportData([]);
-      setPagination(prev => ({
+      setPagination((prev) => ({
         ...prev,
         total: 0,
       }));
@@ -137,22 +179,32 @@ const ConversionReportsPageOld = ({name}) => {
     }
   };
 
-  const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10, filters = appliedFilters) => {
+  const fetchCampaignReports = async (
+    campaignId,
+    page = 1,
+    pageSize = 10,
+    filters = appliedFilters
+  ) => {
     if (!campaignId) return;
-    
+
     setReportsLoading(true);
     setError(null);
     const filterQuery = buildFilterQuery(filters);
 
     try {
-      const response = await apiClient.get(`/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}&${filterQuery}`);
-      
+      const response = await apiClient.get(
+        `/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}&${filterQuery}`
+      );
+
       if (response.data?.success) {
         const reports = response.data.data.pixelTrackings || [];
-        const total = response.data.data.total || response.data.totalCount || reports.length;
-        
+        const total =
+          response.data.data.total ||
+          response.data.totalCount ||
+          reports.length;
+
         setReportData(reports);
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
           current: page,
           pageSize: pageSize,
@@ -174,11 +226,14 @@ const ConversionReportsPageOld = ({name}) => {
       }
     } catch (err) {
       console.error("Error fetching reports:", err);
-      const errorMessage = err.response?.data?.message || err.message || "An error occurred while fetching reports.";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "An error occurred while fetching reports.";
       setError(errorMessage);
       message.error(errorMessage);
       setReportData([]);
-      setPagination(prev => ({
+      setPagination((prev) => ({
         ...prev,
         total: 0,
       }));
@@ -186,7 +241,7 @@ const ConversionReportsPageOld = ({name}) => {
       setReportsLoading(false);
     }
   };
-  
+
   // Handler for applying filters from the modal
   const handleApplyFilters = (filters) => {
     setAppliedFilters(filters);
@@ -198,19 +253,19 @@ const ConversionReportsPageOld = ({name}) => {
     }
   };
 
-  const handleCampaignChange = (campaignId) => {
-    setSelectedCampaign(campaignId);
-    if (campaignId) {
-      fetchCampaignReports(campaignId, 1, pagination.pageSize);
-    } else {
-      setCampaignDetails(null);
-      fetchAllReports(1, pagination.pageSize);
-    }
-  };
+const handleCampaignChange = (campaignId) => {
+  setSelectedCampaign(campaignId);
+  if (campaignId) {
+    fetchCampaignReports(campaignId, 1, pagination.pageSize);
+  } else {
+    setCampaignDetails(null);
+    fetchAllReports(1, pagination.pageSize);
+  }
+};
 
   const handleTableChange = (paginationInfo) => {
     const { current, pageSize } = paginationInfo;
-    
+
     if (selectedCampaign) {
       fetchCampaignReports(selectedCampaign, current, pageSize);
     } else {
@@ -221,7 +276,11 @@ const ConversionReportsPageOld = ({name}) => {
   const handleRefresh = async () => {
     try {
       if (selectedCampaign) {
-        await fetchCampaignReports(selectedCampaign, pagination.current, pagination.pageSize);
+        await fetchCampaignReports(
+          selectedCampaign,
+          pagination.current,
+          pagination.pageSize
+        );
       } else {
         await fetchAllReports(pagination.current, pagination.pageSize);
       }
@@ -241,16 +300,16 @@ const ConversionReportsPageOld = ({name}) => {
       let hasMoreData = true;
 
       while (hasMoreData) {
-        const url = selectedCampaign 
+        const url = selectedCampaign
           ? `/admin/report/conversion-trackings?page=${currentPage}&pageSize=${pageSize}&campaignId=${selectedCampaign}`
           : `/admin/report/conversion-trackings?page=${currentPage}&pageSize=${pageSize}`;
-        
+
         const response = await apiClient.get(url);
-        
+
         if (response.data?.success) {
           const pageData = response.data.data || [];
           allData = [...allData, ...pageData];
-          
+
           if (pageData.length < pageSize) {
             hasMoreData = false;
           } else {
@@ -272,7 +331,10 @@ const ConversionReportsPageOld = ({name}) => {
           .map((col) => {
             const value = record[col.dataIndex];
             if (!value) return "N/A";
-            if (col.dataIndex.includes("Time") || col.dataIndex.includes("At")) {
+            if (
+              col.dataIndex.includes("Time") ||
+              col.dataIndex.includes("At")
+            ) {
               return dayjs(value).format("YYYY-MM-DD HH:mm:ss");
             }
             return typeof value === "string" ? `"${value}"` : value;
@@ -289,13 +351,17 @@ const ConversionReportsPageOld = ({name}) => {
         link.setAttribute("href", url);
         link.setAttribute(
           "download",
-          `conversion_reports_${selectedCampaign ? `campaign_${selectedCampaign}_` : "all_"}${dayjs().format("YYYY-MM-DD")}.csv`
+          `conversion_reports_${
+            selectedCampaign ? `campaign_${selectedCampaign}_` : "all_"
+          }${dayjs().format("YYYY-MM-DD")}.csv`
         );
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        message.success(`Report with ${allData.length} records exported successfully!`);
+        message.success(
+          `Report with ${allData.length} records exported successfully!`
+        );
       }
     } catch (error) {
       console.error("Export error:", error);
@@ -315,6 +381,36 @@ const ConversionReportsPageOld = ({name}) => {
       sorter: false,
       width: 120,
     },
+{
+  title: "Campaign",
+  dataIndex: "campaignTracking",
+  key: "campaign",
+  render: (campaignTracking) => {
+    if (!campaignTracking?.campaign) return <Tag color="gray">N/A</Tag>;
+
+    const { id, title } = campaignTracking.campaign;
+
+    return (
+      <a
+        href={`/campaign/${id}`}
+        onClick={(e) => {
+          e.preventDefault();
+          navigate(`/campaign/${id}`);
+        }}
+        style={{
+          color: "#1890ff",
+          fontWeight: 500,
+          fontSize: "13px",
+          cursor: "pointer",
+          textDecoration: "underline"
+        }}
+      >
+        {title || `Campaign ${id}`}
+      </a>
+    );
+  },
+  width: 150,
+},
     {
       title: "Tracking ID",
       dataIndex: "trackingId",
@@ -398,11 +494,12 @@ const ConversionReportsPageOld = ({name}) => {
       key: "pixelType",
       render: (type) => {
         if (!type) return <Tag color="gray">N/A</Tag>;
-        const color = {
-          iframe: "blue",
-          image: "green",
-          sdk: "purple",
-        }[type.toLowerCase()] || "default";
+        const color =
+          {
+            iframe: "blue",
+            image: "green",
+            sdk: "purple",
+          }[type.toLowerCase()] || "default";
         return <Tag color={color}>{type.toUpperCase()}</Tag>;
       },
       width: 100,
@@ -413,11 +510,12 @@ const ConversionReportsPageOld = ({name}) => {
       key: "eventType",
       render: (type) => {
         if (!type) return <Tag color="gray">N/A</Tag>;
-        const color = {
-          conversion: "gold",
-          lead: "blue",
-          signup: "green",
-        }[type.toLowerCase()] || "default";
+        const color =
+          {
+            conversion: "gold",
+            lead: "blue",
+            signup: "green",
+          }[type.toLowerCase()] || "default";
         return <Tag color={color}>{type.toUpperCase()}</Tag>;
       },
       width: 110,
@@ -452,11 +550,12 @@ const ConversionReportsPageOld = ({name}) => {
       key: "conversionStatus",
       render: (status) => {
         if (!status) return <Tag color="gray">N/A</Tag>;
-        const color = {
-          pending: "orange",
-          approved: "green",
-          rejected: "red",
-        }[status.toLowerCase()] || "default";
+        const color =
+          {
+            pending: "orange",
+            approved: "green",
+            rejected: "red",
+          }[status.toLowerCase()] || "default";
         return <Tag color={color}>{status.toUpperCase()}</Tag>;
       },
       width: 130,
@@ -477,19 +576,15 @@ const ConversionReportsPageOld = ({name}) => {
     fetchAllReports(1, 10);
   }, []);
 
+  // ============================================
+  // CHANGES FOR ConversionReportsPageOld.jsx
+  // ============================================
 
+  // 1. IMPORTS ARE ALREADY CORRECT - No changes needed
 
- // ============================================
-// CHANGES FOR ConversionReportsPageOld.jsx
-// ============================================
-
-// 1. IMPORTS ARE ALREADY CORRECT - No changes needed
-
-// 2. REPLACE THE ENTIRE RETURN STATEMENT WITH THIS:
- return (
+  // 2. REPLACE THE ENTIRE RETURN STATEMENT WITH THIS:
+  return (
     <div style={{ padding: "24px", background: "#f0f2f5" }}>
-
-
       {error && (
         <Alert
           message="Error"
@@ -507,52 +602,110 @@ const ConversionReportsPageOld = ({name}) => {
         onApply={handleApplyFilters}
         initialValues={{
           ...appliedFilters,
-          
         }}
       />
 
-      <Card
-        style={{
-          marginBottom: "24px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-          borderRadius: "8px",
-        }}
-      >
-       
-
-        <Row style={{ marginTop: "24px" , padding: "0 14px" }}  >
-           <Table
-          columns={columns}
-          dataSource={reportData}
-          rowKey={(record) =>
-            `${
-              record.id ||
-              record.campaignId ||
-              record.publisherId ||
-              Math.random()
-            }-${record.date || Math.random()}`
-          }
-          pagination={{
-            ...pagination,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} records`,
-            pageSizeOptions: ["10", "20", "50", "100"],
-          }}
-          scroll={{ x: 1400 }}
-          loading={reportsLoading}
-          locale={{
-            emptyText: "No reports data available",
-          }}
-          size="small"
-          bordered
-          onChange={handleTableChange}
-        />
-        </Row>
-      </Card>
-
+    <Card
+  style={{
+    marginBottom: "24px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    borderRadius: "8px",
+  }}
+>
+  <Row gutter={[12, 12]} align="middle" style={{ marginBottom: "16px" }}>
+         {/* Campaign Dropdown */}
+         <Col xs={24} sm={12} md={8} lg={6}>
+           <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+             <strong>Campaign</strong>
+           </div>
+           <Select
+             placeholder="All Campaigns"
+             style={{ width: "100%" }}
+             value={selectedCampaign}
+             onChange={handleCampaignChange}
+             loading={loading}
+             showSearch
+             allowClear
+             size="small"
+             filterOption={(input, option) =>
+               option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+             }
+           >
+             {campaigns.map((campaign) => (
+               <Option key={campaign.id} value={campaign.id}>
+                 {campaign.name || campaign.title}
+               </Option>
+             ))}
+           </Select>
+         </Col>
  
+         {/* Action Buttons */}
+         <Col xs={24} sm={12} md={16} lg={18}>
+           <div
+             style={{
+               display: "flex",
+               justifyContent: "flex-end",
+               alignItems: "flex-end",
+               gap: "8px",
+               height: "100%",
+               paddingBottom: "2px",
+             }}
+           >
+             <Button
+               icon={<ReloadOutlined />}
+               onClick={handleRefresh}
+               loading={reportsLoading}
+               size="small"
+               title="Refresh"
+             />
+             <Button
+               type="primary"
+               icon={<DownloadOutlined />}
+               disabled={pagination.total === 0}
+               onClick={handleExportAll}
+               loading={reportsLoading}
+               size="small"
+               title="Export All CSV"
+               style={{
+                 background: "#52c41a",
+                 borderColor: "#52c41a",
+               }}
+             />
+           </div>
+         </Col>
+       </Row>
+
+  <Row style={{ marginTop: "24px", padding: "0 14px" }}>
+    <Table
+      columns={columns}
+      dataSource={reportData}
+      rowKey={(record) =>
+        `${
+          record.id ||
+          record.campaignId ||
+          record.publisherId ||
+          Math.random()
+        }-${record.date || Math.random()}`
+      }
+      pagination={{
+        ...pagination,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        showTotal: (total, range) =>
+          `${range[0]}-${range[1]} of ${total} records`,
+        pageSizeOptions: ["10", "20", "50", "100"],
+      }}
+      scroll={{ x: 1400 }}
+      loading={reportsLoading}
+      locale={{
+        emptyText: "No reports data available",
+      }}
+      size="small"
+      bordered
+      onChange={handleTableChange}
+    />
+  </Row>
+</Card>
 
       <Button
         icon={<FilterOutlined />}
@@ -573,20 +726,19 @@ const ConversionReportsPageOld = ({name}) => {
     </div>
   );
 
-// 3. ALL OTHER CODE REMAINS THE SAME - No changes to:
-// - All state variables (keep as is)
-// - buildFilterQuery function
-// - fetchCampaigns function
-// - fetchAllReports function
-// - fetchCampaignReports function
-// - handleApplyFilters function
-// - handleCampaignChange function
-// - handleTableChange function
-// - handleRefresh function
-// - handleExportAll function
-// - columns definition
-// - useEffect
+  // 3. ALL OTHER CODE REMAINS THE SAME - No changes to:
+  // - All state variables (keep as is)
+  // - buildFilterQuery function
+  // - fetchCampaigns function
+  // - fetchAllReports function
+  // - fetchCampaignReports function
+  // - handleApplyFilters function
+  // - handleCampaignChange function
+  // - handleTableChange function
+  // - handleRefresh function
+  // - handleExportAll function
+  // - columns definition
+  // - useEffect
 };
 
-
-export default ConversionReportsPageOld; 
+export default ConversionReportsPageOld;

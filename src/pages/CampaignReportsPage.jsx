@@ -21,11 +21,13 @@ import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
 import { FilterOutlined } from "@ant-design/icons";
 import "../styles/ConversionReportsPage.scss";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 const { Title } = Typography;
 
 const ConversionReportsPage = () => {
+   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [campaignDetails, setCampaignDetails] = useState(null);
@@ -283,6 +285,34 @@ const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
     sorter: false,
     width: 100,
   },
+{
+  title: "Campaign",
+  dataIndex: "campaign",
+  key: "campaign",
+  render: (campaign) => {
+    if (!campaign) return <Tag color="gray">N/A</Tag>;
+    
+    const { id, title } = campaign;
+    
+    return (
+      <a 
+        onClick={(e) => {
+          e.preventDefault();
+          navigate(`/campaign/${id}`);
+        }}
+        style={{ 
+          color: "#1890ff",
+          fontWeight: 500,
+          fontSize: "13px",
+          cursor: "pointer"
+        }}
+      >
+        {title || `Campaign ${id}`}
+      </a>
+    );
+  },
+  width: 150,
+},
   {
     title: "Campaign ID",
     dataIndex: "campaignId",
