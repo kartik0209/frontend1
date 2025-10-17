@@ -42,6 +42,80 @@ const ConversionReportsPage = () => {
   });
 const [isFilterVisible, setIsFilterVisible] = useState(false);
 const [appliedFilters, setAppliedFilters] = useState({});
+
+  const [publishers, setPublishers] = useState([]);
+const [advertisers, setAdvertisers] = useState([]);
+const [selectedPublishers, setSelectedPublishers] = useState([]);
+const [selectedAdvertisers, setSelectedAdvertisers] = useState([]);
+  // Helper function to build the query string from applied filters
+
+const fetchPublishers = async () => {
+  setLoading(true);
+  try {
+    const response = await apiClient.post("/common/publisher/list", {});
+
+    if (response.data && response.data.success) {
+      setPublishers(response.data.data || response.data.publishers || []);
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch publishers");
+    }
+  } catch (error) {
+    console.error("Error fetching publishers:", error);
+    setPublishers([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchAdvertisers = async () => {
+  setLoading(true);
+  try {
+    const response = await apiClient.post("/common/advertiser/list", {});
+
+    if (response.data && response.data.success) {
+      setAdvertisers(response.data.data || response.data.advertisers || []);
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch advertisers");
+    }
+  } catch (error) {
+    console.error("Error fetching advertisers:", error);
+    setAdvertisers([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+const handlePublisherChange = (publisherIds) => {
+  setSelectedPublishers(publisherIds);
+  // Reset to page 1 when filter changes
+  const filterQuery = buildPublisherAdvertiserQuery(publisherIds, selectedAdvertisers);
+  fetchAllReports(1, pagination.pageSize, filterQuery);
+};
+
+const handleAdvertiserChange = (advertiserIds) => {
+  setSelectedAdvertisers(advertiserIds);
+  // Reset to page 1 when filter changes
+  const filterQuery = buildPublisherAdvertiserQuery(selectedPublishers, advertiserIds);
+  fetchAllReports(1, pagination.pageSize, filterQuery);
+};
+
+// CHANGE 4: Add helper function to build query with publisher/advertiser filters
+const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
+  const params = new URLSearchParams();
+  
+  if (publisherIds && publisherIds.length > 0) {
+    params.append("publisher", publisherIds.join(","));
+  }
+  
+  if (advertiserIds && advertiserIds.length > 0) {
+    params.append("advertiser", advertiserIds.join(","));
+  }
+  
+  return params.toString();
+};
+
+
   const fetchCampaigns = async () => {
     setLoading(true);
     setError(null);
@@ -189,6 +263,8 @@ const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
         await fetchAllReports(pagination.current, pagination.pageSize);
       }
       await fetchCampaigns();
+      await fetchPublishers();
+      await fetchAdvertisers();
     } catch (error) {
       console.error("Error during refresh:", error);
       message.error("Failed to refresh data");
@@ -469,6 +545,8 @@ const columns = [
 
   useEffect(() => {
     fetchCampaigns();
+    fetchPublishers();
+    fetchAdvertisers();
     fetchAllReports(1, 10);
   }, []);
 
@@ -501,35 +579,104 @@ return (
       }}
     >
       {/* Filters Row */}
-      <Row gutter={[12, 12]} align="middle" style={{ marginBottom: "16px" }}>
+           <Row
+        gutter={[12, 12]}
+        align="middle"
+        style={{
+          marginBottom: "16px",
+          flexWrap: "nowrap", // keeps everything in one line unless screen is too small
+          overflowX: "auto", // allows horizontal scroll if needed
+        }}
+      >
         {/* Campaign Dropdown */}
-        <Col xs={24} sm={12} md={8} lg={6}>
+        <Col flex="1 1 220px">
           <div style={{ marginBottom: "4px", fontSize: "12px" }}>
             <strong>Campaign</strong>
           </div>
-       <Select
-  placeholder="All Campaigns"
-  style={{ width: "100%" }}
-  value={selectedCampaign}
-  onChange={handleCampaignChange}
-  loading={loading}
-  showSearch
-  allowClear
-  size="small"
-  filterOption={(input, option) =>
-    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-  }
->
-  {campaigns.map((campaign) => (
-    <Option key={campaign.id} value={campaign.id}>
-      {`${campaign.id} - ${campaign.name || campaign.title}`}
-    </Option>
-  ))}
-</Select>
+          <Select
+            placeholder="All Campaigns"
+            style={{ width: "100%" }}
+            value={selectedCampaign}
+            onChange={handleCampaignChange}
+            loading={loading}
+            showSearch
+            allowClear
+            size="small"
+            filterOption={(input, option) =>
+              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+            optionLabelProp="label"
+          >
+            {campaigns.map((campaign) => (
+              <Option
+                key={campaign.id}
+                value={campaign.id}
+                label={`${campaign.id} - ${campaign.name || campaign.title}`}
+              >
+                {`${campaign.id} - ${campaign.name || campaign.title}`}
+              </Option>
+            ))}
+          </Select>
         </Col>
-
+      
+        {/* Publisher Dropdown */}
+        <Col flex="1 1 220px">
+          <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+            <strong>Publisher</strong>
+          </div>
+          <Select
+            mode="multiple"
+            placeholder="All Publishers"
+            style={{ width: "100%" }}
+            value={selectedPublishers}
+            onChange={handlePublisherChange}
+            loading={loading}
+            showSearch
+            allowClear
+            maxTagCount="responsive"
+            size="small"
+            filterOption={(input, option) =>
+              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+          >
+            {publishers.map((publisher) => (
+              <Option key={publisher.id} value={publisher.id}>
+                {`${publisher.id} - ${publisher.name || publisher.title}`}
+              </Option>
+            ))}
+          </Select>
+        </Col>
+      
+        {/* Advertiser Dropdown */}
+        <Col flex="1 1 220px">
+          <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+            <strong>Advertiser</strong>
+          </div>
+          <Select
+            mode="multiple"
+            placeholder="All Advertisers"
+            style={{ width: "100%" }}
+            value={selectedAdvertisers}
+            onChange={handleAdvertiserChange}
+            loading={loading}
+            showSearch
+            allowClear
+            maxTagCount="responsive"
+            size="small"
+            filterOption={(input, option) =>
+              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+          >
+            {advertisers.map((advertiser) => (
+              <Option key={advertiser.id} value={advertiser.id}>
+                {`${advertiser.id} - ${advertiser.name || advertiser.title}`}
+              </Option>
+            ))}
+          </Select>
+        </Col>
+      
         {/* Action Buttons */}
-        <Col xs={24} sm={12} md={16} lg={18}>
+        <Col flex="0 0 auto">
           <div
             style={{
               display: "flex",
@@ -538,6 +685,7 @@ return (
               gap: "8px",
               height: "100%",
               paddingBottom: "2px",
+              minWidth: "120px",
             }}
           >
             <Button
@@ -546,6 +694,7 @@ return (
               loading={reportsLoading}
               size="small"
               title="Refresh"
+              style={{marginTop: '20px'}}
             />
             <Button
               type="primary"
@@ -563,6 +712,7 @@ return (
           </div>
         </Col>
       </Row>
+      
 
       {/* Campaign Details */}
       {campaignDetails && (

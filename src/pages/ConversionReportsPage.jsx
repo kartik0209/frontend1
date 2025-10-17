@@ -749,7 +749,7 @@ const ConversionReportsPage = ({ name }) => {
   }, [name]);
 
   return (
-    <div style={{ padding: "14px", background: "#f0f2f5" }}>
+    <div style={{ padding: "14px" }}>
       {error && (
         <Alert
           message="Error"
@@ -778,169 +778,140 @@ const ConversionReportsPage = ({ name }) => {
           borderRadius: "8px",
         }}
       >
-        <Row gutter={[16, 16]} align="middle">
-          {/* Date Range Picker */}
-          <Col xs={24} sm={12} md={8} lg={5}>
-            <div style={{ marginBottom: "8px" }}>
-              <CalendarOutlined style={{ marginRight: "8px" }} />
-              <strong>Date Range:</strong>
-            </div>
-            <Select
-              style={{ width: "100%" }}
-              value={dateRangeType}
-              onChange={handleDateRangeTypeChange}
-            >
-              <Option value="today">Today</Option>
-              <Option value="yesterday">Yesterday</Option>
-              <Option value="last7days">Last 7 Days</Option>
-              <Option value="last30days">Last 30 Days</Option>
-              <Option value="thismonth">This Month</Option>
-              <Option value="lastmonth">Last Month</Option>
-              <Option value="custom">Custom</Option>
-            </Select>
+       <Row
+  align="middle"
+  gutter={[8, 8]}
+  style={{
+    marginBottom: "12px",
+    flexWrap: "wrap",
+  }}
+>
+  {/* Campaign Dropdown */}
+  <Col flex="1 1 180px">
+    <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
+      Campaign
+    </div>
+    <Select
+      placeholder="All Campaigns"
+      style={{ width: "100%" }}
+      value={selectedCampaigns}
+      onChange={handleCampaignChange}
+      loading={loading}
+      showSearch
+      allowClear
+      size="small"
+      optionLabelProp="label"
+      filterOption={(input, option) =>
+        option.children.toLowerCase().includes(input.toLowerCase())
+      }
+    >
+      {campaigns.map((c) => (
+        <Option key={c.id} value={c.id} label={`${c.id} - ${c.name}`}>
+          {`${c.id} - ${c.name}`}
+        </Option>
+      ))}
+    </Select>
+  </Col>
 
-            {showCustomDatePicker && (
-              <RangePicker
-                style={{ width: "100%", marginTop: "8px" }}
-                value={dateRange}
-                onChange={handleDateRangeChange}
-                format="YYYY-MM-DD"
-                allowClear={false}
-                placeholder={["Start Date", "End Date"]}
-              />
-            )}
-          </Col>
+  {/* Publisher Dropdown */}
+  <Col flex="1 1 180px">
+    <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
+      Publisher
+    </div>
+    <Select
+      placeholder="All Publishers"
+      style={{ width: "100%" }}
+      value={selectedPublishers}
+      onChange={handlePublisherChange}
+      loading={loading}
+      showSearch
+      allowClear
+      size="small"
+    >
+      {publishers.map((p) => (
+        <Option key={p.id} value={p.id}>
+          {`${p.id} - ${p.name}`}
+        </Option>
+      ))}
+    </Select>
+  </Col>
 
-          {/* Campaign Dropdown */}
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <div style={{ marginBottom: "8px" }}>
-              <strong>Campaign:</strong>
-            </div>
-            <Select
-              placeholder="All Campaigns"
-              style={{ width: "100%" }}
-              value={selectedCampaigns}
-              onChange={handleCampaignChange}
-              loading={loading}
-              showSearch
-              allowClear
-              size="small"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-              optionLabelProp="label"
-            >
-              {campaigns.map((campaign) => (
-                <Option
-                  key={campaign.id}
-                  value={campaign.id}
-                  label={`${campaign.id} - ${campaign.name || campaign.title}`}
-                >
-                  {`${campaign.id} - ${campaign.name || campaign.title}`}
-                </Option>
-              ))}
-            </Select>
-          </Col>
+  {/* Advertiser Dropdown */}
+  <Col flex="1 1 180px">
+    <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
+      Advertiser
+    </div>
+    <Select
+      placeholder="All Advertisers"
+      style={{ width: "100%" }}
+      value={selectedAdvertisers}
+      onChange={handleAdvertiserChange}
+      loading={loading}
+      showSearch
+      allowClear
+      size="small"
+    >
+      {advertisers.map((a) => (
+        <Option key={a.id} value={a.id}>
+          {`${a.id} - ${a.name}`}
+        </Option>
+      ))}
+    </Select>
+  </Col>
 
-          {/* Publisher Dropdown */}
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <div style={{ marginBottom: "8px" }}>
-              <strong>Publisher:</strong>
-            </div>
+  {/* Date Range */}
+  <Col flex="1 1 180px">
+    <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
+      <CalendarOutlined style={{ marginRight: 6 }} /> Date Range
+    </div>
+    <Select
+      style={{ width: "100%" }}
+      value={dateRangeType}
+      onChange={handleDateRangeTypeChange}
+      size="small"
+    >
+      <Option value="today">Today</Option>
+      <Option value="yesterday">Yesterday</Option>
+      <Option value="last7days">Last 7 Days</Option>
+      <Option value="last30days">Last 30 Days</Option>
+      <Option value="thismonth">This Month</Option>
+      <Option value="lastmonth">Last Month</Option>
+      <Option value="custom">Custom</Option>
+    </Select>
+  </Col>
 
-            <Select
-              mode="multiple"
-              placeholder="All Publishers"
-              style={{ width: "100%" }}
-              value={selectedPublishers}
-              onChange={handlePublisherChange}
-              loading={loading}
-              showSearch
-              allowClear
-              maxTagCount="responsive"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-            >
-              {publishers.map((publisher) => (
-                <Option key={publisher.id} value={publisher.id}>
-                  {`${publisher.id} - ${publisher.name || publisher.title}`}
-                </Option>
-              ))}
-            </Select>
-          </Col>
+  {/* Buttons (Tight Right Side) */}
+  <Col flex="none">
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        paddingTop: "20px",
+      }}
+    >
+      <Button
+        icon={<ReloadOutlined />}
+        onClick={handleRefresh}
+        loading={reportsLoading}
+        size="small"
+      />
+      <Button
+        type="primary"
+        icon={<DownloadOutlined />}
+        onClick={handleExportAll}
+        disabled={pagination.total === 0}
+        loading={reportsLoading}
+        size="small"
+        style={{
+          background: "#52c41a",
+          borderColor: "#52c41a",
+        }}
+      />
+    </div>
+  </Col>
+</Row>
 
-          {/* Advertiser Dropdown */}
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <div style={{ marginBottom: "8px" }}>
-              <strong>Advertiser:</strong>
-            </div>
-
-            <Select
-              mode="multiple"
-              placeholder="All Advertisers"
-              style={{ width: "100%" }}
-              value={selectedAdvertisers}
-              onChange={handleAdvertiserChange}
-              loading={loading}
-              showSearch
-              allowClear
-              maxTagCount="responsive"
-              filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-            >
-              {advertisers.map((advertiser) => (
-                <Option key={advertiser.id} value={advertiser.id}>
-                  {`${advertiser.id} - ${advertiser.name || advertiser.title}`}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-
-          {/* Action Buttons */}
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                alignItems: "center",
-                gap: "12px",
-                marginTop: "8px",
-                paddingRight: "16px",
-              }}
-            >
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={handleRefresh}
-                loading={reportsLoading}
-                size="small"
-                title="Refresh"
-                style={{
-                  width: "80px",
-                }}
-              >
-                Refresh
-              </Button>
-              <Button
-                type="primary"
-                icon={<DownloadOutlined />}
-                disabled={pagination.total === 0}
-                onClick={handleExportAll}
-                loading={reportsLoading}
-                size="small"
-                title="Export All CSV"
-                style={{
-                  background: "#52c41a",
-                  borderColor: "#52c41a",
-                  width: "100px",
-                }}
-              >
-                Export CSV
-              </Button>
-            </div>
-          </Col>
-        </Row>
 
         <Row style={{ marginTop: "24px", padding: "0 14px" }}>
           <div
