@@ -35,18 +35,42 @@ const [searchText, setSearchText] = useState("");
 const [filteredCampaigns, setFilteredCampaigns] = useState([]);
 
 
+// CHANGE: Update the handleQuickSearch function for Campaigns to search by ID, Title, and Advertiser
+
 const handleQuickSearch = (e) => {
   const value = e.target.value;
   setSearchText(value);
   
   if (value.trim()) {
+    const searchValue = value.toLowerCase();
+    
     const filtered = campaigns.filter((campaign) => {
-      const title = campaign.title?.toLowerCase() || '';
-      const advertiser = campaign.advertiser?.toLowerCase() || '';
-      const searchValue = value.toLowerCase();
+      // Search by ID (convert to string)
+      const id = (campaign.id || '').toString().toLowerCase();
       
-      return title.includes(searchValue) || advertiser.includes(searchValue);
+      // Search by Title
+      const title = (campaign.title || '').toLowerCase();
+      
+      // Search by Advertiser Name (handle nested object and null)
+      const advertiserName = campaign.advertiser 
+        ? (typeof campaign.advertiser === 'string' 
+          ? campaign.advertiser 
+          : campaign.advertiser.name || ''
+        ).toLowerCase()
+        : '';
+      
+      // Search by Tracking Slug
+      const trackingSlug = (campaign.trackingSlug || '').toLowerCase();
+      
+      // Return true if any field matches the search value
+      return (
+        id.includes(searchValue) || 
+        title.includes(searchValue) || 
+        advertiserName.includes(searchValue) ||
+        trackingSlug.includes(searchValue)
+      );
     });
+    
     setFilteredCampaigns(filtered);
   } else {
     setFilteredCampaigns(campaigns);
@@ -584,7 +608,7 @@ const handleStatusChange = async (campaignId, newStatus) => {
         
         <div className="search-section">
           <Input
-            placeholder="Search by title or advertiser..."
+            placeholder="Search by campaign ID, title or advertiser..."
             prefix={<SearchOutlined />}
             value={searchText}
             onChange={handleQuickSearch}

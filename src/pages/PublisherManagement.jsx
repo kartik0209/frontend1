@@ -553,23 +553,52 @@ const [filteredPublishers, setFilteredPublishers] = useState([]);
   };
 
 
-   const handleQuickSearch = (e) => {
-    const value = e.target.value;
-    setSearchText(value);
-    
-    if (value.trim()) {
-      const filtered = publishers.filter((publisher) => {
-        const name = publisher.name?.toLowerCase() || '';
-        const email = publisher.email?.toLowerCase() || '';
-        const searchValue = value.toLowerCase();
-        
-        return name.includes(searchValue) || email.includes(searchValue);
-      });
-      setFilteredPublishers(filtered);
-    } else {
-      setFilteredPublishers(publishers);
-    }
-  };
+const handleQuickSearch = (e) => {
+  const value = e.target.value;
+  setSearchText(value);
+
+  if (value.trim()) {
+    const searchValue = value.toLowerCase();
+
+    const filtered = publishers.filter((publisher) => {
+      // Convert all searchable fields to lowercase strings
+      const id = (publisher.id || "").toString().toLowerCase();
+      const name = (publisher.name || "").toLowerCase();
+      const username = (publisher.username || "").toLowerCase();
+      const email = (publisher.email || "").toLowerCase();
+      const company = (publisher.company || "").toLowerCase();
+      const companyName = (publisher.companyName || "").toLowerCase();
+      const managers = (publisher.managers || "").toLowerCase();
+      const referredBy = (publisher.referred_by || "").toLowerCase();
+      const note = (publisher.note || "").toLowerCase();
+      const tags = (publisher.tags || []).join(" ").toLowerCase();
+      const companyInfoName =
+        (publisher.companyInfo?.name || "").toLowerCase();
+
+      // Return true if any field includes the search value
+      return (
+        id.includes(searchValue) ||
+        name.includes(searchValue) ||
+        username.includes(searchValue) ||
+        email.includes(searchValue) ||
+        company.includes(searchValue) ||
+        companyName.includes(searchValue) ||
+        companyInfoName.includes(searchValue) ||
+        managers.includes(searchValue) ||
+        referredBy.includes(searchValue) ||
+        note.includes(searchValue) ||
+        tags.includes(searchValue)
+      );
+    });
+
+    setFilteredPublishers(filtered);
+  } else {
+    // Reset if search input is cleared
+    setFilteredPublishers(publishers);
+  }
+};
+
+
 
   // Update filtered data when publishers change
   useEffect(() => {
@@ -596,7 +625,7 @@ const [filteredPublishers, setFilteredPublishers] = useState([]);
           {/* Left: Search Bar */}
           <div className="search-section">
             <Input
-              placeholder="Search by name or email..."
+              placeholder="Search by publisher ID, name or email..."
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={handleQuickSearch}

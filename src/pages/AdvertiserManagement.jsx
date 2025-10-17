@@ -43,13 +43,26 @@ const handleQuickSearch = (e) => {
   setSearchText(value);
   
   if (value.trim()) {
+    const searchValue = value.toLowerCase();
+    
     const filtered = advertisers.filter((advertiser) => {
-      const name = advertiser.full_name?.toLowerCase() || '';
-      const email = advertiser.email?.toLowerCase() || '';
-      const searchValue = value.toLowerCase();
+      // Search by ID (convert to string)
+      const id = (advertiser.id || '').toString().toLowerCase();
       
-      return name.includes(searchValue) || email.includes(searchValue);
+      // Search by Name
+      const name = (advertiser.full_name || advertiser.name || '').toLowerCase();
+      
+      // Search by Email
+      const email = (advertiser.email || '').toLowerCase();
+      
+      // Return true if any field matches the search value
+      return (
+        id.includes(searchValue) || 
+        name.includes(searchValue) || 
+        email.includes(searchValue)
+      );
     });
+    
     setFilteredAdvertisers(filtered);
   } else {
     setFilteredAdvertisers(advertisers);
@@ -557,7 +570,7 @@ useEffect(() => {
         {/* Left: Search Bar */}
         <div className="search-section">
           <Input
-            placeholder="Search by name or email..."
+            placeholder="Search by Advertiser Id,name or email..."
             prefix={<SearchOutlined />}
             value={searchText}
             onChange={handleQuickSearch}

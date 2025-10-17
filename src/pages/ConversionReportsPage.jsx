@@ -366,8 +366,9 @@ const ConversionReportsPage = ({ name }) => {
     }
   };
 
-  const handleTableChange = (paginationInfo) => {
+  const handleTableChange = (paginationInfo, filters, sorter) => {
     const { current, pageSize } = paginationInfo;
+    // Sort is handled locally by Ant Design, no API call needed
     fetchMainReports(
       current,
       pageSize,
@@ -377,7 +378,6 @@ const ConversionReportsPage = ({ name }) => {
       selectedAdvertisers
     );
   };
-
   const handleRefresh = async () => {
     try {
       await fetchMainReports(
@@ -494,107 +494,224 @@ const ConversionReportsPage = ({ name }) => {
   };
 
   // Dynamic columns based on groupBy type
-  const getColumns = () => {
-    const dataColumns = [
-      getGroupByFromName(name) === "day"
-        ? {
-            title: "Day",
-            dataIndex: "Day",
-            key: "Day",
-            width: 120,
-          }
-        : getGroupByFromName(name) === "campaign"
-        ? {
-            title: "Campaign",
-            dataIndex: "campaign",
-            key: "campaign",
-            width: 120,
-            render: (value, record) => value || record.campaign || "N/A",
-          }
-        : getGroupByFromName(name) === "publisher"
-        ? {
-            title: "Publisher",
-            dataIndex: "publisher",
-            key: "publisher",
-            width: 120,
-          }
-        : getGroupByFromName(name) === "advertiser"
-        ? {
-            title: "Advertiser",
-            dataIndex: "advertiser",
-            key: "advertiser",
-            width: 120,
-          }
-        : {
-            title: "Name",
-            dataIndex: "name",
-            key: "name",
-            render: (value, record) => value || record.title || "N/A",
-            width: 200,
-          },
-      {
-        title: "Clicks",
-        dataIndex: "grossClicks",
-        key: "grossClicks",
-        render: (value) => (parseInt(value) || 0).toLocaleString(),
-        sorter: false,
-        align: "right",
-        width: 100,
-      },
-      {
-        title: "Conversions",
-        dataIndex: "totalConversions",
-        key: "totalConversions",
-        render: (value) => (parseInt(value) || 0).toLocaleString(),
-        sorter: false,
-        align: "right",
-        width: 120,
-      },
-      {
-        title: "Revenue",
-        dataIndex: "totalRevenue",
-        key: "totalRevenue",
-        render: (value) => {
-          if (!value || value === 0) return "$0.00";
-          return `$${parseFloat(value).toFixed(2)}`;
-        },
-        sorter: false,
-        align: "right",
-        width: 120,
-      },
-      {
-        title: "Payout",
-        dataIndex: "totalPayout",
-        key: "totalPayout",
-        render: (value) => {
-          if (!value || value === 0) return "$0.00";
-          return `$${parseFloat(value).toFixed(2)}`;
-        },
-        sorter: false,
-        align: "right",
-        width: 120,
-      },
-      {
-        title: "Profit",
-        dataIndex: "totalProfit",
-        key: "totalProfit",
-        render: (value) => {
-          if (!value || value === 0) return "$0.00";
-          const profit = parseFloat(value);
-          return (
-            <span style={{ color: profit >= 0 ? "green" : "red" }}>
-              ${profit.toFixed(2)}
-            </span>
-          );
-        },
-        sorter: false,
-        align: "right",
-        width: 120,
-      },
-    ];
+ const getColumns = () => {
+  const dataColumns = [
+    getGroupByFromName(name) === "day"
+      ? {
+          title: "Day",
+          dataIndex: "Day",
+          key: "Day",
+          width: 120,
+          style: { fontSize: "12px" },
+          sorter: (a, b) => new Date(a.Day) - new Date(b.Day),
+        }
+      : getGroupByFromName(name) === "campaign"
+      ? {
+          title: "Campaign",
+          dataIndex: "campaign",
+          key: "campaign",
+          width: 150,
+          style: { fontSize: "12px" },
+          render: (value, record) => {
+            if (!value && !record.campaignId)
+              return <Tag color="gray">N/A</Tag>;
 
-    return dataColumns;
-  };
+            const campaignName = value || "Unknown Campaign";
+            const campaignId = record.campaignId || record.campaign?.id;
+
+            if (!campaignId) {
+              return <span style={{ fontSize: "12px" }}>{campaignName}</span>;
+            }
+
+            return (
+              <span
+                onClick={() => navigate(`/campaign/${campaignId}`)}
+                style={{
+                  color: "#1890ff",
+                  fontWeight: 500,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  display: "inline-block",
+                }}
+              >
+                {campaignId} - {campaignName}
+              </span>
+            );
+          },
+          sorter: (a, b) => {
+            const aVal = (a.campaign || "").toString().toLowerCase();
+            const bVal = (b.campaign || "").toString().toLowerCase();
+            return aVal.localeCompare(bVal);
+          },
+        }
+      : getGroupByFromName(name) === "publisher"
+      ? {
+          title: "Publisher",
+          dataIndex: "publisher",
+          key: "publisher",
+          width: 150,
+          style: { fontSize: "12px" },
+          render: (publisher, record) => {
+            if (!publisher && !record.publisherId)
+              return <Tag color="gray">N/A</Tag>;
+
+            const publisherName = publisher || "Unknown Publisher";
+            const publisherId = record.publisherId || publisher?.id;
+
+            if (!publisherId) {
+              return <span style={{ fontSize: "12px" }}>{publisherName}</span>;
+            }
+
+            return (
+              <span
+                onClick={() => navigate(`/publisher/${publisherId}`)}
+                style={{
+                  color: "#1890ff",
+                  fontWeight: 500,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  display: "inline-block",
+                }}
+              >
+                {publisherId} - {publisherName}
+              </span>
+            );
+          },
+          sorter: (a, b) => {
+            const aVal = (a.publisher || "").toString().toLowerCase();
+            const bVal = (b.publisher || "").toString().toLowerCase();
+            return aVal.localeCompare(bVal);
+          },
+        }
+      : getGroupByFromName(name) === "advertiser"
+      ? {
+          title: "Advertiser",
+          dataIndex: "advertiser",
+          key: "advertiser",
+          width: 150,
+          style: { fontSize: "12px" },
+          render: (advertiser, record) => {
+            if (!advertiser && !record.advertiserId)
+              return <Tag color="gray">N/A</Tag>;
+
+            const advertiserName = advertiser || "Unknown Advertiser";
+            const advertiserId = record.advertiserId || advertiser?.id;
+
+            if (!advertiserId) {
+              return <span style={{ fontSize: "12px" }}>{advertiserName}</span>;
+            }
+
+            return (
+              <span
+                onClick={() => navigate(`/advertiser/${advertiserId}`)}
+                style={{
+                  color: "#1890ff",
+                  fontWeight: 500,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  display: "inline-block",
+                }}
+              >
+                {advertiserId} - {advertiserName}
+              </span>
+            );
+          },
+          sorter: (a, b) => {
+            const aVal = (a.advertiser || "").toString().toLowerCase();
+            const bVal = (b.advertiser || "").toString().toLowerCase();
+            return aVal.localeCompare(bVal);
+          },
+        }
+      : {
+          title: "Name",
+          dataIndex: "name",
+          key: "name",
+          render: (value, record) => value || record.title || "N/A",
+          width: 200,
+          style: { fontSize: "12px" },
+          sorter: (a, b) => {
+            const aVal = (a.name || a.title || "").toString().toLowerCase();
+            const bVal = (b.name || b.title || "").toString().toLowerCase();
+            return aVal.localeCompare(bVal);
+          },
+        },
+    {
+      title: "Clicks",
+      dataIndex: "grossClicks",
+      key: "grossClicks",
+      render: (value) => (parseInt(value) || 0).toLocaleString(),
+      align: "right",
+      width: 100,
+      style: { fontSize: "12px" },
+      sorter: (a, b) =>
+        (parseInt(a.grossClicks) || 0) - (parseInt(b.grossClicks) || 0),
+    },
+    {
+      title: "Conversions",
+      dataIndex: "totalConversions",
+      key: "totalConversions",
+      render: (value) => (parseInt(value) || 0).toLocaleString(),
+      align: "right",
+      width: 120,
+      style: { fontSize: "12px" },
+      sorter: (a, b) =>
+        (parseInt(a.totalConversions) || 0) -
+        (parseInt(b.totalConversions) || 0),
+    },
+    {
+      title: "Revenue",
+      dataIndex: "totalRevenue",
+      key: "totalRevenue",
+      render: (value) => {
+        if (!value || value === 0) return "$0.00";
+        return `$${parseFloat(value).toFixed(2)}`;
+      },
+      align: "right",
+      width: 120,
+      style: { fontSize: "12px" },
+      sorter: (a, b) =>
+        (parseFloat(a.totalRevenue) || 0) - (parseFloat(b.totalRevenue) || 0),
+    },
+    {
+      title: "Payout",
+      dataIndex: "totalPayout",
+      key: "totalPayout",
+      render: (value) => {
+        if (!value || value === 0) return "$0.00";
+        return `$${parseFloat(value).toFixed(2)}`;
+      },
+      align: "right",
+      width: 120,
+      style: { fontSize: "12px" },
+      sorter: (a, b) =>
+        (parseFloat(a.totalPayout) || 0) - (parseFloat(b.totalPayout) || 0),
+    },
+    {
+      title: "Profit",
+      dataIndex: "totalProfit",
+      key: "totalProfit",
+      render: (value) => {
+        if (!value || value === 0) return "$0.00";
+        const profit = parseFloat(value);
+        return (
+          <span style={{ color: profit >= 0 ? "green" : "red", fontSize: "12px" }}>
+            ${profit.toFixed(2)}
+          </span>
+        );
+      },
+      align: "right",
+      width: 120,
+      style: { fontSize: "12px" },
+      sorter: (a, b) =>
+        (parseFloat(a.totalProfit) || 0) - (parseFloat(b.totalProfit) || 0),
+    },
+  ];
+
+  return dataColumns;
+};
 
   const columns = [...getColumns()];
 
@@ -623,17 +740,16 @@ const ConversionReportsPage = ({ name }) => {
     fetchAdvertisers();
 
     // Set initial date range to "today"
-    const initialRange = getDateRangeByType("today");
+    const initialRange = getDateRangeByType("last30days");
+
     setDateRange(initialRange);
-    setDateRangeType("today");
+    setDateRangeType("last30days");
 
     fetchMainReports(1, 10);
   }, [name]);
 
   return (
-    <div style={{ padding: "24px", background: "#f0f2f5" }}>
-
-
+    <div style={{ padding: "14px", background: "#f0f2f5" }}>
       {error && (
         <Alert
           message="Error"
@@ -701,7 +817,6 @@ const ConversionReportsPage = ({ name }) => {
               <strong>Campaign:</strong>
             </div>
             <Select
-              mode="multiple"
               placeholder="All Campaigns"
               style={{ width: "100%" }}
               value={selectedCampaigns}
@@ -709,14 +824,19 @@ const ConversionReportsPage = ({ name }) => {
               loading={loading}
               showSearch
               allowClear
-              maxTagCount="responsive"
+              size="small"
               filterOption={(input, option) =>
                 option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
+              optionLabelProp="label"
             >
               {campaigns.map((campaign) => (
-                <Option key={campaign.id} value={campaign.id}>
-                  {campaign.name || campaign.title}
+                <Option
+                  key={campaign.id}
+                  value={campaign.id}
+                  label={`${campaign.id} - ${campaign.name || campaign.title}`}
+                >
+                  {`${campaign.id} - ${campaign.name || campaign.title}`}
                 </Option>
               ))}
             </Select>
@@ -727,6 +847,7 @@ const ConversionReportsPage = ({ name }) => {
             <div style={{ marginBottom: "8px" }}>
               <strong>Publisher:</strong>
             </div>
+
             <Select
               mode="multiple"
               placeholder="All Publishers"
@@ -743,7 +864,7 @@ const ConversionReportsPage = ({ name }) => {
             >
               {publishers.map((publisher) => (
                 <Option key={publisher.id} value={publisher.id}>
-                  {publisher.name || publisher.title}
+                  {`${publisher.id} - ${publisher.name || publisher.title}`}
                 </Option>
               ))}
             </Select>
@@ -754,6 +875,7 @@ const ConversionReportsPage = ({ name }) => {
             <div style={{ marginBottom: "8px" }}>
               <strong>Advertiser:</strong>
             </div>
+
             <Select
               mode="multiple"
               placeholder="All Advertisers"
@@ -770,7 +892,7 @@ const ConversionReportsPage = ({ name }) => {
             >
               {advertisers.map((advertiser) => (
                 <Option key={advertiser.id} value={advertiser.id}>
-                  {advertiser.name || advertiser.title}
+                  {`${advertiser.id} - ${advertiser.name || advertiser.title}`}
                 </Option>
               ))}
             </Select>
@@ -781,83 +903,89 @@ const ConversionReportsPage = ({ name }) => {
             <div
               style={{
                 display: "flex",
-                justifyContent: "center",
+                justifyContent: "flex-end",
                 alignItems: "center",
                 gap: "12px",
                 marginTop: "8px",
+                paddingRight: "16px",
               }}
             >
               <Button
                 icon={<ReloadOutlined />}
                 onClick={handleRefresh}
                 loading={reportsLoading}
-                shape="circle"
-                size="large"
+                size="small"
                 title="Refresh"
                 style={{
-                  width: "48px",
-                  height: "48px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  width: "80px",
                 }}
-              />
+              >
+                Refresh
+              </Button>
               <Button
                 type="primary"
                 icon={<DownloadOutlined />}
                 disabled={pagination.total === 0}
                 onClick={handleExportAll}
                 loading={reportsLoading}
-                shape="circle"
-                size="large"
+                size="small"
                 title="Export All CSV"
                 style={{
                   background: "#52c41a",
                   borderColor: "#52c41a",
-                  width: "48px",
-                  height: "48px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  width: "100px",
                 }}
-              />
+              >
+                Export CSV
+              </Button>
             </div>
           </Col>
         </Row>
 
-        <Row style={{ marginTop: "24px" , padding: "0 14px" }}  >
-           <Table
-          columns={columns}
-          dataSource={reportData}
-          rowKey={(record) =>
-            `${
-              record.id ||
-              record.campaignId ||
-              record.publisherId ||
-              Math.random()
-            }-${record.date || Math.random()}`
-          }
-          pagination={{
-            ...pagination,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} records`,
-            pageSizeOptions: ["10", "20", "50", "100"],
-          }}
-          scroll={{ x: 1400 }}
-          loading={reportsLoading}
-          locale={{
-            emptyText: "No reports data available",
-          }}
-          size="small"
-          bordered
-          onChange={handleTableChange}
-        />
+        <Row style={{ marginTop: "24px", padding: "0 14px" }}>
+          <div
+            style={{
+              width: "90vw",
+              maxWidth: "1400px",
+              overflowX: "auto",
+              margin: "0 auto",
+            }}
+          >
+            <Table
+              columns={columns}
+              dataSource={reportData}
+              rowKey={(record) =>
+                `${
+                  record.id ||
+                  record.campaignId ||
+                  record.publisherId ||
+                  Math.random()
+                }-${record.date || Math.random()}`
+              }
+              pagination={{
+                ...pagination,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} of ${total} records`,
+                pageSizeOptions: ["10", "20", "50", "100"],
+              }}
+              scroll={{ x: "max-content" }}
+              loading={reportsLoading}
+              locale={{
+                emptyText: "No reports data available",
+              }}
+              size="small"
+              bordered
+              onChange={handleTableChange}
+              style={{
+                width: "100%",
+                fontSize: "12px",
+              }}
+            />
+          </div>
         </Row>
       </Card>
-
- 
 
       <Button
         icon={<FilterOutlined />}

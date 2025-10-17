@@ -29,7 +29,7 @@ const { Option } = Select;
 const { Title } = Typography;
 
 const ConversionReportsPageOld = ({ name }) => {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [campaignDetails, setCampaignDetails] = useState(null);
@@ -42,14 +42,100 @@ const ConversionReportsPageOld = ({ name }) => {
     pageSize: 10,
     total: 0,
   });
-const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState("");
   // State for filter modal visibility and applied filters
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState({});
-const handleQuickSearch = (e) => {
-  setSearchText(e.target.value);
-};
+  const handleQuickSearch = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const [publishers, setPublishers] = useState([]);
+const [advertisers, setAdvertisers] = useState([]);
+const [selectedPublishers, setSelectedPublishers] = useState([]);
+const [selectedAdvertisers, setSelectedAdvertisers] = useState([]);
   // Helper function to build the query string from applied filters
+
+const fetchPublishers = async () => {
+  setLoading(true);
+  try {
+    const response = await apiClient.post("/common/publisher/list", {});
+
+    if (response.data && response.data.success) {
+      setPublishers(response.data.data || response.data.publishers || []);
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch publishers");
+    }
+  } catch (error) {
+    console.error("Error fetching publishers:", error);
+    setPublishers([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchAdvertisers = async () => {
+  setLoading(true);
+  try {
+    const response = await apiClient.post("/common/advertiser/list", {});
+
+    if (response.data && response.data.success) {
+      setAdvertisers(response.data.data || response.data.advertisers || []);
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch advertisers");
+    }
+  } catch (error) {
+    console.error("Error fetching advertisers:", error);
+    setAdvertisers([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+const handlePublisherChange = (publisherIds) => {
+  setSelectedPublishers(publisherIds);
+  // Reset to page 1 when filter changes
+  const filterQuery = buildPublisherAdvertiserQuery(publisherIds, selectedAdvertisers);
+  fetchAllReports(1, pagination.pageSize, filterQuery);
+};
+
+const handleAdvertiserChange = (advertiserIds) => {
+  setSelectedAdvertisers(advertiserIds);
+  // Reset to page 1 when filter changes
+  const filterQuery = buildPublisherAdvertiserQuery(selectedPublishers, advertiserIds);
+  fetchAllReports(1, pagination.pageSize, filterQuery);
+};
+
+// CHANGE 4: Add helper function to build query with publisher/advertiser filters
+const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
+  const params = new URLSearchParams();
+  
+  if (publisherIds && publisherIds.length > 0) {
+    params.append("publisher", publisherIds.join(","));
+  }
+  
+  if (advertiserIds && advertiserIds.length > 0) {
+    params.append("advertiser", advertiserIds.join(","));
+  }
+  
+  return params.toString();
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const buildFilterQuery = (filters) => {
     const params = new URLSearchParams();
     if (!filters || !filters.basicFilters) return params.toString();
@@ -126,58 +212,59 @@ const handleQuickSearch = (e) => {
   };
 
   const fetchAllReports = async (
-    page = 1,
-    pageSize = 10,
-    filters = appliedFilters
-  ) => {
-    setReportsLoading(true);
-    setError(null);
-    const filterQuery = buildFilterQuery(filters);
-    try {
-      const response = await apiClient.get(
-        `/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}&${filterQuery}`
-      );
+     page = 1,
+  pageSize = 10,
+  additionalFilters = ""
+) => {
+  setReportsLoading(true);
+  setError(null);
+  const filterQuery = buildFilterQuery(appliedFilters);
+  const allFilters = [filterQuery, additionalFilters].filter(Boolean).join("&");
+  
+  try {
+    const url = `/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}${
+      allFilters ? `&${allFilters}` : ""
+    }`;
 
-      if (response.data?.success) {
-        const reports = response.data.data.pixelTrackings || [];
-        const total =
-          response.data.data.total ||
-          response.data.totalCount ||
-          reports.length;
+    const response = await apiClient.get(url);
 
-        setReportData(Array.isArray(reports) ? reports : []);
+    if (response.data?.success) {
+      const reports = response.data.data.pixelTrackings || [];
+      const total =
+        response.data.data.total || response.data.totalCount || reports.length;
 
-        setPagination((prev) => ({
-          ...prev,
-          current: page,
-          pageSize: pageSize,
-          total: total,
-        }));
+      setReportData(Array.isArray(reports) ? reports : []);
 
-        if (page === 1) {
-          // Only show success message on initial load/filter, not on pagination
-          message.success(`${reports.length} reports loaded successfully!`);
-        }
-      } else {
-        throw new Error(response.data?.message || "Failed to fetch reports.");
-      }
-    } catch (err) {
-      console.error("Error fetching reports:", err);
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        "An error occurred while fetching reports.";
-      setError(errorMessage);
-      message.error(errorMessage);
-      setReportData([]);
       setPagination((prev) => ({
         ...prev,
-        total: 0,
+        current: page,
+        pageSize: pageSize,
+        total: total,
       }));
-    } finally {
-      setReportsLoading(false);
+
+      if (page === 1) {
+        message.success(`${reports.length} reports loaded successfully!`);
+      }
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch reports.");
     }
-  };
+  } catch (err) {
+    console.error("Error fetching reports:", err);
+    const errorMessage =
+      err.response?.data?.message ||
+      err.message ||
+      "An error occurred while fetching reports.";
+    setError(errorMessage);
+    message.error(errorMessage);
+    setReportData([]);
+    setPagination((prev) => ({
+      ...prev,
+      total: 0,
+    }));
+  } finally {
+    setReportsLoading(false);
+  }
+};
 
   const fetchCampaignReports = async (
     campaignId,
@@ -253,15 +340,15 @@ const handleQuickSearch = (e) => {
     }
   };
 
-const handleCampaignChange = (campaignId) => {
-  setSelectedCampaign(campaignId);
-  if (campaignId) {
-    fetchCampaignReports(campaignId, 1, pagination.pageSize);
-  } else {
-    setCampaignDetails(null);
-    fetchAllReports(1, pagination.pageSize);
-  }
-};
+  const handleCampaignChange = (campaignId) => {
+    setSelectedCampaign(campaignId);
+    if (campaignId) {
+      fetchCampaignReports(campaignId, 1, pagination.pageSize);
+    } else {
+      setCampaignDetails(null);
+      fetchAllReports(1, pagination.pageSize);
+    }
+  };
 
   const handleTableChange = (paginationInfo) => {
     const { current, pageSize } = paginationInfo;
@@ -285,6 +372,9 @@ const handleCampaignChange = (campaignId) => {
         await fetchAllReports(pagination.current, pagination.pageSize);
       }
       await fetchCampaigns();
+      await fetchPublishers();
+      await fetchAdvertisers();
+      message.success("Data refreshed successfully");
     } catch (error) {
       console.error("Error during refresh:", error);
       message.error("Failed to refresh data");
@@ -371,6 +461,8 @@ const handleCampaignChange = (campaignId) => {
     }
   };
 
+  // Replace the entire columns array with this:
+
   const columns = [
     {
       title: "Date",
@@ -378,53 +470,75 @@ const handleCampaignChange = (campaignId) => {
       key: "clickTime",
       render: (clickTime) =>
         clickTime ? dayjs(clickTime).format("DD MMM YYYY") : "N/A",
-      sorter: false,
+      sorter: (a, b) => new Date(a.clickTime || 0) - new Date(b.clickTime || 0),
       width: 120,
+      style: { fontSize: "12px" },
     },
-{
-  title: "Campaign",
-  dataIndex: "campaignTracking",
-  key: "campaign",
-  render: (campaignTracking) => {
-    if (!campaignTracking?.campaign) return <Tag color="gray">N/A</Tag>;
+    {
+      title: "Campaign",
+      dataIndex: "campaignTracking",
+      key: "campaign",
+      render: (campaignTracking) => {
+        if (!campaignTracking?.campaign) return <Tag color="gray">N/A</Tag>;
 
-    const { id, title } = campaignTracking.campaign;
+        const { id, title } = campaignTracking.campaign;
 
-    return (
-      <a
-        href={`/campaign/${id}`}
-        onClick={(e) => {
-          e.preventDefault();
-          navigate(`/campaign/${id}`);
-        }}
-        style={{
-          color: "#1890ff",
-          fontWeight: 500,
-          fontSize: "13px",
-          cursor: "pointer",
-          textDecoration: "underline"
-        }}
-      >
-        {title || `Campaign ${id}`}
-      </a>
-    );
-  },
-  width: 150,
-},
+        return (
+          <a
+            href={`/campaign/${id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/campaign/${id}`);
+            }}
+            style={{
+              color: "#1890ff",
+              fontWeight: 500,
+              fontSize: "13px",
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            {title || `Campaign ${id}`}
+          </a>
+        );
+      },
+      sorter: (a, b) => {
+        const aVal = (a.campaignTracking?.campaign?.title || "")
+          .toString()
+          .toLowerCase();
+        const bVal = (b.campaignTracking?.campaign?.title || "")
+          .toString()
+          .toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 150,
+      style: { fontSize: "12px" },
+    },
     {
       title: "Tracking ID",
       dataIndex: "trackingId",
       key: "trackingId",
       render: (value) => value || "N/A",
-      sorter: false,
+      sorter: (a, b) => {
+        const aVal = (a.trackingId || "").toString().toLowerCase();
+        const bVal = (b.trackingId || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
       width: 100,
+      style: { fontSize: "12px" },
     },
     {
       title: "Transaction ID",
       dataIndex: "transactionId",
       key: "transactionId",
       render: (text) => text || "N/A",
+      sorter: (a, b) => {
+        const aVal = (a.transactionId || "").toString().toLowerCase();
+        const bVal = (b.transactionId || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
       width: 150,
+      style: { fontSize: "12px" },
     },
     {
       title: "Sale Amount",
@@ -435,25 +549,35 @@ const handleCampaignChange = (campaignId) => {
         const currency = record.currency || "$";
         return `${currency}${parseFloat(value).toFixed(2)}`;
       },
-      sorter: false,
+      sorter: (a, b) =>
+        (parseFloat(a.saleAmount) || 0) - (parseFloat(b.saleAmount) || 0),
       align: "right",
       width: 120,
+      style: { fontSize: "12px" },
     },
     {
       title: "Currency",
       dataIndex: "currency",
       key: "currency",
       render: (text) => text || "N/A",
+      sorter: (a, b) => {
+        const aVal = (a.currency || "").toString().toLowerCase();
+        const bVal = (b.currency || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
       width: 100,
+      style: { fontSize: "12px" },
     },
     {
       title: "Click Count",
       dataIndex: "clickCount",
       key: "clickCount",
       render: (value) => (value || 0).toLocaleString(),
-      sorter: false,
+      sorter: (a, b) =>
+        (parseInt(a.clickCount) || 0) - (parseInt(b.clickCount) || 0),
       align: "right",
       width: 100,
+      style: { fontSize: "12px" },
     },
     {
       title: "Session ID",
@@ -467,7 +591,13 @@ const handleCampaignChange = (campaignId) => {
         ) : (
           "N/A"
         ),
+      sorter: (a, b) => {
+        const aVal = (a.sessionId || "").toString().toLowerCase();
+        const bVal = (b.sessionId || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
       width: 130,
+      style: { fontSize: "12px" },
     },
     {
       title: "Page URL",
@@ -486,7 +616,13 @@ const handleCampaignChange = (campaignId) => {
         ) : (
           "N/A"
         ),
+      sorter: (a, b) => {
+        const aVal = (a.pageUrl || "").toString().toLowerCase();
+        const bVal = (b.pageUrl || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
       width: 200,
+      style: { fontSize: "12px" },
     },
     {
       title: "Pixel Type",
@@ -502,7 +638,13 @@ const handleCampaignChange = (campaignId) => {
           }[type.toLowerCase()] || "default";
         return <Tag color={color}>{type.toUpperCase()}</Tag>;
       },
+      sorter: (a, b) => {
+        const aVal = (a.pixelType || "").toString().toLowerCase();
+        const bVal = (b.pixelType || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
       width: 100,
+      style: { fontSize: "12px" },
     },
     {
       title: "Event Type",
@@ -518,7 +660,13 @@ const handleCampaignChange = (campaignId) => {
           }[type.toLowerCase()] || "default";
         return <Tag color={color}>{type.toUpperCase()}</Tag>;
       },
+      sorter: (a, b) => {
+        const aVal = (a.eventType || "").toString().toLowerCase();
+        const bVal = (b.eventType || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
       width: 110,
+      style: { fontSize: "12px" },
     },
     {
       title: "Conversion Time",
@@ -528,8 +676,10 @@ const handleCampaignChange = (campaignId) => {
         conversionTime
           ? dayjs(conversionTime).format("DD MMM YYYY HH:mm")
           : "N/A",
-      sorter: false,
+      sorter: (a, b) =>
+        new Date(a.conversionTime || 0) - new Date(b.conversionTime || 0),
       width: 140,
+      style: { fontSize: "12px" },
     },
     {
       title: "Conversion Value",
@@ -540,9 +690,12 @@ const handleCampaignChange = (campaignId) => {
         const currency = record.currency || "$";
         return `${currency}${parseFloat(value).toFixed(2)}`;
       },
-      sorter: false,
+      sorter: (a, b) =>
+        (parseFloat(a.conversionValue) || 0) -
+        (parseFloat(b.conversionValue) || 0),
       align: "right",
       width: 130,
+      style: { fontSize: "12px" },
     },
     {
       title: "Conversion Status",
@@ -558,7 +711,13 @@ const handleCampaignChange = (campaignId) => {
           }[status.toLowerCase()] || "default";
         return <Tag color={color}>{status.toUpperCase()}</Tag>;
       },
+      sorter: (a, b) => {
+        const aVal = (a.conversionStatus || "").toString().toLowerCase();
+        const bVal = (b.conversionStatus || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
       width: 130,
+      style: { fontSize: "12px" },
     },
     {
       title: "Created At",
@@ -566,13 +725,16 @@ const handleCampaignChange = (campaignId) => {
       key: "createdAt",
       render: (createdAt) =>
         createdAt ? dayjs(createdAt).format("DD MMM YYYY HH:mm") : "N/A",
-      sorter: false,
+      sorter: (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0),
       width: 140,
+      style: { fontSize: "12px" },
     },
   ];
 
   useEffect(() => {
     fetchCampaigns();
+    fetchPublishers();
+  fetchAdvertisers();
     fetchAllReports(1, 10);
   }, []);
 
@@ -605,107 +767,178 @@ const handleCampaignChange = (campaignId) => {
         }}
       />
 
-    <Card
+      <Card
+        style={{
+          marginBottom: "24px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          borderRadius: "8px",
+        }}
+      >
+      <Row
+  gutter={[12, 12]}
+  align="middle"
   style={{
-    marginBottom: "24px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-    borderRadius: "8px",
+    marginBottom: "16px",
+    flexWrap: "nowrap", // keeps everything in one line unless screen is too small
+    overflowX: "auto", // allows horizontal scroll if needed
   }}
 >
-  <Row gutter={[12, 12]} align="middle" style={{ marginBottom: "16px" }}>
-         {/* Campaign Dropdown */}
-         <Col xs={24} sm={12} md={8} lg={6}>
-           <div style={{ marginBottom: "4px", fontSize: "12px" }}>
-             <strong>Campaign</strong>
-           </div>
-           <Select
-             placeholder="All Campaigns"
-             style={{ width: "100%" }}
-             value={selectedCampaign}
-             onChange={handleCampaignChange}
-             loading={loading}
-             showSearch
-             allowClear
-             size="small"
-             filterOption={(input, option) =>
-               option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-             }
-           >
-             {campaigns.map((campaign) => (
-               <Option key={campaign.id} value={campaign.id}>
-                 {campaign.name || campaign.title}
-               </Option>
-             ))}
-           </Select>
-         </Col>
- 
-         {/* Action Buttons */}
-         <Col xs={24} sm={12} md={16} lg={18}>
-           <div
-             style={{
-               display: "flex",
-               justifyContent: "flex-end",
-               alignItems: "flex-end",
-               gap: "8px",
-               height: "100%",
-               paddingBottom: "2px",
-             }}
-           >
-             <Button
-               icon={<ReloadOutlined />}
-               onClick={handleRefresh}
-               loading={reportsLoading}
-               size="small"
-               title="Refresh"
-             />
-             <Button
-               type="primary"
-               icon={<DownloadOutlined />}
-               disabled={pagination.total === 0}
-               onClick={handleExportAll}
-               loading={reportsLoading}
-               size="small"
-               title="Export All CSV"
-               style={{
-                 background: "#52c41a",
-                 borderColor: "#52c41a",
-               }}
-             />
-           </div>
-         </Col>
-       </Row>
-
-  <Row style={{ marginTop: "24px", padding: "0 14px" }}>
-    <Table
-      columns={columns}
-      dataSource={reportData}
-      rowKey={(record) =>
-        `${
-          record.id ||
-          record.campaignId ||
-          record.publisherId ||
-          Math.random()
-        }-${record.date || Math.random()}`
-      }
-      pagination={{
-        ...pagination,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total, range) =>
-          `${range[0]}-${range[1]} of ${total} records`,
-        pageSizeOptions: ["10", "20", "50", "100"],
-      }}
-      scroll={{ x: 1400 }}
-      loading={reportsLoading}
-      locale={{
-        emptyText: "No reports data available",
-      }}
+  {/* Campaign Dropdown */}
+  <Col flex="1 1 220px">
+    <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+      <strong>Campaign</strong>
+    </div>
+    <Select
+      placeholder="All Campaigns"
+      style={{ width: "100%" }}
+      value={selectedCampaign}
+      onChange={handleCampaignChange}
+      loading={loading}
+      showSearch
+      allowClear
       size="small"
-      bordered
-      onChange={handleTableChange}
-    />
-  </Row>
-</Card>
+      filterOption={(input, option) =>
+        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      }
+      optionLabelProp="label"
+    >
+      {campaigns.map((campaign) => (
+        <Option
+          key={campaign.id}
+          value={campaign.id}
+          label={`${campaign.id} - ${campaign.name || campaign.title}`}
+        >
+          {`${campaign.id} - ${campaign.name || campaign.title}`}
+        </Option>
+      ))}
+    </Select>
+  </Col>
+
+  {/* Publisher Dropdown */}
+  <Col flex="1 1 220px">
+    <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+      <strong>Publisher</strong>
+    </div>
+    <Select
+      mode="multiple"
+      placeholder="All Publishers"
+      style={{ width: "100%" }}
+      value={selectedPublishers}
+      onChange={handlePublisherChange}
+      loading={loading}
+      showSearch
+      allowClear
+      maxTagCount="responsive"
+      size="small"
+      filterOption={(input, option) =>
+        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      }
+    >
+      {publishers.map((publisher) => (
+        <Option key={publisher.id} value={publisher.id}>
+          {`${publisher.id} - ${publisher.name || publisher.title}`}
+        </Option>
+      ))}
+    </Select>
+  </Col>
+
+  {/* Advertiser Dropdown */}
+  <Col flex="1 1 220px">
+    <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+      <strong>Advertiser</strong>
+    </div>
+    <Select
+      mode="multiple"
+      placeholder="All Advertisers"
+      style={{ width: "100%" }}
+      value={selectedAdvertisers}
+      onChange={handleAdvertiserChange}
+      loading={loading}
+      showSearch
+      allowClear
+      maxTagCount="responsive"
+      size="small"
+      filterOption={(input, option) =>
+        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      }
+    >
+      {advertisers.map((advertiser) => (
+        <Option key={advertiser.id} value={advertiser.id}>
+          {`${advertiser.id} - ${advertiser.name || advertiser.title}`}
+        </Option>
+      ))}
+    </Select>
+  </Col>
+
+  {/* Action Buttons */}
+  <Col flex="0 0 auto">
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "flex-end",
+        gap: "8px",
+        height: "100%",
+        paddingBottom: "2px",
+        minWidth: "120px",
+      }}
+    >
+      <Button
+        icon={<ReloadOutlined />}
+        onClick={handleRefresh}
+        loading={reportsLoading}
+        size="small"
+        title="Refresh"
+        style={{marginTop: '20px'}}
+      />
+      <Button
+        type="primary"
+        icon={<DownloadOutlined />}
+        disabled={pagination.total === 0}
+        onClick={handleExportAll}
+        loading={reportsLoading}
+        size="small"
+        title="Export All CSV"
+        style={{
+          background: "#52c41a",
+          borderColor: "#52c41a",
+        }}
+      />
+    </div>
+  </Col>
+</Row>
+
+        <Row style={{ marginTop: "24px", padding: "0 14px" }}>
+          <Table
+            columns={columns}
+            dataSource={reportData}
+            rowKey={(record) =>
+              `${
+                record.id ||
+                record.campaignId ||
+                record.publisherId ||
+                Math.random()
+              }-${record.date || Math.random()}`
+            }
+            pagination={{
+              ...pagination,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} records`,
+              pageSizeOptions: ["10", "20", "50", "100"],
+            }}
+            scroll={{ x: 1400 }}
+            loading={reportsLoading}
+            locale={{
+              emptyText: "No reports data available",
+            }}
+            size="small"
+            bordered
+            onChange={handleTableChange}
+          />
+        </Row>
+      </Card>
 
       <Button
         icon={<FilterOutlined />}
