@@ -16,13 +16,15 @@ import {
 import {
   ReloadOutlined,
   DownloadOutlined,
+  CalendarOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
 import { FilterOutlined } from "@ant-design/icons";
 import "../styles/ConversionReportsPage.scss";
 import { useNavigate } from "react-router-dom";
-
+import { DatePicker } from "antd";
+const { RangePicker } = DatePicker;
 const { Option } = Select;
 const { Title } = Typography;
 
@@ -48,6 +50,44 @@ const [advertisers, setAdvertisers] = useState([]);
 const [selectedPublishers, setSelectedPublishers] = useState([]);
 const [selectedAdvertisers, setSelectedAdvertisers] = useState([]);
   // Helper function to build the query string from applied filters
+
+  const [dateRange, setDateRange] = useState(null);
+const [dateRangeType, setDateRangeType] = useState("last30days");
+const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
+
+
+const getDateRangeByType = (type) => {
+  switch (type) {
+    case "today":
+      return [dayjs().startOf("day"), dayjs().endOf("day")];
+    case "yesterday":
+      return [
+        dayjs().subtract(1, "day").startOf("day"),
+        dayjs().subtract(1, "day").endOf("day"),
+      ];
+    case "last7days":
+      return [
+        dayjs().subtract(6, "day").startOf("day"),
+        dayjs().endOf("day"),
+      ];
+    case "last30days":
+      return [
+        dayjs().subtract(29, "day").startOf("day"),
+        dayjs().endOf("day"),
+      ];
+    case "thismonth":
+      return [dayjs().startOf("month"), dayjs().endOf("month")];
+    case "lastmonth":
+      return [
+        dayjs().subtract(1, "month").startOf("month"),
+        dayjs().subtract(1, "month").endOf("month"),
+      ];
+    case "custom":
+      return dateRange;
+    default:
+      return [dayjs().startOf("day"), dayjs().endOf("day")];
+  }
+};
 
 const fetchPublishers = async () => {
   setLoading(true);
@@ -86,24 +126,33 @@ const fetchAdvertisers = async () => {
 };
 
 
-const handlePublisherChange = (publisherIds) => {
-  setSelectedPublishers(publisherIds);
-  // Reset to page 1 when filter changes
-  const filterQuery = buildPublisherAdvertiserQuery(publisherIds, selectedAdvertisers);
-  fetchAllReports(1, pagination.pageSize, filterQuery);
-};
+// const handlePublisherChange = (publisherIds) => {
+//   setSelectedPublishers(publisherIds);
+//   // Reset to page 1 when filter changes
+//   const filterQuery = buildPublisherAdvertiserQuery(publisherIds, selectedAdvertisers);
+//   fetchAllReports(1, pagination.pageSize, filterQuery);
+// };
 
-const handleAdvertiserChange = (advertiserIds) => {
-  setSelectedAdvertisers(advertiserIds);
-  // Reset to page 1 when filter changes
-  const filterQuery = buildPublisherAdvertiserQuery(selectedPublishers, advertiserIds);
-  fetchAllReports(1, pagination.pageSize, filterQuery);
-};
+// const handleAdvertiserChange = (advertiserIds) => {
+//   setSelectedAdvertisers(advertiserIds);
+//   // Reset to page 1 when filter changes
+//   const filterQuery = buildPublisherAdvertiserQuery(selectedPublishers, advertiserIds);
+//   fetchAllReports(1, pagination.pageSize, filterQuery);
+// };
 
-// CHANGE 4: Add helper function to build query with publisher/advertiser filters
-const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
+const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds, customDateRange = null) => {
   const params = new URLSearchParams();
   
+  // Handle date range
+  const activeDateRange = customDateRange || dateRange;
+  if (activeDateRange && activeDateRange[0] && activeDateRange[1]) {
+    params.append(
+      "startDate",
+      dayjs(activeDateRange[0]).format("YYYY-MM-DD")
+    );
+    params.append("endDate", dayjs(activeDateRange[1]).format("YYYY-MM-DD"));
+  }
+
   if (publisherIds && publisherIds.length > 0) {
     params.append("publisher", publisherIds.join(","));
   }
@@ -114,8 +163,6 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
   
   return params.toString();
 };
-
-
   const fetchCampaigns = async () => {
     setLoading(true);
     setError(null);
@@ -143,12 +190,38 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
       setLoading(false);
     }
   };
-
- const fetchAllReports = async (page = 1, pageSize = 10) => {
+// Update fetchAllReports to accept and use publisher/advertiser filters
+const fetchAllReports = async (
+  page = 1,
+  pageSize = 10,
+  customDateRange = null,
+  publisherIds = [],
+  advertiserIds = []
+) => {
   setReportsLoading(true);
   setError(null);
+  
+  const activeDateRange = customDateRange || dateRange;
+  let url = `/admin/report/campaign-trackings?page=${page}&pageSize=${pageSize}`;
+  
+  // Add date range to URL
+  if (activeDateRange && activeDateRange[0] && activeDateRange[1]) {
+    url += `&startDate=${dayjs(activeDateRange[0]).format("YYYY-MM-DD")}`;
+    url += `&endDate=${dayjs(activeDateRange[1]).format("YYYY-MM-DD")}`;
+  }
+  
+  // Add publisher filter
+  if (publisherIds && publisherIds.length > 0) {
+    url += `&publisher=${publisherIds.join(",")}`;
+  }
+  
+  // Add advertiser filter
+  if (advertiserIds && advertiserIds.length > 0) {
+    url += `&advertiser=${advertiserIds.join(",")}`;
+  }
+  
   try {
-    const response = await apiClient.get(`/admin/report/campaign-trackings?page=${page}&pageSize=${pageSize}`);
+    const response = await apiClient.get(url);
     
     if (response.data?.success) {
       const reports = response.data.data?.trackings || [];
@@ -162,7 +235,9 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
         total: total,
       }));
       
-      message.success(`${reports.length} reports loaded successfully!`);
+      if (page === 1) {
+        message.success(`${reports.length} reports loaded successfully!`);
+      }
     } else {
       throw new Error(response.data?.message || "Failed to fetch reports.");
     }
@@ -180,19 +255,45 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
     setReportsLoading(false);
   }
 };
- 
 
-
-const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
+// Update fetchCampaignReports to accept and use publisher/advertiser filters
+const fetchCampaignReports = async (
+  campaignId,
+  page = 1,
+  pageSize = 10,
+  customDateRange = null,
+  publisherIds = [],
+  advertiserIds = []
+) => {
   if (!campaignId) return;
   
   setReportsLoading(true);
   setError(null);
+  
+  const activeDateRange = customDateRange || dateRange;
+  let url = `/admin/report/campaign-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}`;
+  
+  // Add date range to URL
+  if (activeDateRange && activeDateRange[0] && activeDateRange[1]) {
+    url += `&startDate=${dayjs(activeDateRange[0]).format("YYYY-MM-DD")}`;
+    url += `&endDate=${dayjs(activeDateRange[1]).format("YYYY-MM-DD")}`;
+  }
+  
+  // Add publisher filter
+  if (publisherIds && publisherIds.length > 0) {
+    url += `&publisher=${publisherIds.join(",")}`;
+  }
+  
+  // Add advertiser filter
+  if (advertiserIds && advertiserIds.length > 0) {
+    url += `&advertiser=${advertiserIds.join(",")}`;
+  }
+  
   try {
-    const response = await apiClient.get(`/admin/report/campaign-trackings?page=${page}&pageSize=${pageSize}&campaignId=${campaignId}`);
+    const response = await apiClient.get(url);
     
     if (response.data?.success) {
-      const reports = response.data.data?.trackings || []; // Fixed this line
+      const reports = response.data.data?.trackings || [];
       const total = response.data.data?.total || response.data.totalCount || reports.length;
       
       setReportData(reports);
@@ -210,7 +311,9 @@ const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
         setCampaignDetails(campaign);
       }
 
-      message.success(`${reports.length} reports loaded successfully!`);
+      if (page === 1) {
+        message.success(`${reports.length} reports loaded successfully!`);
+      }
     } else {
       throw new Error(response.data?.message || "Failed to fetch reports.");
     }
@@ -229,47 +332,100 @@ const fetchCampaignReports = async (campaignId, page = 1, pageSize = 10) => {
   }
 };
 
+// Update handlePublisherChange to pass all filters
+const handlePublisherChange = (publisherIds) => {
+  setSelectedPublishers(publisherIds);
+  if (selectedCampaign) {
+    fetchCampaignReports(selectedCampaign, 1, pagination.pageSize, dateRange, publisherIds, selectedAdvertisers);
+  } else {
+    fetchAllReports(1, pagination.pageSize, dateRange, publisherIds, selectedAdvertisers);
+  }
+};
 
-  const handleCampaignChange = (campaignId) => {
-    setSelectedCampaign(campaignId);
-    setPagination(prev => ({
-      ...prev,
-      current: 1,
-    }));
-    
-    if (campaignId) {
-      fetchCampaignReports(campaignId, 1, pagination.pageSize);
-    } else {
-      setCampaignDetails(null);
-      fetchAllReports(1, pagination.pageSize);
-    }
-  };
+// Update handleAdvertiserChange to pass all filters
+const handleAdvertiserChange = (advertiserIds) => {
+  setSelectedAdvertisers(advertiserIds);
+  if (selectedCampaign) {
+    fetchCampaignReports(selectedCampaign, 1, pagination.pageSize, dateRange, selectedPublishers, advertiserIds);
+  } else {
+    fetchAllReports(1, pagination.pageSize, dateRange, selectedPublishers, advertiserIds);
+  }
+};
 
-  const handleTableChange = (paginationInfo) => {
-    const { current, pageSize } = paginationInfo;
-    
+// Update handleTableChange to pass publisher/advertiser filters
+const handleTableChange = (paginationInfo) => {
+  const { current, pageSize } = paginationInfo;
+  
+  if (selectedCampaign) {
+    fetchCampaignReports(selectedCampaign, current, pageSize, dateRange, selectedPublishers, selectedAdvertisers);
+  } else {
+    fetchAllReports(current, pageSize, dateRange, selectedPublishers, selectedAdvertisers);
+  }
+};
+
+// Update handleCampaignChange to pass publisher/advertiser filters
+const handleCampaignChange = (campaignId) => {
+  setSelectedCampaign(campaignId);
+  setPagination(prev => ({
+    ...prev,
+    current: 1,
+  }));
+  
+  if (campaignId) {
+    fetchCampaignReports(campaignId, 1, pagination.pageSize, dateRange, selectedPublishers, selectedAdvertisers);
+  } else {
+    setCampaignDetails(null);
+    fetchAllReports(1, pagination.pageSize, dateRange, selectedPublishers, selectedAdvertisers);
+  }
+};
+
+// Update handleDateRangeChange to pass publisher/advertiser filters
+const handleDateRangeChange = (dates) => {
+  setDateRange(dates);
+  if (dates) {
     if (selectedCampaign) {
-      fetchCampaignReports(selectedCampaign, current, pageSize);
+      fetchCampaignReports(selectedCampaign, 1, pagination.pageSize, dates, selectedPublishers, selectedAdvertisers);
     } else {
-      fetchAllReports(current, pageSize);
+      fetchAllReports(1, pagination.pageSize, dates, selectedPublishers, selectedAdvertisers);
     }
-  };
+  }
+};
 
-  const handleRefresh = async () => {
-    try {
-      if (selectedCampaign) {
-        await fetchCampaignReports(selectedCampaign, pagination.current, pagination.pageSize);
-      } else {
-        await fetchAllReports(pagination.current, pagination.pageSize);
-      }
-      await fetchCampaigns();
-      await fetchPublishers();
-      await fetchAdvertisers();
-    } catch (error) {
-      console.error("Error during refresh:", error);
-      message.error("Failed to refresh data");
+// Update handleDateRangeTypeChange to pass publisher/advertiser filters
+const handleDateRangeTypeChange = (type) => {
+  setDateRangeType(type);
+
+  if (type === "custom") {
+    setShowCustomDatePicker(true);
+  } else {
+    setShowCustomDatePicker(false);
+    const range = getDateRangeByType(type);
+    setDateRange(range);
+
+    if (selectedCampaign) {
+      fetchCampaignReports(selectedCampaign, 1, pagination.pageSize, range, selectedPublishers, selectedAdvertisers);
+    } else {
+      fetchAllReports(1, pagination.pageSize, range, selectedPublishers, selectedAdvertisers);
     }
-  };
+  }
+};
+
+ const handleRefresh = async () => {
+  try {
+    if (selectedCampaign) {
+      await fetchCampaignReports(selectedCampaign, pagination.current, pagination.pageSize, dateRange, selectedPublishers, selectedAdvertisers);
+    } else {
+      await fetchAllReports(pagination.current, pagination.pageSize, dateRange, selectedPublishers, selectedAdvertisers);
+    }
+    await fetchCampaigns();
+    await fetchPublishers();
+    await fetchAdvertisers();
+    message.success("Data refreshed successfully!");
+  } catch (error) {
+    console.error("Error during refresh:", error);
+    message.error("Failed to refresh data");
+  }
+};
 
   const handleExportAll = async () => {
     try {
@@ -543,20 +699,19 @@ const columns = [
   },
 ];
 
-  useEffect(() => {
-    fetchCampaigns();
-    fetchPublishers();
-    fetchAdvertisers();
-    fetchAllReports(1, 10);
-  }, []);
+useEffect(() => {
+  fetchCampaigns();
+  fetchPublishers();
+  fetchAdvertisers();
 
- // ============================================
-// CHANGES FOR ConversionReportsPage.jsx
-// ============================================
+  // Set initial date range to "last30days"
+  const initialRange = getDateRangeByType("last30days");
+  setDateRange(initialRange);
+  setDateRangeType("last30days");
 
-// 1. IMPORTS ARE ALREADY CORRECT - No changes needed
+  fetchAllReports(1, 10, initialRange);
+}, []);
 
-// 2. REPLACE THE ENTIRE RETURN STATEMENT WITH THIS:
 return (
   <div style={{ padding: "24px", background: "#f0f2f5" }}>
 
@@ -674,7 +829,41 @@ return (
             ))}
           </Select>
         </Col>
-      
+      {/* Date Range */}
+<Col flex="1 1 220px">
+  <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+    <strong><CalendarOutlined style={{ marginRight: 6 }} /> Date Range</strong>
+  </div>
+  <Select
+    style={{ width: "100%" }}
+    value={dateRangeType}
+    onChange={handleDateRangeTypeChange}
+    size="small"
+  >
+    <Option value="today">Today</Option>
+    <Option value="yesterday">Yesterday</Option>
+    <Option value="last7days">Last 7 Days</Option>
+    <Option value="last30days">Last 30 Days</Option>
+    <Option value="thismonth">This Month</Option>
+    <Option value="lastmonth">Last Month</Option>
+    <Option value="custom">Custom</Option>
+  </Select>
+</Col>
+
+{showCustomDatePicker && (
+  <Col flex="1 1 280px">
+    <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+      <strong>Custom Date Range</strong>
+    </div>
+    <RangePicker
+      style={{ width: "100%" }}
+      value={dateRange}
+      onChange={handleDateRangeChange}
+      format="DD MMM YYYY"
+      size="small"
+    />
+  </Col>
+)}
         {/* Action Buttons */}
         <Col flex="0 0 auto">
           <div
@@ -760,7 +949,7 @@ return (
           showQuickJumper: true,
           showTotal: (total, range) =>
             `${range[0]}-${range[1]} of ${total} records`,
-          pageSizeOptions: ["10", "20", "50", "100"],
+          pageSizeOptions: ["10", "20", "50", "100","200","400"],
         }}
         scroll={{ x: 1400 }}
         loading={reportsLoading}

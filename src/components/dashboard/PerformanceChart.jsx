@@ -1,4 +1,3 @@
-// src/components/dashboard/PerformanceChart.jsx
 import React from 'react';
 import {
   ComposedChart,
@@ -13,10 +12,10 @@ import {
 } from 'recharts';
 import dayjs from 'dayjs';
 
-const PerformanceChart = ({ data }) => {
+const PerformanceChart = ({ data, height = 250 }) => {
   // Format data for chart
   const formattedData = data.map(item => ({
-    date: dayjs(item.date).format('YYYY-MM-DD'),
+    date: dayjs(item.date).format('MM-DD'),
     clicks: item.clicks || 0,
     conversions: item.conversions || 0,
     revenue: item.revenue || 0,
@@ -100,33 +99,35 @@ const PerformanceChart = ({ data }) => {
 
   return (
     <div className="performance-chart">
-      <ResponsiveContainer width="100%" height={450}>
+      <ResponsiveContainer width="100%" height={height}>
         <ComposedChart
           data={formattedData}
-          margin={{ top: 20, right: 80, left: 80, bottom: 20 }}
+          margin={{ top: 10, right: 60, left: 50, bottom: 10 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
           <XAxis
             dataKey="date"
             stroke="#8c8c8c"
-            style={{ fontSize: '12px' }}
+            style={{ fontSize: '11px' }}
             axisLine={{ stroke: '#f0f0f0' }}
             tickLine={{ stroke: '#f0f0f0' }}
+            height={25}
           />
           
           {/* Left Y-Axis: Conversions and Payout */}
           <YAxis
             yAxisId="left"
             stroke="#8c8c8c"
-            style={{ fontSize: '12px' }}
+            style={{ fontSize: '10px' }}
             axisLine={{ stroke: '#f0f0f0' }}
             tickLine={{ stroke: '#f0f0f0' }}
+            width={45}
             label={{
-              value: 'Conversions and Payouts',
+              value: 'Conv/Payout',
               angle: -90,
               position: 'insideLeft',
-              offset: 10,
-              style: { fontSize: '11px', fontWeight: 500, fill: '#8c8c8c' },
+              offset: 5,
+              style: { fontSize: '9px', fontWeight: 500, fill: '#8c8c8c' },
             }}
           />
           
@@ -135,36 +136,37 @@ const PerformanceChart = ({ data }) => {
             yAxisId="right"
             orientation="right"
             stroke="#1890ff"
-            style={{ fontSize: '12px' }}
+            style={{ fontSize: '10px' }}
             axisLine={{ stroke: '#f0f0f0' }}
             tickLine={{ stroke: '#f0f0f0' }}
+            width={45}
             label={{
-              value: 'Clicks and Impressions',
+              value: 'Clicks/Impr',
               angle: 90,
               position: 'insideRight',
-              offset: 10,
-              style: { fontSize: '11px', fontWeight: 500, fill: '#1890ff' },
+              offset: 5,
+              style: { fontSize: '9px', fontWeight: 500, fill: '#1890ff' },
             }}
           />
           
           <Tooltip content={<CustomTooltip />} />
-          <Legend content={<CustomLegend />} wrapperStyle={{ paddingTop: '20px' }} />
+          <Legend content={<CustomLegend />} wrapperStyle={{ paddingTop: '8px' }} />
 
           {/* Bars - on Left Axis */}
           <Bar
             yAxisId="left"
             dataKey="conversions"
             fill="#52c41a"
-            radius={[4, 4, 0, 0]}
-            barSize={35}
+            radius={[3, 3, 0, 0]}
+            barSize={20}
             opacity={0.9}
           />
           <Bar
             yAxisId="left"
             dataKey="payout"
             fill="#1a237e"
-            radius={[4, 4, 0, 0]}
-            barSize={35}
+            radius={[3, 3, 0, 0]}
+            barSize={20}
             opacity={0.9}
           />
 
@@ -174,9 +176,9 @@ const PerformanceChart = ({ data }) => {
             type="monotone"
             dataKey="clicks"
             stroke="#1890ff"
-            strokeWidth={3}
-            dot={{ fill: '#1890ff', r: 4, strokeWidth: 0 }}
-            activeDot={{ r: 6, strokeWidth: 0 }}
+            strokeWidth={2}
+            dot={{ fill: '#1890ff', r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 4, strokeWidth: 0 }}
             isAnimationActive={true}
           />
           <Line
@@ -184,9 +186,9 @@ const PerformanceChart = ({ data }) => {
             type="monotone"
             dataKey="revenue"
             stroke="#722ed1"
-            strokeWidth={3}
-            dot={{ fill: '#722ed1', r: 4, strokeWidth: 0 }}
-            activeDot={{ r: 6, strokeWidth: 0 }}
+            strokeWidth={2}
+            dot={{ fill: '#722ed1', r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 4, strokeWidth: 0 }}
             isAnimationActive={true}
           />
           <Line
@@ -194,9 +196,9 @@ const PerformanceChart = ({ data }) => {
             type="monotone"
             dataKey="profit"
             stroke="#eb2f96"
-            strokeWidth={3}
-            dot={{ fill: '#eb2f96', r: 4, strokeWidth: 0 }}
-            activeDot={{ r: 6, strokeWidth: 0 }}
+            strokeWidth={2}
+            dot={{ fill: '#eb2f96', r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 4, strokeWidth: 0 }}
             isAnimationActive={true}
           />
         </ComposedChart>

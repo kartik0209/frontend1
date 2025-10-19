@@ -1,9 +1,7 @@
-// src/pages/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, DatePicker, Spin, Button, Typography, message } from 'antd';
 import {
   EyeOutlined,
-
   CheckCircleOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
@@ -68,12 +66,10 @@ const Dashboard = () => {
   };
 
   const processData = (data) => {
-    // Separate chart data from summary data
     const chartData = data.filter(item => item.date);
     const clicksData = data.find(item => item.clicks && !item.date);
     const conversionsData = data.find(item => item.conversions && !item.date);
 
-    // Calculate revenue and payout from chart data if not in summary
     const revenueTotal = chartData.reduce((sum, item) => sum + (item.revenue || 0), 0);
     const payoutTotal = chartData.reduce((sum, item) => sum + (item.payout || 0), 0);
     const profitTotal = chartData.reduce((sum, item) => sum + (item.profit || 0), 0);
@@ -145,14 +141,14 @@ const Dashboard = () => {
               className="chart-settings-btn"
             />
           </div>
-          <PerformanceChart data={dashboardData.chartData} />
+          <PerformanceChart data={dashboardData.chartData} height={250} />
         </Card>
 
         {/* Stats Cards */}
-        <Row gutter={[24, 24]} className="stats-row">
+        <Row gutter={[16, 12]} className="stats-row">
           <Col xs={24} sm={24} md={8} lg={8}>
             <StatCard
-           
+              icon={<EyeOutlined />}
               title="CLICKS"
               color="#1890ff"
               today={formatNumber(dashboardData.clicks.today)}
@@ -183,9 +179,6 @@ const Dashboard = () => {
             />
           </Col>
         </Row>
-
-        {/* Customize Widgets Button */}
-       
       </Spin>
     </div>
   );

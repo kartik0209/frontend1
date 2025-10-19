@@ -16,8 +16,9 @@ import {
 import {
   ReloadOutlined,
   DownloadOutlined,
-  FilterOutlined, // Import FilterOutlined
-} from "@ant-design/icons";
+  FilterOutlined,
+  CalendarOutlined,
+} from "@ant-design/icons"
 import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
 import ConversionReportFilter from "../components/campaign/ConversionRepotFilter"; // Import the filter component
@@ -25,6 +26,8 @@ import { useNavigate } from "react-router-dom";
 import "../styles/CampaignManagement.scss";
 import { SearchOutlined } from "@ant-design/icons";
 import { Input } from "antd";
+import { DatePicker } from "antd";
+const { RangePicker } = DatePicker;
 const { Option } = Select;
 const { Title } = Typography;
 
@@ -55,6 +58,44 @@ const [advertisers, setAdvertisers] = useState([]);
 const [selectedPublishers, setSelectedPublishers] = useState([]);
 const [selectedAdvertisers, setSelectedAdvertisers] = useState([]);
   // Helper function to build the query string from applied filters
+  const [dateRange, setDateRange] = useState(null);
+const [dateRangeType, setDateRangeType] = useState("last30days");
+const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
+
+
+const getDateRangeByType = (type) => {
+  switch (type) {
+    case "today":
+      return [dayjs().startOf("day"), dayjs().endOf("day")];
+    case "yesterday":
+      return [
+        dayjs().subtract(1, "day").startOf("day"),
+        dayjs().subtract(1, "day").endOf("day"),
+      ];
+    case "last7days":
+      return [
+        dayjs().subtract(6, "day").startOf("day"),
+        dayjs().endOf("day"),
+      ];
+    case "last30days":
+      return [
+        dayjs().subtract(29, "day").startOf("day"),
+        dayjs().endOf("day"),
+      ];
+    case "thismonth":
+      return [dayjs().startOf("month"), dayjs().endOf("month")];
+    case "lastmonth":
+      return [
+        dayjs().subtract(1, "month").startOf("month"),
+        dayjs().subtract(1, "month").endOf("month"),
+      ];
+    case "custom":
+      return dateRange;
+    default:
+      return [dayjs().startOf("day"), dayjs().endOf("day")];
+  }
+};
+
 
 const fetchPublishers = async () => {
   setLoading(true);
@@ -135,48 +176,40 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
 
 
 
+const buildFilterQuery = (filters, customDateRange = null) => {
+  const params = new URLSearchParams();
+  
+  // Handle date range
+  const activeDateRange = customDateRange || dateRange;
+  if (activeDateRange && activeDateRange[0] && activeDateRange[1]) {
+    params.append(
+      "startDate",
+      dayjs(activeDateRange[0]).format("YYYY-MM-DD")
+    );
+    params.append("endDate", dayjs(activeDateRange[1]).format("YYYY-MM-DD"));
+  }
 
-  const buildFilterQuery = (filters) => {
-    const params = new URLSearchParams();
-    if (!filters || !filters.basicFilters) return params.toString();
+  if (!filters || !filters.basicFilters) return params.toString();
 
-    const { basicFilters } = filters;
+  const { basicFilters } = filters;
 
-    if (
-      basicFilters.dateRange &&
-      basicFilters.dateRange[0] &&
-      basicFilters.dateRange[1]
-    ) {
-      params.append(
-        "startDate",
-        dayjs(basicFilters.dateRange[0]).startOf("day").toISOString()
-      );
-      params.append(
-        "endDate",
-        dayjs(basicFilters.dateRange[1]).endOf("day").toISOString()
-      );
-    }
-    if (basicFilters.pixelType)
-      params.append("pixelType", basicFilters.pixelType);
-    if (basicFilters.eventType)
-      params.append("eventType", basicFilters.eventType);
-    if (basicFilters.conversionStatus)
-      params.append("conversionStatus", basicFilters.conversionStatus);
-    if (basicFilters.transactionId)
-      params.append("transactionId", basicFilters.transactionId);
-    if (basicFilters.trackingId)
-      params.append("trackingId", basicFilters.trackingId);
-    if (basicFilters.minAmount)
-      params.append("minAmount", basicFilters.minAmount);
-    if (basicFilters.maxAmount)
-      params.append("maxAmount", basicFilters.maxAmount);
+  if (basicFilters.pixelType)
+    params.append("pixelType", basicFilters.pixelType);
+  if (basicFilters.eventType)
+    params.append("eventType", basicFilters.eventType);
+  if (basicFilters.conversionStatus)
+    params.append("conversionStatus", basicFilters.conversionStatus);
+  if (basicFilters.transactionId)
+    params.append("transactionId", basicFilters.transactionId);
+  if (basicFilters.trackingId)
+    params.append("trackingId", basicFilters.trackingId);
+  if (basicFilters.minAmount)
+    params.append("minAmount", basicFilters.minAmount);
+  if (basicFilters.maxAmount)
+    params.append("maxAmount", basicFilters.maxAmount);
 
-    // You could expand this to include searchFilters, etc. if your API supports them
-    // Example: if (filters.searchFilters?.campaign) params.append('campaignName', filters.searchFilters.campaign);
-
-    return params.toString();
-  };
-
+  return params.toString();
+};
   const fetchCampaigns = async () => {
     setLoading(true);
     setError(null);
@@ -211,16 +244,17 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
     }
   };
 
-  const fetchAllReports = async (
-     page = 1,
+const fetchAllReports = async (
+  page = 1,
   pageSize = 10,
-  additionalFilters = ""
+  additionalFilters = "",
+  customDateRange = null
 ) => {
   setReportsLoading(true);
   setError(null);
-  const filterQuery = buildFilterQuery(appliedFilters);
+  const filterQuery = buildFilterQuery(appliedFilters, customDateRange);
   const allFilters = [filterQuery, additionalFilters].filter(Boolean).join("&");
-  
+
   try {
     const url = `/admin/report/conversion-trackings?page=${page}&pageSize=${pageSize}${
       allFilters ? `&${allFilters}` : ""
@@ -328,6 +362,41 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
       setReportsLoading(false);
     }
   };
+
+
+const handleDateRangeChange = (dates) => {
+  setDateRange(dates);
+  if (dates) {
+    fetchAllReports(
+      1,
+      pagination.pageSize,
+      buildPublisherAdvertiserQuery(selectedPublishers, selectedAdvertisers),
+      dates
+    );
+  }
+};
+
+const handleDateRangeTypeChange = (type) => {
+  setDateRangeType(type);
+
+  if (type === "custom") {
+    setShowCustomDatePicker(true);
+  } else {
+    setShowCustomDatePicker(false);
+    const range = getDateRangeByType(type);
+    setDateRange(range);
+
+    fetchAllReports(
+      1,
+      pagination.pageSize,
+      buildPublisherAdvertiserQuery(selectedPublishers, selectedAdvertisers),
+      range
+    );
+  }
+};
+
+
+
 
   // Handler for applying filters from the modal
   const handleApplyFilters = (filters) => {
@@ -731,12 +800,18 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
     },
   ];
 
-  useEffect(() => {
-    fetchCampaigns();
-    fetchPublishers();
+useEffect(() => {
+  fetchCampaigns();
+  fetchPublishers();
   fetchAdvertisers();
-    fetchAllReports(1, 10);
-  }, []);
+
+  // Set initial date range to "last30days"
+  const initialRange = getDateRangeByType("last30days");
+  setDateRange(initialRange);
+  setDateRangeType("last30days");
+
+  fetchAllReports(1, 10, "", initialRange);
+}, []);
 
   // ============================================
   // CHANGES FOR ConversionReportsPageOld.jsx
@@ -870,6 +945,42 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
     </Select>
   </Col>
 
+  {/* Date Range */}
+<Col flex="1 1 220px">
+  <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+    <strong><CalendarOutlined style={{ marginRight: 6 }} /> Date Range</strong>
+  </div>
+  <Select
+    style={{ width: "100%" }}
+    value={dateRangeType}
+    onChange={handleDateRangeTypeChange}
+    size="small"
+  >
+    <Option value="today">Today</Option>
+    <Option value="yesterday">Yesterday</Option>
+    <Option value="last7days">Last 7 Days</Option>
+    <Option value="last30days">Last 30 Days</Option>
+    <Option value="thismonth">This Month</Option>
+    <Option value="lastmonth">Last Month</Option>
+    <Option value="custom">Custom</Option>
+  </Select>
+</Col>
+
+{showCustomDatePicker && (
+  <Col flex="1 1 280px">
+    <div style={{ marginBottom: "4px", fontSize: "12px" }}>
+      <strong>Custom Date Range</strong>
+    </div>
+    <RangePicker
+      style={{ width: "100%" }}
+      value={dateRange}
+      onChange={handleDateRangeChange}
+      format="DD MMM YYYY"
+      size="small"
+    />
+  </Col>
+)}
+
   {/* Action Buttons */}
   <Col flex="0 0 auto">
     <div
@@ -926,7 +1037,7 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
               showQuickJumper: true,
               showTotal: (total, range) =>
                 `${range[0]}-${range[1]} of ${total} records`,
-              pageSizeOptions: ["10", "20", "50", "100"],
+              pageSizeOptions: ["10", "20", "50", "100", "200", "400"],
             }}
             scroll={{ x: 1400 }}
             loading={reportsLoading}

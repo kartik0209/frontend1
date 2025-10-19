@@ -24,6 +24,7 @@ import dayjs from "dayjs";
 import apiClient from "../services/apiServices";
 import ConversionReportFilter from "../components/campaign/ConversionRepotFilter";
 import "../styles/ConversionReportsPage.scss";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -49,6 +50,7 @@ const ConversionReportsPage = ({ name }) => {
     pageSize: 10,
     total: 0,
   });
+  const navigate = useNavigate();
 
   // State for filter modal visibility and applied filters
   const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -103,40 +105,58 @@ const ConversionReportsPage = ({ name }) => {
   const currentGroupBy = getGroupByFromName(name);
 
   // Helper function to build the query string from applied filters
-  const buildFilterQuery = (filters, customDateRange = null) => {
-    const params = new URLSearchParams();
+// Helper function to build the query string from applied filters
+const buildFilterQuery = (filters, customDateRange = null) => {
+  const params = new URLSearchParams();
 
-    // Handle date range
-    const activeDateRange = customDateRange || dateRange;
-    if (activeDateRange && activeDateRange[0] && activeDateRange[1]) {
-      params.append(
-        "startDate",
-        dayjs(activeDateRange[0]).format("YYYY-MM-DD")
-      );
-      params.append("endDate", dayjs(activeDateRange[1]).format("YYYY-MM-DD"));
+  // Handle date range
+  const activeDateRange = customDateRange || dateRange;
+  if (activeDateRange && activeDateRange[0] && activeDateRange[1]) {
+    params.append(
+      "startDate",
+      dayjs(activeDateRange[0]).format("YYYY-MM-DD")
+    );
+    params.append("endDate", dayjs(activeDateRange[1]).format("YYYY-MM-DD"));
+  }
+
+  // Add groupBy parameters
+  if (filters && filters.groupByOptions) {
+    const selectedGroupBy = Object.keys(filters.groupByOptions).filter(
+      (key) => filters.groupByOptions[key]
+    );
+    
+    // If user selected groupBy options, use them; otherwise fallback to currentGroupBy
+    if (selectedGroupBy.length > 0) {
+      params.append("groupBy", selectedGroupBy.join(","));
+    } else {
+      params.append("groupBy", currentGroupBy);
     }
+  } else {
+    // Fallback if no filters object
+    params.append("groupBy", currentGroupBy);
+  }
 
-    if (!filters || !filters.basicFilters) return params.toString();
+  if (!filters || !filters.basicFilters) return params.toString();
 
-    const { basicFilters } = filters;
+  const { basicFilters } = filters;
 
-    if (basicFilters.pixelType)
-      params.append("pixelType", basicFilters.pixelType);
-    if (basicFilters.eventType)
-      params.append("eventType", basicFilters.eventType);
-    if (basicFilters.conversionStatus)
-      params.append("conversionStatus", basicFilters.conversionStatus);
-    if (basicFilters.transactionId)
-      params.append("transactionId", basicFilters.transactionId);
-    if (basicFilters.trackingId)
-      params.append("trackingId", basicFilters.trackingId);
-    if (basicFilters.minAmount)
-      params.append("minAmount", basicFilters.minAmount);
-    if (basicFilters.maxAmount)
-      params.append("maxAmount", basicFilters.maxAmount);
+  if (basicFilters.pixelType)
+    params.append("pixelType", basicFilters.pixelType);
+  if (basicFilters.eventType)
+    params.append("eventType", basicFilters.eventType);
+  if (basicFilters.conversionStatus)
+    params.append("conversionStatus", basicFilters.conversionStatus);
+  if (basicFilters.transactionId)
+    params.append("transactionId", basicFilters.transactionId);
+  if (basicFilters.trackingId)
+    params.append("trackingId", basicFilters.trackingId);
+  if (basicFilters.minAmount)
+    params.append("minAmount", basicFilters.minAmount);
+  if (basicFilters.maxAmount)
+    params.append("maxAmount", basicFilters.maxAmount);
 
-    return params.toString();
-  };
+  return params.toString();
+};
 
   const fetchCampaigns = async () => {
     setLoading(true);
@@ -220,7 +240,7 @@ const ConversionReportsPage = ({ name }) => {
     const filterQuery = buildFilterQuery(filters, customDateRange);
 
     try {
-      let url = `/admin/report/main-report?page=${page}&pageSize=${pageSize}&groupBy=${currentGroupBy}`;
+      let url = `/admin/report/main-report?page=${page}&pageSize=${pageSize}`;
 
       if (campaignIds && campaignIds.length > 0) {
         url += `&campaign=${campaignIds.join(",")}`;
@@ -408,7 +428,7 @@ const ConversionReportsPage = ({ name }) => {
 
       while (hasMoreData) {
         const filterQuery = buildFilterQuery(appliedFilters);
-        let url = `/admin/report/main-report?page=${currentPage}&pageSize=${pageSize}&groupBy=${currentGroupBy}`;
+        let url = `/admin/report/main-report?page=${currentPage}&pageSize=${pageSize}`;
 
         if (selectedCampaigns && selectedCampaigns.length > 0) {
           url += `&campaign=${selectedCampaigns.join(",")}`;
@@ -494,150 +514,157 @@ const ConversionReportsPage = ({ name }) => {
   };
 
   // Dynamic columns based on groupBy type
- const getColumns = () => {
-  const dataColumns = [
-    getGroupByFromName(name) === "day"
-      ? {
-          title: "Day",
-          dataIndex: "Day",
-          key: "Day",
-          width: 120,
-          style: { fontSize: "12px" },
-          sorter: (a, b) => new Date(a.Day) - new Date(b.Day),
+ // Replace your getColumns function with this dynamic version
+
+const getColumns = () => {
+  const dataColumns = [];
+
+  // Detect which fields exist in the first report item
+  const firstRecord = reportData && reportData.length > 0 ? reportData[0] : {};
+  const hasFields = {
+    campaign: 'campaign' in firstRecord || 'campaignId' in firstRecord,
+    publisher: 'publisher' in firstRecord || 'publisherId' in firstRecord,
+    advertiser: 'advertiser' in firstRecord || 'advertiserId' in firstRecord,
+    day: 'Day' in firstRecord,
+  };
+
+  // Add Day column if present
+  if (hasFields.day) {
+    dataColumns.push({
+      title: "Day",
+      dataIndex: "Day",
+      key: "Day",
+      width: 120,
+      style: { fontSize: "12px" },
+      sorter: (a, b) => new Date(a.Day) - new Date(b.Day),
+    });
+  }
+
+  // Add Campaign column if present
+  if (hasFields.campaign) {
+    dataColumns.push({
+      title: "Campaign",
+      dataIndex: "campaign",
+      key: "campaign",
+      width: 150,
+      style: { fontSize: "12px" },
+      render: (value, record) => {
+        if (!value && !record.campaignId) return <Tag color="gray">N/A</Tag>;
+
+        const campaignName = value || "Unknown Campaign";
+        const campaignId = record.campaignId || record.campaign?.id;
+
+        if (!campaignId) {
+          return <span style={{ fontSize: "12px" }}>{campaignName}</span>;
         }
-      : getGroupByFromName(name) === "campaign"
-      ? {
-          title: "Campaign",
-          dataIndex: "campaign",
-          key: "campaign",
-          width: 150,
-          style: { fontSize: "12px" },
-          render: (value, record) => {
-            if (!value && !record.campaignId)
-              return <Tag color="gray">N/A</Tag>;
 
-            const campaignName = value || "Unknown Campaign";
-            const campaignId = record.campaignId || record.campaign?.id;
+        return (
+          <span
+            onClick={() => navigate(`/campaign/${campaignId}`)}
+            style={{
+              color: "#1890ff",
+              fontWeight: 500,
+              fontSize: "12px",
+              cursor: "pointer",
+              display: "inline-block",
+            }}
+          >
+            {campaignId} - {campaignName}
+          </span>
+        );
+      },
+      sorter: (a, b) => {
+        const aVal = (a.campaign || "").toString().toLowerCase();
+        const bVal = (b.campaign || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+    });
+  }
 
-            if (!campaignId) {
-              return <span style={{ fontSize: "12px" }}>{campaignName}</span>;
-            }
+  // Add Publisher column if present
+  if (hasFields.publisher) {
+    dataColumns.push({
+      title: "Publisher",
+      dataIndex: "publisher",
+      key: "publisher",
+      width: 150,
+      style: { fontSize: "12px" },
+      render: (publisher, record) => {
+        if (!publisher && !record.publisherId) return <Tag color="gray">N/A</Tag>;
 
-            return (
-              <span
-                onClick={() => navigate(`/campaign/${campaignId}`)}
-                style={{
-                  color: "#1890ff",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                  display: "inline-block",
-                }}
-              >
-                {campaignId} - {campaignName}
-              </span>
-            );
-          },
-          sorter: (a, b) => {
-            const aVal = (a.campaign || "").toString().toLowerCase();
-            const bVal = (b.campaign || "").toString().toLowerCase();
-            return aVal.localeCompare(bVal);
-          },
+        const publisherName = publisher || "Unknown Publisher";
+        const publisherId = record.publisherId || publisher?.id;
+
+        if (!publisherId) {
+          return <span style={{ fontSize: "12px" }}>{publisherName}</span>;
         }
-      : getGroupByFromName(name) === "publisher"
-      ? {
-          title: "Publisher",
-          dataIndex: "publisher",
-          key: "publisher",
-          width: 150,
-          style: { fontSize: "12px" },
-          render: (publisher, record) => {
-            if (!publisher && !record.publisherId)
-              return <Tag color="gray">N/A</Tag>;
 
-            const publisherName = publisher || "Unknown Publisher";
-            const publisherId = record.publisherId || publisher?.id;
+        return (
+          <span
+            onClick={() => navigate(`/publisher/${publisherId}`)}
+            style={{
+              color: "#1890ff",
+              fontWeight: 500,
+              fontSize: "12px",
+              cursor: "pointer",
+              display: "inline-block",
+            }}
+          >
+            {publisherId} - {publisherName}
+          </span>
+        );
+      },
+      sorter: (a, b) => {
+        const aVal = (a.publisher || "").toString().toLowerCase();
+        const bVal = (b.publisher || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+    });
+  }
 
-            if (!publisherId) {
-              return <span style={{ fontSize: "12px" }}>{publisherName}</span>;
-            }
+  // Add Advertiser column if present
+  if (hasFields.advertiser) {
+    dataColumns.push({
+      title: "Advertiser",
+      dataIndex: "advertiser",
+      key: "advertiser",
+      width: 150,
+      style: { fontSize: "12px" },
+      render: (advertiser, record) => {
+        if (!advertiser && !record.advertiserId) return <Tag color="gray">N/A</Tag>;
 
-            return (
-              <span
-                onClick={() => navigate(`/publisher/${publisherId}`)}
-                style={{
-                  color: "#1890ff",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                  display: "inline-block",
-                }}
-              >
-                {publisherId} - {publisherName}
-              </span>
-            );
-          },
-          sorter: (a, b) => {
-            const aVal = (a.publisher || "").toString().toLowerCase();
-            const bVal = (b.publisher || "").toString().toLowerCase();
-            return aVal.localeCompare(bVal);
-          },
+        const advertiserName = advertiser || "Unknown Advertiser";
+        const advertiserId = record.advertiserId || advertiser?.id;
+
+        if (!advertiserId) {
+          return <span style={{ fontSize: "12px" }}>{advertiserName}</span>;
         }
-      : getGroupByFromName(name) === "advertiser"
-      ? {
-          title: "Advertiser",
-          dataIndex: "advertiser",
-          key: "advertiser",
-          width: 150,
-          style: { fontSize: "12px" },
-          render: (advertiser, record) => {
-            if (!advertiser && !record.advertiserId)
-              return <Tag color="gray">N/A</Tag>;
 
-            const advertiserName = advertiser || "Unknown Advertiser";
-            const advertiserId = record.advertiserId || advertiser?.id;
+        return (
+          <span
+            onClick={() => navigate(`/advertiser/${advertiserId}`)}
+            style={{
+              color: "#1890ff",
+              fontWeight: 500,
+              fontSize: "12px",
+              cursor: "pointer",
+              display: "inline-block",
+            }}
+          >
+            {advertiserId} - {advertiserName}
+          </span>
+        );
+      },
+      sorter: (a, b) => {
+        const aVal = (a.advertiser || "").toString().toLowerCase();
+        const bVal = (b.advertiser || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+    });
+  }
 
-            if (!advertiserId) {
-              return <span style={{ fontSize: "12px" }}>{advertiserName}</span>;
-            }
-
-            return (
-              <span
-                onClick={() => navigate(`/advertiser/${advertiserId}`)}
-                style={{
-                  color: "#1890ff",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                  display: "inline-block",
-                }}
-              >
-                {advertiserId} - {advertiserName}
-              </span>
-            );
-          },
-          sorter: (a, b) => {
-            const aVal = (a.advertiser || "").toString().toLowerCase();
-            const bVal = (b.advertiser || "").toString().toLowerCase();
-            return aVal.localeCompare(bVal);
-          },
-        }
-      : {
-          title: "Name",
-          dataIndex: "name",
-          key: "name",
-          render: (value, record) => value || record.title || "N/A",
-          width: 200,
-          style: { fontSize: "12px" },
-          sorter: (a, b) => {
-            const aVal = (a.name || a.title || "").toString().toLowerCase();
-            const bVal = (b.name || b.title || "").toString().toLowerCase();
-            return aVal.localeCompare(bVal);
-          },
-        },
+  // Add metric columns (always shown)
+  dataColumns.push(
     {
       title: "Clicks",
       dataIndex: "grossClicks",
@@ -697,7 +724,9 @@ const ConversionReportsPage = ({ name }) => {
         if (!value || value === 0) return "$0.00";
         const profit = parseFloat(value);
         return (
-          <span style={{ color: profit >= 0 ? "green" : "red", fontSize: "12px" }}>
+          <span
+            style={{ color: profit >= 0 ? "green" : "red", fontSize: "12px" }}
+          >
             ${profit.toFixed(2)}
           </span>
         );
@@ -707,13 +736,14 @@ const ConversionReportsPage = ({ name }) => {
       style: { fontSize: "12px" },
       sorter: (a, b) =>
         (parseFloat(a.totalProfit) || 0) - (parseFloat(b.totalProfit) || 0),
-    },
-  ];
+    }
+  );
 
   return dataColumns;
 };
 
-  const columns = [...getColumns()];
+// Then update your columns variable
+const columns = [...getColumns()];
 
   const getInitialFilterValues = () => {
     const initialFilters = {
@@ -733,20 +763,59 @@ const ConversionReportsPage = ({ name }) => {
     return initialFilters;
   };
 
-  useEffect(() => {
-    setAppliedFilters(getInitialFilterValues());
-    fetchCampaigns();
-    fetchPublishers();
-    fetchAdvertisers();
+// Update your useEffect hook to properly reset filters when name changes
 
-    // Set initial date range to "today"
-    const initialRange = getDateRangeByType("last30days");
+useEffect(() => {
+  // Reset all filter states when report changes
+  setSelectedCampaigns([]);
+  setSelectedPublishers([]);
+  setSelectedAdvertisers([]);
+  setDateRangeType("last30days");
+  setShowCustomDatePicker(false);
+  setError(null);
+  
+  // Get initial filters for this specific report
+  const initialFilters = {
+    groupByOptions: {
+      [getGroupByFromName(name)]: true,
+    },
+    reportOptions: {
+      clicks: true,
+      conversions: true,
+      revenue: true,
+      payout: true,
+      profit: true,
+      conversionRate: true,
+      epc: true,
+    },
+    basicFilters: {
+      pixelType: null,
+      eventType: null,
+      conversionStatus: null,
+      transactionId: "",
+      trackingId: "",
+      minAmount: null,
+      maxAmount: null,
+    },
+    searchFilters: {},
+    additionalFilters: {},
+    otherOptions: {},
+  };
+  
+  setAppliedFilters(initialFilters);
+  
+  // Fetch fresh data
+  fetchCampaigns();
+  fetchPublishers();
+  fetchAdvertisers();
 
-    setDateRange(initialRange);
-    setDateRangeType("last30days");
+  // Set initial date range to "last30days"
+  const initialRange = getDateRangeByType("last30days");
+  setDateRange(initialRange);
 
-    fetchMainReports(1, 10);
-  }, [name]);
+  // Fetch reports with fresh filters
+  fetchMainReports(1, 10, initialFilters, [], [], [], initialRange);
+}, [name]);
 
   return (
     <div style={{ padding: "14px" }}>
@@ -778,140 +847,139 @@ const ConversionReportsPage = ({ name }) => {
           borderRadius: "8px",
         }}
       >
-       <Row
-  align="middle"
-  gutter={[8, 8]}
-  style={{
-    marginBottom: "12px",
-    flexWrap: "wrap",
-  }}
->
-  {/* Campaign Dropdown */}
-  <Col flex="1 1 180px">
-    <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
-      Campaign
-    </div>
-    <Select
-      placeholder="All Campaigns"
-      style={{ width: "100%" }}
-      value={selectedCampaigns}
-      onChange={handleCampaignChange}
-      loading={loading}
-      showSearch
-      allowClear
-      size="small"
-      optionLabelProp="label"
-      filterOption={(input, option) =>
-        option.children.toLowerCase().includes(input.toLowerCase())
-      }
-    >
-      {campaigns.map((c) => (
-        <Option key={c.id} value={c.id} label={`${c.id} - ${c.name}`}>
-          {`${c.id} - ${c.name}`}
-        </Option>
-      ))}
-    </Select>
-  </Col>
+        <Row
+          align="middle"
+          gutter={[8, 8]}
+          style={{
+            marginBottom: "12px",
+            flexWrap: "wrap",
+          }}
+        >
+          {/* Campaign Dropdown */}
+          <Col flex="1 1 180px">
+            <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
+              Campaign
+            </div>
+            <Select
+              placeholder="All Campaigns"
+              style={{ width: "100%" }}
+              value={selectedCampaigns}
+              onChange={handleCampaignChange}
+              loading={loading}
+              showSearch
+              allowClear
+              size="small"
+              optionLabelProp="label"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().includes(input.toLowerCase())
+              }
+            >
+              {campaigns.map((c) => (
+                <Option key={c.id} value={c.id} label={`${c.id} - ${c.title}`}>
+                  {`${c.id} - ${c.title}`}
+                </Option>
+              ))}
+            </Select>
+          </Col>
 
-  {/* Publisher Dropdown */}
-  <Col flex="1 1 180px">
-    <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
-      Publisher
-    </div>
-    <Select
-      placeholder="All Publishers"
-      style={{ width: "100%" }}
-      value={selectedPublishers}
-      onChange={handlePublisherChange}
-      loading={loading}
-      showSearch
-      allowClear
-      size="small"
-    >
-      {publishers.map((p) => (
-        <Option key={p.id} value={p.id}>
-          {`${p.id} - ${p.name}`}
-        </Option>
-      ))}
-    </Select>
-  </Col>
+          {/* Publisher Dropdown */}
+          <Col flex="1 1 180px">
+            <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
+              Publisher
+            </div>
+            <Select
+              placeholder="All Publishers"
+              style={{ width: "100%" }}
+              value={selectedPublishers}
+              onChange={handlePublisherChange}
+              loading={loading}
+              showSearch
+              allowClear
+              size="small"
+            >
+              {publishers.map((p) => (
+                <Option key={p.id} value={p.id}>
+                  {`${p.id} - ${p.name}`}
+                </Option>
+              ))}
+            </Select>
+          </Col>
 
-  {/* Advertiser Dropdown */}
-  <Col flex="1 1 180px">
-    <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
-      Advertiser
-    </div>
-    <Select
-      placeholder="All Advertisers"
-      style={{ width: "100%" }}
-      value={selectedAdvertisers}
-      onChange={handleAdvertiserChange}
-      loading={loading}
-      showSearch
-      allowClear
-      size="small"
-    >
-      {advertisers.map((a) => (
-        <Option key={a.id} value={a.id}>
-          {`${a.id} - ${a.name}`}
-        </Option>
-      ))}
-    </Select>
-  </Col>
+          {/* Advertiser Dropdown */}
+          <Col flex="1 1 180px">
+            <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
+              Advertiser
+            </div>
+            <Select
+              placeholder="All Advertisers"
+              style={{ width: "100%" }}
+              value={selectedAdvertisers}
+              onChange={handleAdvertiserChange}
+              loading={loading}
+              showSearch
+              allowClear
+              size="small"
+            >
+              {advertisers.map((a) => (
+                <Option key={a.id} value={a.id}>
+                  {`${a.id} - ${a.name}`}
+                </Option>
+              ))}
+            </Select>
+          </Col>
 
-  {/* Date Range */}
-  <Col flex="1 1 180px">
-    <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
-      <CalendarOutlined style={{ marginRight: 6 }} /> Date Range
-    </div>
-    <Select
-      style={{ width: "100%" }}
-      value={dateRangeType}
-      onChange={handleDateRangeTypeChange}
-      size="small"
-    >
-      <Option value="today">Today</Option>
-      <Option value="yesterday">Yesterday</Option>
-      <Option value="last7days">Last 7 Days</Option>
-      <Option value="last30days">Last 30 Days</Option>
-      <Option value="thismonth">This Month</Option>
-      <Option value="lastmonth">Last Month</Option>
-      <Option value="custom">Custom</Option>
-    </Select>
-  </Col>
+          {/* Date Range */}
+          <Col flex="1 1 180px">
+            <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 2 }}>
+              <CalendarOutlined style={{ marginRight: 6 }} /> Date Range
+            </div>
+            <Select
+              style={{ width: "100%" }}
+              value={dateRangeType}
+              onChange={handleDateRangeTypeChange}
+              size="small"
+            >
+              <Option value="today">Today</Option>
+              <Option value="yesterday">Yesterday</Option>
+              <Option value="last7days">Last 7 Days</Option>
+              <Option value="last30days">Last 30 Days</Option>
+              <Option value="thismonth">This Month</Option>
+              <Option value="lastmonth">Last Month</Option>
+              <Option value="custom">Custom</Option>
+            </Select>
+          </Col>
 
-  {/* Buttons (Tight Right Side) */}
-  <Col flex="none">
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        paddingTop: "20px",
-      }}
-    >
-      <Button
-        icon={<ReloadOutlined />}
-        onClick={handleRefresh}
-        loading={reportsLoading}
-        size="small"
-      />
-      <Button
-        type="primary"
-        icon={<DownloadOutlined />}
-        onClick={handleExportAll}
-        disabled={pagination.total === 0}
-        loading={reportsLoading}
-        size="small"
-        style={{
-          background: "#52c41a",
-          borderColor: "#52c41a",
-        }}
-      />
-    </div>
-  </Col>
-</Row>
-
+          {/* Buttons (Tight Right Side) */}
+          <Col flex="none">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                paddingTop: "20px",
+              }}
+            >
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={handleRefresh}
+                loading={reportsLoading}
+                size="small"
+              />
+              <Button
+                type="primary"
+                icon={<DownloadOutlined />}
+                onClick={handleExportAll}
+                disabled={pagination.total === 0}
+                loading={reportsLoading}
+                size="small"
+                style={{
+                  background: "#52c41a",
+                  borderColor: "#52c41a",
+                }}
+              />
+            </div>
+          </Col>
+        </Row>
 
         <Row style={{ marginTop: "24px", padding: "0 14px" }}>
           <div
@@ -939,7 +1007,7 @@ const ConversionReportsPage = ({ name }) => {
                 showQuickJumper: true,
                 showTotal: (total, range) =>
                   `${range[0]}-${range[1]} of ${total} records`,
-                pageSizeOptions: ["10", "20", "50", "100"],
+                pageSizeOptions: ["10", "20", "50", "100","200","400"],
               }}
               scroll={{ x: "max-content" }}
               loading={reportsLoading}
