@@ -153,11 +153,11 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
   const params = new URLSearchParams();
   
   if (publisherIds && publisherIds.length > 0) {
-    params.append("publisher", publisherIds.join(","));
+    params.append("publisherId", publisherIds.join(","));
   }
   
   if (advertiserIds && advertiserIds.length > 0) {
-    params.append("advertiser", advertiserIds.join(","));
+    params.append("advertiserId", advertiserIds.join(","));
   }
   
   return params.toString();

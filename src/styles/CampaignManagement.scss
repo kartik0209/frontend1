@@ -285,16 +285,16 @@
         }
 
         .campaign-title-column {
-          .campaign-title {
-            font-weight: 500;
-            color: #262626;
-            cursor: pointer;
+  .campaign-title {
+    font-weight: 500;
+    color: #1890ff; // Changed to blue
+    cursor: pointer;
 
-            &:hover {
-              color: $primary-color;
-            }
-          }
-        }
+    &:hover {
+      color: #40a9ff; // Lighter blue on hover
+    }
+  }
+}
 
         .status-tag {
           font-weight: 500;

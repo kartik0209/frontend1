@@ -154,11 +154,11 @@ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds, customDateRa
   }
 
   if (publisherIds && publisherIds.length > 0) {
-    params.append("publisher", publisherIds.join(","));
+    params.append("publisherId", publisherIds.join(","));
   }
   
   if (advertiserIds && advertiserIds.length > 0) {
-    params.append("advertiser", advertiserIds.join(","));
+    params.append("advertiserId", advertiserIds.join(","));
   }
   
   return params.toString();
@@ -212,12 +212,12 @@ const fetchAllReports = async (
   
   // Add publisher filter
   if (publisherIds && publisherIds.length > 0) {
-    url += `&publisher=${publisherIds.join(",")}`;
+    url += `&publisherId=${publisherIds.join(",")}`;
   }
   
   // Add advertiser filter
   if (advertiserIds && advertiserIds.length > 0) {
-    url += `&advertiser=${advertiserIds.join(",")}`;
+    url += `&advertiserId=${advertiserIds.join(",")}`;
   }
   
   try {
