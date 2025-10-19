@@ -499,206 +499,276 @@ const handleDateRangeTypeChange = (type) => {
     }
   };
 
-const columns = [
-  {
-    title: "Date",
-    dataIndex: "timestamp",
-    key: "timestamp",
-    render: (timestamp) =>
-      timestamp ? dayjs(timestamp).format("DD MMM YYYY") : "N/A",
-    sorter: (a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0),
-    width: 120,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Click ID",
-    dataIndex: "clickId",
-    key: "clickId",
-    render: (value) => value || "N/A",
-    sorter: (a, b) => {
-      const aVal = (a.clickId || "").toString().toLowerCase();
-      const bVal = (b.clickId || "").toString().toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 100,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Campaign",
-    dataIndex: "campaign",
-    key: "campaign",
-    render: (campaign) => {
-      if (!campaign) return <Tag color="gray">N/A</Tag>;
-      
-      const { id, title } = campaign;
-      
-      return (
-        <a 
-          onClick={(e) => {
-            e.preventDefault();
-            navigate(`/campaign/${id}`);
-          }}
-          style={{ 
-            color: "#1890ff",
-            fontWeight: 500,
-            fontSize: "13px",
-            cursor: "pointer"
-          }}
-        >
-          {title || `Campaign ${id}`}
-        </a>
-      );
-    },
-    sorter: (a, b) => {
-      const aVal = (a.campaign?.title || "").toString().toLowerCase();
-      const bVal = (b.campaign?.title || "").toString().toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 150,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Campaign ID",
-    dataIndex: "campaignId",
-    key: "campaignId",
-    render: (value) => value || "N/A",
-    sorter: (a, b) => (parseInt(a.campaignId) || 0) - (parseInt(b.campaignId) || 0),
-    width: 100,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Publisher",
-    dataIndex: "publisher",
-    key: "publisher",
-    render: (publisher) => publisher?.name || "N/A",
-    sorter: (a, b) => {
-      const aVal = (a.publisher?.name || "").toString().toLowerCase();
-      const bVal = (b.publisher?.name || "").toString().toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 120,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "IP Address",
-    dataIndex: "ipAddress",
-    key: "ipAddress",
-    render: (text) => text || "N/A",
-    sorter: (a, b) => {
-      const aVal = (a.ipAddress || "").toString().toLowerCase();
-      const bVal = (b.ipAddress || "").toString().toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 130,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Location",
-    dataIndex: "city",
-    key: "location",
-    render: (city, record) => {
-      const location = [record.city, record.region, record.country]
-        .filter(Boolean)
-        .join(", ");
-      return location || "N/A";
-    },
-    sorter: (a, b) => {
-      const aVal = [a.city, a.region, a.country].filter(Boolean).join(", ").toLowerCase();
-      const bVal = [b.city, b.region, b.country].filter(Boolean).join(", ").toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 150,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Device",
-    dataIndex: "device",
-    key: "device",
-    render: (device) => device || "N/A",
-    sorter: (a, b) => {
-      const aVal = (a.device || "").toString().toLowerCase();
-      const bVal = (b.device || "").toString().toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 100,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "OS",
-    dataIndex: "os",
-    key: "os",
-    render: (os) => os || "N/A",
-    sorter: (a, b) => {
-      const aVal = (a.os || "").toString().toLowerCase();
-      const bVal = (b.os || "").toString().toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 100,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Browser",
-    dataIndex: "browser",
-    key: "browser",
-    render: (browser) => browser || "N/A",
-    sorter: (a, b) => {
-      const aVal = (a.browser || "").toString().toLowerCase();
-      const bVal = (b.browser || "").toString().toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 120,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Event Type",
-    dataIndex: "eventType",
-    key: "eventType",
-    render: (type) => {
-      if (!type) return <Tag color="gray">N/A</Tag>;
-      const color = {
-        click: "blue",
-        conversion: "gold",
-        lead: "green",
-      }[type.toLowerCase()] || "default";
-      return <Tag color={color}>{type.toUpperCase()}</Tag>;
-    },
-    sorter: (a, b) => {
-      const aVal = (a.eventType || "").toString().toLowerCase();
-      const bVal = (b.eventType || "").toString().toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 110,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Parameters",
-    key: "parameters",
-    render: (_, record) => {
-      const params = [record.p1, record.p2, record.p3, record.p4]
-        .filter(Boolean)
-        .join(", ");
-      return params || "N/A";
-    },
-    sorter: (a, b) => {
-      const aVal = [a.p1, a.p2, a.p3, a.p4].filter(Boolean).join(", ").toLowerCase();
-      const bVal = [b.p1, b.p2, b.p3, b.p4].filter(Boolean).join(", ").toLowerCase();
-      return aVal.localeCompare(bVal);
-    },
-    width: 150,
-    style: { fontSize: "12px" },
-  },
-  {
-    title: "Created At",
-    dataIndex: "createdAt",
-    key: "createdAt",
-    render: (createdAt) =>
-      createdAt ? dayjs(createdAt).format("DD MMM YYYY HH:mm") : "N/A",
-    sorter: (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0),
-    width: 140,
-    style: { fontSize: "12px" },
-  },
-];
+// Replace your columns definition with this dynamic version
 
+const getTableColumns = () => {
+  const baseColumns = [
+    {
+      title: "Date",
+      dataIndex: "timestamp",
+      key: "timestamp",
+      render: (timestamp) =>
+        timestamp ? dayjs(timestamp).format("DD MMM YYYY") : "N/A",
+      sorter: (a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0),
+      width: 120,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "Click ID",
+      dataIndex: "clickId",
+      key: "clickId",
+      render: (value) => value || "N/A",
+      sorter: (a, b) => {
+        const aVal = (a.clickId || "").toString().toLowerCase();
+        const bVal = (b.clickId || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 100,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "Campaign",
+      dataIndex: "campaign",
+      key: "campaign",
+      render: (campaign) => {
+        if (!campaign) return <Tag color="gray">N/A</Tag>;
+        
+        const { id, title } = campaign;
+        
+        return (
+          <a 
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/campaign/${id}`);
+            }}
+            style={{ 
+              color: "#1890ff",
+              fontWeight: 500,
+              fontSize: "13px",
+              cursor: "pointer"
+            }}
+          >
+            {title || `Campaign ${id}`}
+          </a>
+        );
+      },
+      sorter: (a, b) => {
+        const aVal = (a.campaign?.title || "").toString().toLowerCase();
+        const bVal = (b.campaign?.title || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 150,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "Campaign ID",
+      dataIndex: "campaignId",
+      key: "campaignId",
+      render: (value) => value || "N/A",
+      sorter: (a, b) => (parseInt(a.campaignId) || 0) - (parseInt(b.campaignId) || 0),
+      width: 100,
+      style: { fontSize: "12px" },
+    },
+  ];
+
+  // Add Publisher column if publisher filter is selected
+  if (selectedPublishers && selectedPublishers.length > 0) {
+    baseColumns.push({
+      title: "Publisher",
+      dataIndex: "publisher",
+      key: "publisher",
+      render: (publisher) => {
+        if (!publisher) return <Tag color="gray">N/A</Tag>;
+        
+        return (
+          <a 
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/publisher/${publisher.id}`);
+            }}
+            style={{ 
+              color: "#1890ff",
+              fontWeight: 500,
+              fontSize: "13px",
+              cursor: "pointer"
+            }}
+          >
+            {publisher.name || `Publisher ${publisher.id}`}
+          </a>
+        );
+      },
+      sorter: (a, b) => {
+        const aVal = (a.publisher?.name || "").toString().toLowerCase();
+        const bVal = (b.publisher?.name || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 120,
+      style: { fontSize: "12px" },
+    });
+  }
+
+  // Add Advertiser column if advertiser filter is selected
+  if (selectedAdvertisers && selectedAdvertisers.length > 0) {
+    baseColumns.push({
+      title: "Advertiser",
+      dataIndex: "advertiser",
+      key: "advertiser",
+      render: (advertiser) => {
+        if (!advertiser) return <Tag color="gray">N/A</Tag>;
+        
+        return (
+          <a 
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/advertiser/${advertiser.id}`);
+            }}
+            style={{ 
+              color: "#1890ff",
+              fontWeight: 500,
+              fontSize: "13px",
+              cursor: "pointer"
+            }}
+          >
+            {advertiser.name || `Advertiser ${advertiser.id}`}
+          </a>
+        );
+      },
+      sorter: (a, b) => {
+        const aVal = (a.advertiser?.name || "").toString().toLowerCase();
+        const bVal = (b.advertiser?.name || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 120,
+      style: { fontSize: "12px" },
+    });
+  }
+
+  // Add remaining columns
+  baseColumns.push(
+    {
+      title: "IP Address",
+      dataIndex: "ipAddress",
+      key: "ipAddress",
+      render: (text) => text || "N/A",
+      sorter: (a, b) => {
+        const aVal = (a.ipAddress || "").toString().toLowerCase();
+        const bVal = (b.ipAddress || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 130,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "Location",
+      dataIndex: "city",
+      key: "location",
+      render: (city, record) => {
+        const location = [record.city, record.region, record.country]
+          .filter(Boolean)
+          .join(", ");
+        return location || "N/A";
+      },
+      sorter: (a, b) => {
+        const aVal = [a.city, a.region, a.country].filter(Boolean).join(", ").toLowerCase();
+        const bVal = [b.city, b.region, b.country].filter(Boolean).join(", ").toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 150,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "Device",
+      dataIndex: "device",
+      key: "device",
+      render: (device) => device || "N/A",
+      sorter: (a, b) => {
+        const aVal = (a.device || "").toString().toLowerCase();
+        const bVal = (b.device || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 100,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "OS",
+      dataIndex: "os",
+      key: "os",
+      render: (os) => os || "N/A",
+      sorter: (a, b) => {
+        const aVal = (a.os || "").toString().toLowerCase();
+        const bVal = (b.os || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 100,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "Browser",
+      dataIndex: "browser",
+      key: "browser",
+      render: (browser) => browser || "N/A",
+      sorter: (a, b) => {
+        const aVal = (a.browser || "").toString().toLowerCase();
+        const bVal = (b.browser || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 120,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "Event Type",
+      dataIndex: "eventType",
+      key: "eventType",
+      render: (type) => {
+        if (!type) return <Tag color="gray">N/A</Tag>;
+        const color = {
+          click: "blue",
+          conversion: "gold",
+          lead: "green",
+        }[type.toLowerCase()] || "default";
+        return <Tag color={color}>{type.toUpperCase()}</Tag>;
+      },
+      sorter: (a, b) => {
+        const aVal = (a.eventType || "").toString().toLowerCase();
+        const bVal = (b.eventType || "").toString().toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 110,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "Parameters",
+      key: "parameters",
+      render: (_, record) => {
+        const params = [record.p1, record.p2, record.p3, record.p4]
+          .filter(Boolean)
+          .join(", ");
+        return params || "N/A";
+      },
+      sorter: (a, b) => {
+        const aVal = [a.p1, a.p2, a.p3, a.p4].filter(Boolean).join(", ").toLowerCase();
+        const bVal = [b.p1, b.p2, b.p3, b.p4].filter(Boolean).join(", ").toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 150,
+      style: { fontSize: "12px" },
+    },
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (createdAt) =>
+        createdAt ? dayjs(createdAt).format("DD MMM YYYY HH:mm") : "N/A",
+      sorter: (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0),
+      width: 140,
+      style: { fontSize: "12px" },
+    }
+  );
+
+  return baseColumns;
+};
+
+const columns = getTableColumns();
 useEffect(() => {
   fetchCampaigns();
   fetchPublishers();

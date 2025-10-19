@@ -530,9 +530,10 @@ const handleDateRangeTypeChange = (type) => {
     }
   };
 
-  // Replace the entire columns array with this:
+  // Replace your columns definition with this dynamic version
 
-  const columns = [
+const getTableColumns = () => {
+  const baseColumns = [
     {
       title: "Date",
       dataIndex: "clickTime",
@@ -583,6 +584,98 @@ const handleDateRangeTypeChange = (type) => {
       width: 150,
       style: { fontSize: "12px" },
     },
+  ];
+
+  // Add Publisher column if publisher filter is selected
+  if (selectedPublishers && selectedPublishers.length > 0) {
+    baseColumns.push({
+      title: "Publisher",
+      dataIndex: "publisher",
+      key: "publisher",
+      render: (publisher, record) => {
+        // Try to get publisher from record.publisher or record.campaignTracking
+        const pubData = publisher || record.campaignTracking?.publisher;
+        
+        if (!pubData) return <Tag color="gray">N/A</Tag>;
+
+        return (
+          <a
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/publisher/${pubData.id}`);
+            }}
+            style={{
+              color: "#1890ff",
+              fontWeight: 500,
+              fontSize: "13px",
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            {pubData.name || `Publisher ${pubData.id}`}
+          </a>
+        );
+      },
+      sorter: (a, b) => {
+        const aVal = (a.publisher?.name || a.campaignTracking?.publisher?.name || "")
+          .toString()
+          .toLowerCase();
+        const bVal = (b.publisher?.name || b.campaignTracking?.publisher?.name || "")
+          .toString()
+          .toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 120,
+      style: { fontSize: "12px" },
+    });
+  }
+
+  // Add Advertiser column if advertiser filter is selected
+  if (selectedAdvertisers && selectedAdvertisers.length > 0) {
+    baseColumns.push({
+      title: "Advertiser",
+      dataIndex: "advertiser",
+      key: "advertiser",
+      render: (advertiser, record) => {
+        // Try to get advertiser from record.advertiser or record.campaignTracking
+        const advData = advertiser || record.campaignTracking?.advertiser;
+        
+        if (!advData) return <Tag color="gray">N/A</Tag>;
+
+        return (
+          <a
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/advertiser/${advData.id}`);
+            }}
+            style={{
+              color: "#1890ff",
+              fontWeight: 500,
+              fontSize: "13px",
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            {advData.name || `Advertiser ${advData.id}`}
+          </a>
+        );
+      },
+      sorter: (a, b) => {
+        const aVal = (a.advertiser?.name || a.campaignTracking?.advertiser?.name || "")
+          .toString()
+          .toLowerCase();
+        const bVal = (b.advertiser?.name || b.campaignTracking?.advertiser?.name || "")
+          .toString()
+          .toLowerCase();
+        return aVal.localeCompare(bVal);
+      },
+      width: 120,
+      style: { fontSize: "12px" },
+    });
+  }
+
+  // Add remaining columns
+  baseColumns.push(
     {
       title: "Tracking ID",
       dataIndex: "trackingId",
@@ -797,8 +890,13 @@ const handleDateRangeTypeChange = (type) => {
       sorter: (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0),
       width: 140,
       style: { fontSize: "12px" },
-    },
-  ];
+    }
+  );
+
+  return baseColumns;
+};
+
+const columns = getTableColumns();
 
 useEffect(() => {
   fetchCampaigns();
