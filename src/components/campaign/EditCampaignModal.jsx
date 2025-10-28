@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Form,
@@ -9,11 +9,20 @@ import {
   InputNumber,
   DatePicker,
   Button,
-  message
-} from 'antd';
-import apiClient from '../../services/apiServices';
-import { conversionTrackingOptions ,statusOptions ,objectiveOptions,osOptions,visibilityOptions,currencyOptions,revenueModelOptions,deviceOptions} from '../../data/formOptions';
-import dayjs from 'dayjs';
+  message,
+} from "antd";
+import apiClient from "../../services/apiServices";
+import {
+  conversionTrackingOptions,
+  statusOptions,
+  objectiveOptions,
+  osOptions,
+  visibilityOptions,
+  currencyOptions,
+  revenueModelOptions,
+  deviceOptions,
+} from "../../data/formOptions";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -21,6 +30,7 @@ const { TextArea } = Input;
 const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
+  const [isSaleObjective, setIsSaleObjective] = useState(false);
 
   useEffect(() => {
     if (visible && campaign) {
@@ -39,8 +49,12 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
         operatingSystem: campaign.operatingSystem,
         geoCoverage: campaign.geoCoverage,
         allowedTrafficChannels: campaign.allowedTrafficChannels,
-        campaignStartDate: campaign.campaignStartDate ? dayjs(campaign.campaignStartDate) : null,
-        campaignEndDate: campaign.campaignEndDate ? dayjs(campaign.campaignEndDate) : null,
+        campaignStartDate: campaign.campaignStartDate
+          ? dayjs(campaign.campaignStartDate)
+          : null,
+        campaignEndDate: campaign.campaignEndDate
+          ? dayjs(campaign.campaignEndDate)
+          : null,
         timezone: campaign.timezone,
         startHour: campaign.startHour,
         endHour: campaign.endHour,
@@ -49,6 +63,8 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
         defaultCampaignUrl: campaign.defaultCampaignUrl,
         note: campaign.note,
       });
+
+      setIsSaleObjective(campaign.objective === "sale");
     }
   }, [visible, campaign, form]);
 
@@ -56,34 +72,41 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
     try {
       setSaving(true);
       const values = await form.validateFields();
-      
+
       const formattedValues = {
         ...values,
-        campaignStartDate: values.campaignStartDate ? values.campaignStartDate.format('YYYY-MM-DD') : null,
-        campaignEndDate: values.campaignEndDate ? values.campaignEndDate.format('YYYY-MM-DD') : null,
+        campaignStartDate: values.campaignStartDate
+          ? values.campaignStartDate.format("YYYY-MM-DD")
+          : null,
+        campaignEndDate: values.campaignEndDate
+          ? values.campaignEndDate.format("YYYY-MM-DD")
+          : null,
       };
 
-      const response = await apiClient.put(`/admin/campaign/${campaign.id}`, formattedValues);
-      
+      const response = await apiClient.put(
+        `/admin/campaign/${campaign.id}`,
+        formattedValues
+      );
+
       if (response.data?.success) {
-        message.success('Campaign updated successfully');
+        message.success("Campaign updated successfully");
         onSave(response.data.data || { ...campaign, ...formattedValues });
         onCancel();
       } else {
-        message.error(response.data?.message || 'Failed to update campaign');
+        message.error(response.data?.message || "Failed to update campaign");
       }
     } catch (error) {
       if (error.errorFields) {
-        message.error('Please fill in all required fields');
+        message.error("Please fill in all required fields");
       } else {
-        message.error('Failed to update campaign: ' + (error.message || 'An error occurred'));
+        message.error(
+          "Failed to update campaign: " + (error.message || "An error occurred")
+        );
       }
     } finally {
       setSaving(false);
     }
   };
-
-
 
   return (
     <Modal
@@ -101,13 +124,26 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
       ]}
       destroyOnClose
     >
-      <Form form={form} layout="vertical" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+      <Form
+        form={form}
+        layout="vertical"
+        style={{ maxHeight: "60vh", overflowY: "auto" }}
+        onValuesChange={(changedValues) => {
+          if (changedValues.objective !== undefined) {
+            setIsSaleObjective(changedValues.objective === "sale");
+            // Reset payout & revenue if switching modes
+            form.setFieldsValue({ payout: null, revenue: null });
+          }
+        }}
+      >
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               name="title"
               label="Campaign Title"
-              rules={[{ required: true, message: 'Please enter campaign title' }]}
+              rules={[
+                { required: true, message: "Please enter campaign title" },
+              ]}
             >
               <Input placeholder="Enter campaign title" />
             </Form.Item>
@@ -115,7 +151,7 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
           <Col span={12}>
             <Form.Item name="status" label="Status">
               <Select placeholder="Select status">
-                {statusOptions.map(option => (
+                {statusOptions.map((option) => (
                   <Option key={option.value} value={option.value}>
                     {option.label}
                   </Option>
@@ -133,7 +169,7 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
           <Col span={8}>
             <Form.Item name="visibility" label="Visibility">
               <Select placeholder="Select visibility">
-                {visibilityOptions.map(option => (
+                {visibilityOptions.map((option) => (
                   <Option key={option.value} value={option.value}>
                     {option.label}
                   </Option>
@@ -144,7 +180,7 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
           <Col span={8}>
             <Form.Item name="objective" label="Objective">
               <Select placeholder="Select objective">
-                {objectiveOptions.map(option => (
+                {objectiveOptions.map((option) => (
                   <Option key={option.value} value={option.value}>
                     {option.label}
                   </Option>
@@ -155,7 +191,7 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
           <Col span={8}>
             <Form.Item name="currency" label="Currency">
               <Select placeholder="Select currency">
-                {currencyOptions.map(option => (
+                {currencyOptions.map((option) => (
                   <Option key={option.value} value={option.value}>
                     {option.label}
                   </Option>
@@ -167,29 +203,39 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
 
         <Row gutter={16}>
           <Col span={8}>
-            <Form.Item name="payout" label="Payout">
+            <Form.Item
+              name="payout"
+              label={`Payout ${isSaleObjective ? "(%)" : ""}`}
+            >
               <InputNumber
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 min={0}
+                max={isSaleObjective ? 100 : undefined}
                 step={0.01}
-                placeholder="0.00"
+                placeholder={isSaleObjective ? "Enter %" : "0.00"}
+                addonAfter={isSaleObjective ? "%" : null}
               />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="revenue" label="Revenue">
+            <Form.Item
+              name="revenue"
+              label={`Revenue ${isSaleObjective ? "(%)" : ""}`}
+            >
               <InputNumber
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 min={0}
+                max={isSaleObjective ? 100 : undefined}
                 step={0.01}
-                placeholder="0.00"
+                placeholder={isSaleObjective ? "Enter %" : "0.00"}
+                addonAfter={isSaleObjective ? "%" : null}
               />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="revenueModel" label="Revenue Model">
               <Select placeholder="Select model">
-                {revenueModelOptions.map(option => (
+                {revenueModelOptions.map((option) => (
                   <Option key={option.value} value={option.value}>
                     {option.label}
                   </Option>
@@ -203,7 +249,7 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
           <Col span={24}>
             <Form.Item name="conversionTracking" label="Conversion Tracking">
               <Select placeholder="Select a tracking method">
-                {conversionTrackingOptions.map(option => (
+                {conversionTrackingOptions.map((option) => (
                   <Option key={option.value} value={option.value}>
                     {option.label}
                   </Option>
@@ -217,7 +263,7 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
           <Col span={12}>
             <Form.Item name="devices" label="Devices">
               <Select mode="multiple" placeholder="Select devices">
-                {deviceOptions.map(option => (
+                {deviceOptions.map((option) => (
                   <Option key={option.value} value={option.value}>
                     {option.label}
                   </Option>
@@ -228,7 +274,7 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
           <Col span={12}>
             <Form.Item name="operatingSystem" label="Operating Systems">
               <Select mode="multiple" placeholder="Select OS">
-                {osOptions.map(option => (
+                {osOptions.map((option) => (
                   <Option key={option.value} value={option.value}>
                     {option.label}
                   </Option>
@@ -241,12 +287,12 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="campaignStartDate" label="Start Date">
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item name="campaignEndDate" label="End Date">
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={{ width: "100%" }} />
             </Form.Item>
           </Col>
         </Row>
@@ -254,12 +300,12 @@ const EditCampaignModal = ({ visible, onCancel, campaign, onSave }) => {
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item name="startHour" label="Start Hour">
-              <InputNumber min={0} max={23} style={{ width: '100%' }} />
+              <InputNumber min={0} max={23} style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="endHour" label="End Hour">
-              <InputNumber min={0} max={23} style={{ width: '100%' }} />
+              <InputNumber min={0} max={23} style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={8}>

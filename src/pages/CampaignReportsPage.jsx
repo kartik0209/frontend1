@@ -52,7 +52,7 @@ const [selectedAdvertisers, setSelectedAdvertisers] = useState([]);
   // Helper function to build the query string from applied filters
 
   const [dateRange, setDateRange] = useState(null);
-const [dateRangeType, setDateRangeType] = useState("last30days");
+const [dateRangeType, setDateRangeType] = useState("today");
 const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
 
 
@@ -775,9 +775,9 @@ useEffect(() => {
   fetchAdvertisers();
 
   // Set initial date range to "last30days"
-  const initialRange = getDateRangeByType("last30days");
+  const initialRange = getDateRangeByType("today");
   setDateRange(initialRange);
-  setDateRangeType("last30days");
+  setDateRangeType("today");
 
   fetchAllReports(1, 10, initialRange);
 }, []);

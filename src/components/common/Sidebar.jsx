@@ -35,42 +35,35 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   const [openKeys, setOpenKeys] = useState([]);
 
   // Update selectedKeys & openKeys whenever URL changes
-  useEffect(() => {
-    const path = location.pathname;
-    setSelectedKeys([path]);
-
-    // Decide which SubMenu to open based on prefix
-    if (path.startsWith("/campaign")) {
-      setOpenKeys(["campaign-menu"]);
-    } else if (path.startsWith("/company")) {
-      setOpenKeys(["company-menu"]);
-    } else if (path.startsWith("/reports")) {
-      setOpenKeys(["reports-menu"]);
-    } else {
-      setOpenKeys([]);
-    }
-  }, [location.pathname]);
+ useEffect(() => {
+  const path = location.pathname;
+  setSelectedKeys([path]);
+  // Don't auto-open submenus - let user control them manually
+}, [location.pathname]);
 
   // Invoked when user expands/collapses a SubMenu manually
   const onOpenChange = (keys) => {
     setOpenKeys(keys);
   };
 
-  const handleMenuClick = ({ key }) => {
-    if (key === "logout") {
-      dispatch(logout());
-      toast.success("Logged out successfully!");
-      navigate("/");
-      return;
-    }
-    
-    // Set selected keys and navigate
-    setSelectedKeys([key]);
-    navigate(key);
-    
-    // Auto-collapse sidebar after menu selection
-    setCollapsed(true);
-  };
+const handleMenuClick = ({ key }) => {
+  if (key === "logout") {
+    dispatch(logout());
+    toast.success("Logged out successfully!");
+    navigate("/");
+    return;
+  }
+  
+ 
+  navigate(key);
+  
+  setTimeout(() => {
+    setOpenKeys([]);
+  }, 100);
+  
+ 
+  setCollapsed(true);
+};
 
   const hasPermission = (perm) => permissions?.includes(perm);
 
@@ -176,7 +169,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                 Publisher Report
               </Menu.Item>
               <Menu.Item key="/reports/advertiser" icon={<FileTextOutlined />}>
-                advertiser Report
+                Advertiser Report
               </Menu.Item>
               <Menu.Item key="/reports/conversion-campaign" icon={<FileTextOutlined />}>
                 Campaign Report

@@ -14,7 +14,7 @@ export const baseColumns = [
     key: "title",
     width: 150,
     fixed: "left",
-    className: "campaign-title-column",
+    className: "campaign-title-column campaign-title-blue",
   },
   {
     title: "Status",

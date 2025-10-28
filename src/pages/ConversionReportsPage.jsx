@@ -238,6 +238,7 @@ const buildFilterQuery = (filters, customDateRange = null) => {
     setReportsLoading(true);
     setError(null);
     const filterQuery = buildFilterQuery(filters, customDateRange);
+console.log("Fetching reports with filters:",publisherIds);
 
     try {
       let url = `/admin/report/main-report?page=${page}&pageSize=${pageSize}`;
@@ -299,7 +300,7 @@ const buildFilterQuery = (filters, customDateRange = null) => {
     }
   };
 
-  // Handler for applying filters from the modal
+
   const handleApplyFilters = (filters) => {
     const updatedFilters = {
       ...filters,
@@ -313,41 +314,50 @@ const buildFilterQuery = (filters, customDateRange = null) => {
     fetchMainReports(1, pagination.pageSize, updatedFilters);
   };
 
-  const handleCampaignChange = (campaignIds) => {
-    setSelectedCampaigns(campaignIds);
-    fetchMainReports(
-      1,
-      pagination.pageSize,
-      appliedFilters,
-      campaignIds,
-      selectedPublishers,
-      selectedAdvertisers
-    );
-  };
+const handleCampaignChange = (campaignIds) => {
+  setSelectedCampaigns(campaignIds);
+  fetchMainReports(
+    1,
+    pagination.pageSize,
+    appliedFilters,
+    campaignIds,
+    selectedPublishers,
+    selectedAdvertisers,
+    dateRange
+  );
+};
 
-  const handlePublisherChange = (publisherIds) => {
-    setSelectedPublishers(publisherIds);
-    fetchMainReports(
-      1,
-      pagination.pageSize,
-      appliedFilters,
-      selectedCampaigns,
-      publisherIds,
-      selectedAdvertisers
-    );
-  };
+console.log("publishers selected:", selectedPublishers,);
 
-  const handleAdvertiserChange = (advertiserIds) => {
-    setSelectedAdvertisers(advertiserIds);
-    fetchMainReports(
-      1,
-      pagination.pageSize,
-      appliedFilters,
-      selectedCampaigns,
-      selectedPublishers,
-      advertiserIds
-    );
-  };
+
+
+const handlePublisherChange = (publisherIds) => {
+  console.log("handlePublisherChange called with:", publisherIds);
+  setSelectedPublishers(publisherIds);
+
+ fetchMainReports(
+    1,
+    pagination.pageSize,
+    appliedFilters,
+    selectedCampaigns,
+    publisherIds,  
+    selectedAdvertisers,
+    dateRange
+  );
+};
+
+ const handleAdvertiserChange = (advertiserIds) => {
+  setSelectedAdvertisers(advertiserIds);
+  fetchMainReports(
+    1,
+    pagination.pageSize,
+    appliedFilters,
+    selectedCampaigns,
+    selectedPublishers,
+    advertiserIds,
+    dateRange
+  );
+};
 
   const handleDateRangeChange = (dates) => {
     setDateRange(dates);
@@ -386,37 +396,38 @@ const buildFilterQuery = (filters, customDateRange = null) => {
     }
   };
 
-  const handleTableChange = (paginationInfo, filters, sorter) => {
-    const { current, pageSize } = paginationInfo;
-    // Sort is handled locally by Ant Design, no API call needed
-    fetchMainReports(
-      current,
-      pageSize,
+ const handleTableChange = (paginationInfo, filters, sorter) => {
+  const { current, pageSize } = paginationInfo;
+  fetchMainReports(
+    current,
+    pageSize,
+    appliedFilters,
+    selectedCampaigns,
+    selectedPublishers,
+    selectedAdvertisers,
+    dateRange
+  );
+};
+ const handleRefresh = async () => {
+  try {
+    await fetchMainReports(
+      pagination.current,
+      pagination.pageSize,
       appliedFilters,
       selectedCampaigns,
       selectedPublishers,
-      selectedAdvertisers
+      selectedAdvertisers,
+      dateRange
     );
-  };
-  const handleRefresh = async () => {
-    try {
-      await fetchMainReports(
-        pagination.current,
-        pagination.pageSize,
-        appliedFilters,
-        selectedCampaigns,
-        selectedPublishers,
-        selectedAdvertisers
-      );
-      await fetchCampaigns();
-      await fetchPublishers();
-      await fetchAdvertisers();
-      message.success("Data refreshed successfully!");
-    } catch (error) {
-      console.error("Error during refresh:", error);
-      message.error("Failed to refresh data");
-    }
-  };
+    await fetchCampaigns();
+    await fetchPublishers();
+    await fetchAdvertisers();
+    message.success("Data refreshed successfully!");
+  } catch (error) {
+    console.error("Error during refresh:", error);
+    message.error("Failed to refresh data");
+  }
+};
 
   const handleExportAll = async () => {
     try {
@@ -677,24 +688,69 @@ const getColumns = () => {
         (parseInt(a.grossClicks) || 0) - (parseInt(b.grossClicks) || 0),
     },
     {
-      title: "Conversions",
-      dataIndex: "totalConversions",
-      key: "totalConversions",
-      render: (value) => (parseInt(value) || 0).toLocaleString(),
-      align: "right",
-      width: 120,
-      style: { fontSize: "12px" },
-      sorter: (a, b) =>
-        (parseInt(a.totalConversions) || 0) -
-        (parseInt(b.totalConversions) || 0),
-    },
+  title: "Conversions",
+  dataIndex: "totalConversions",
+  key: "totalConversions",
+  render: (value, record) => {
+    const conversions = parseInt(value) || 0;
+    
+    // Build query params for navigation
+    const params = new URLSearchParams();
+    
+    // Add date range
+    if (dateRange && dateRange[0] && dateRange[1]) {
+      params.append("startDate", dayjs(dateRange[0]).format("YYYY-MM-DD"));
+      params.append("endDate", dayjs(dateRange[1]).format("YYYY-MM-DD"));
+    }
+    
+    // Add publisher if present in record
+    if (record.publisherId) {
+      params.append("publisherId", record.publisherId);
+    }
+    
+    // Add campaign if present in record
+    if (record.campaignId) {
+      params.append("campaignId", record.campaignId);
+    }
+    
+    // Add advertiser if present in record
+    if (record.advertiserId) {
+      params.append("advertiserId", record.advertiserId);
+    }
+    
+    const queryString = params.toString();
+    
+    return (
+      <span
+      onClick={(e) => {
+  e.stopPropagation();
+  navigate(`/reports/conversion-old?${queryString}`);
+}}
+        style={{
+          color: "#1890ff",
+          cursor: "pointer",
+          textDecoration: "underline",
+          fontSize: "12px",
+        }}
+      >
+        {conversions.toLocaleString()}
+      </span>
+    );
+  },
+  align: "right",
+  width: 120,
+  style: { fontSize: "12px" },
+  sorter: (a, b) =>
+    (parseInt(a.totalConversions) || 0) -
+    (parseInt(b.totalConversions) || 0),
+},
     {
       title: "Revenue",
       dataIndex: "totalRevenue",
       key: "totalRevenue",
       render: (value) => {
         if (!value || value === 0) return "$0.00";
-        return `$${parseFloat(value).toFixed(2)}`;
+        return `${parseFloat(value).toFixed(2)}`;
       },
       align: "right",
       width: 120,
@@ -708,7 +764,7 @@ const getColumns = () => {
       key: "totalPayout",
       render: (value) => {
         if (!value || value === 0) return "$0.00";
-        return `$${parseFloat(value).toFixed(2)}`;
+        return `${parseFloat(value).toFixed(2)}`;
       },
       align: "right",
       width: 120,
@@ -727,7 +783,7 @@ const getColumns = () => {
           <span
             style={{ color: profit >= 0 ? "green" : "red", fontSize: "12px" }}
           >
-            ${profit.toFixed(2)}
+            {profit.toFixed(2)}
           </span>
         );
       },
@@ -763,18 +819,18 @@ const columns = [...getColumns()];
     return initialFilters;
   };
 
-// Update your useEffect hook to properly reset filters when name changes
+
 
 useEffect(() => {
-  // Reset all filter states when report changes
+ 
   setSelectedCampaigns([]);
   setSelectedPublishers([]);
   setSelectedAdvertisers([]);
-  setDateRangeType("last30days");
+  setDateRangeType("today");
   setShowCustomDatePicker(false);
   setError(null);
   
-  // Get initial filters for this specific report
+
   const initialFilters = {
     groupByOptions: {
       [getGroupByFromName(name)]: true,
@@ -810,7 +866,7 @@ useEffect(() => {
   fetchAdvertisers();
 
   // Set initial date range to "last30days"
-  const initialRange = getDateRangeByType("last30days");
+  const initialRange = getDateRangeByType("today");
   setDateRange(initialRange);
 
   // Fetch reports with fresh filters
