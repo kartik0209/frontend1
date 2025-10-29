@@ -23,10 +23,15 @@ export const useCampaignForm = () => {
     fail: { open: false, title: "", message: "" }
   });
 
-  const updateFormState = (updates) => {
-    setFormState(prev => ({ ...prev, ...updates }));
-  };
-
+ // Update the updateFormState function to handle both object and function updates
+const updateFormState = (updates) => {
+  setFormState((prevState) => {
+    if (typeof updates === 'function') {
+      return { ...prevState, ...updates(prevState) };
+    }
+    return { ...prevState, ...updates };
+  });
+};
   const resetFormState = () => {
     setFormState({
       objective: "conversions",
