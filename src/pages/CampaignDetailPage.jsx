@@ -1,20 +1,19 @@
-import React, { useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Alert, Row, Col, Typography, Button, Space } from 'antd';
-import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
+import React, { useState, useCallback } from "react";
+import { useParams, Link } from "react-router-dom";
+import { Alert, Row, Col, Typography, Button, Space } from "antd";
+import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 
-import CampaignDetailSkeleton from '../components/skeletons/CampaignDetailSkeleton';
-import EditCampaignModal from '../components/campaign/EditCampaignModal';
-import CampaignDetailsCard from '../components/campaign/CampaignDetailsCard';
-import TrackingLinkCard from '../components/campaign/TrackingLinkCard';
-import PublisherAccess from '../components/campaign/PublisherAccess';
-import BlockPublishers from '../components/campaign/BlockPublishers';
-import ConversionTracking from '../components/campaign/ConversionTracking';
-import { useCampaign } from '../hooks/useCampaign';
-import { conversionTrackingOptions } from '../data/formOptions';
-import '../styles/CampaignDetailPage.scss';
-import CombinedPublisherManagement from '../components/campaign/CombinedPublisherManagement';
+import CampaignDetailSkeleton from "../components/skeletons/CampaignDetailSkeleton";
+import EditCampaignModal from "../components/campaign/EditCampaignModal";
+import CampaignDetailsCard from "../components/campaign/CampaignDetailsCard";
 
+import BlockPublishers from "../components/campaign/BlockPublishers";
+import ConversionTracking from "../components/campaign/ConversionTracking";
+import { useCampaign } from "../hooks/useCampaign";
+import { conversionTrackingOptions } from "../data/formOptions";
+import "../styles/CampaignDetailPage.scss";
+import CombinedPublisherManagement from "../components/campaign/CombinedPublisherManagement";
+import CampaignSettingsCard from "../components/campaign/CampaignSettingsCard";
 const { Title } = Typography;
 
 const CampaignDetailPage = () => {
@@ -23,7 +22,6 @@ const CampaignDetailPage = () => {
   const [issaved, setIsSaved] = useState(false);
   const [approvedPublishers, setApprovedPublishers] = useState([]);
 
-
   const {
     campaign,
     loading,
@@ -31,14 +29,13 @@ const CampaignDetailPage = () => {
     updateCampaign,
     updateTrackingType,
     updateTrackingScript,
-    refreshCampaign
+    refreshCampaign,
   } = useCampaign(id);
-
 
   const [publisherListVersion, setPublisherListVersion] = useState(0);
   const handleApprovedPublishersChange = useCallback((publishers) => {
     setApprovedPublishers(publishers);
-      setPublisherListVersion(prev => prev + 1);
+    setPublisherListVersion((prev) => prev + 1);
   }, []);
 
   const handleCampaignUpdate = (updatedCampaign) => {
@@ -47,8 +44,19 @@ const CampaignDetailPage = () => {
 
   const handleTrackingTypeChange = async (newType) => {
     await updateTrackingType(newType);
-  
+  };
 
+  const [settings, setSettings] = useState({
+    cap: null,
+    impressionTracking: false,
+    attributionWindow: "Lifetime",
+    hidePayoutForPublisher: false,
+    redirectType: "302 with hide referrer",
+  });
+
+  // Add handler for settings update
+  const handleSettingsUpdate = (updatedSettings) => {
+    setSettings(updatedSettings);
   };
 
   const handleScriptChange = (newScript) => {
@@ -60,11 +68,26 @@ const CampaignDetailPage = () => {
   }
 
   if (error) {
-    return <Alert message="Error" description={error} type="error" showIcon style={{ margin: '24px' }} />;
+    return (
+      <Alert
+        message="Error"
+        description={error}
+        type="error"
+        showIcon
+        style={{ margin: "24px" }}
+      />
+    );
   }
 
   if (!campaign) {
-    return <Alert message="No campaign data available." type="warning" showIcon style={{ margin: '24px' }} />;
+    return (
+      <Alert
+        message="No campaign data available."
+        type="warning"
+        showIcon
+        style={{ margin: "24px" }}
+      />
+    );
   }
 
   return (
@@ -86,18 +109,17 @@ const CampaignDetailPage = () => {
             type="primary"
             icon={<EditOutlined />}
             onClick={() => setEditModalVisible(true)}
-            style={{ 
-              background: '#1890ff',
-              borderColor: '#1890ff',
-              borderRadius: '6px',
-              fontWeight: '500'
+            style={{
+              background: "#1890ff",
+              borderColor: "#1890ff",
+              borderRadius: "6px",
+              fontWeight: "500",
             }}
           >
             Edit Campaign
           </Button>
         </Col>
       </Row>
-
 
       {/* <Row gutter={[24, 24]}>
         <Col xs={24} lg={12}>
@@ -119,23 +141,27 @@ const CampaignDetailPage = () => {
         </Col>
       </Row> */}
 
-
-      
       <Row gutter={[24, 24]}>
-  <Col xs={24} lg={12}>
-    <CampaignDetailsCard campaign={campaign} />
-  </Col>
-  <Col xs={24} lg={12}>
-    <CombinedPublisherManagement
-      campaignId={campaign.id}
-      onApprovedPublishersChange={handleApprovedPublishersChange}
-      setIsSaved={setIsSaved}
-    />
-  </Col>
-</Row>
+        <Col xs={24} lg={12}>
+          <CampaignDetailsCard campaign={campaign} />
+        </Col>
+        <Col xs={24} lg={12}>
+          <CombinedPublisherManagement
+            campaignId={campaign.id}
+            onApprovedPublishersChange={handleApprovedPublishersChange}
+            setIsSaved={setIsSaved}
+          />
+        </Col>
+      </Row>
 
-    
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+        <Col xs={24} lg={12}>
+          <CampaignSettingsCard
+            campaignId={campaign.id}
+            settings={settings}
+            onSettingsUpdate={handleSettingsUpdate}
+          />
+        </Col>
         <Col xs={24} lg={12}>
           <BlockPublishers campaignId={campaign.id} />
         </Col>
@@ -150,7 +176,6 @@ const CampaignDetailPage = () => {
         </Col>
       </Row>
 
-    
       <EditCampaignModal
         visible={editModalVisible}
         onCancel={() => setEditModalVisible(false)}

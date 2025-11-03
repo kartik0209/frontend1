@@ -960,72 +960,83 @@ const ConversionReportsPageOld = ({ name }) => {
   };
 
   const columns = getTableColumns();
+// Replace the second useEffect
+useEffect(() => {
+  const loadDataFromUrl = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const startDate = urlParams.get("startDate");
+    const endDate = urlParams.get("endDate");
+    const publisherId = urlParams.get("publisherId");
+    const campaignId = urlParams.get("campaignId");
+    const advertiserId = urlParams.get("advertiserId");
 
-  useEffect(() => {
+    // Only proceed if we have URL params
+    if (!startDate && !endDate && !publisherId && !campaignId && !advertiserId) {
+      return;
+    }
+
+    // Set date range if provided
+    if (startDate && endDate) {
+      const range = [dayjs(startDate), dayjs(endDate)];
+      setDateRange(range);
+      setDateRangeType("custom");
+      setShowCustomDatePicker(true);
+    }
+
+    // Set publisher if provided
+    if (publisherId) {
+      const pubIds = publisherId.split(",").map(id => parseInt(id));
+      setSelectedPublishers(pubIds);
+    }
+
+    // Set campaign if provided
+    if (campaignId) {
+      setSelectedCampaign(parseInt(campaignId));
+    }
+
+    // Set advertiser if provided
+    if (advertiserId) {
+      const advIds = advertiserId.split(",").map(id => parseInt(id));
+      setSelectedAdvertisers(advIds);
+    }
+
+    // Wait for next tick to ensure state updates
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // Fetch data only once
+    if (campaignId) {
+      await fetchCampaignReports(parseInt(campaignId), 1, 10);
+    } else {
+      const pubIds = publisherId ? publisherId.split(",").map(id => parseInt(id)) : [];
+      const advIds = advertiserId ? advertiserId.split(",").map(id => parseInt(id)) : [];
+      const range = startDate && endDate ? [dayjs(startDate), dayjs(endDate)] : null;
+      const filterQuery = buildPublisherAdvertiserQuery(pubIds, advIds);
+      
+      await fetchAllReports(1, 10, filterQuery, range);
+    }
+  };
+
+  loadDataFromUrl();
+}, []); // Empty dependency array - run only once
+
+// Also update the first useEffect to NOT fetch data if URL params exist
+useEffect(() => {
   fetchCampaigns();
   fetchPublishers();
   fetchAdvertisers();
 
   // Only set default date range if no URL params exist
   const urlParams = new URLSearchParams(window.location.search);
-  if (!urlParams.get("startDate")) {
+  const hasUrlParams = urlParams.get("startDate") || urlParams.get("campaignId") || 
+                        urlParams.get("publisherId") || urlParams.get("advertiserId");
+  
+  if (!hasUrlParams) {
     const initialRange = getDateRangeByType("today");
     setDateRange(initialRange);
     setDateRangeType("today");
     fetchAllReports(1, 10, "", initialRange);
   }
 }, []);
-
-  // Add this useEffect after the existing useEffect
-useEffect(() => {
-  // Read URL parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  const startDate = urlParams.get("startDate");
-  const endDate = urlParams.get("endDate");
-  const publisherId = urlParams.get("publisherId");
-  const campaignId = urlParams.get("campaignId");
-  const advertiserId = urlParams.get("advertiserId");
-
-  // Set date range if provided
-  if (startDate && endDate) {
-    const range = [dayjs(startDate), dayjs(endDate)];
-    setDateRange(range);
-    setDateRangeType("custom");
-    setShowCustomDatePicker(true);
-  }
-
-  // Set publisher if provided
-  if (publisherId) {
-    const pubIds = publisherId.split(",").map(id => parseInt(id));
-    setSelectedPublishers(pubIds);
-  }
-
-  // Set campaign if provided
-  if (campaignId) {
-    setSelectedCampaign(parseInt(campaignId));
-  }
-
-  // Set advertiser if provided
-  if (advertiserId) {
-    const advIds = advertiserId.split(",").map(id => parseInt(id));
-    setSelectedAdvertisers(advIds);
-  }
-
-  // Fetch data with the URL parameters
-  if (startDate && endDate) {
-    const range = [dayjs(startDate), dayjs(endDate)];
-    const pubIds = publisherId ? publisherId.split(",").map(id => parseInt(id)) : [];
-    const advIds = advertiserId ? advertiserId.split(",").map(id => parseInt(id)) : [];
-    
-    const filterQuery = buildPublisherAdvertiserQuery(pubIds, advIds);
-    
-    if (campaignId) {
-      fetchCampaignReports(parseInt(campaignId), 1, 10);
-    } else {
-      fetchAllReports(1, 10, filterQuery, range);
-    }
-  }
-}, []); // Run only once on mount
   return (
     <div style={{ padding: "24px", background: "#f0f2f5" }}>
       {error && (
