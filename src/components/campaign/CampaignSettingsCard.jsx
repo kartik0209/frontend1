@@ -306,7 +306,7 @@ const CampaignSettingsCard = ({ campaignId, settings, onSettingsUpdate }) => {
                 </Text>
               </div>
 
-              {/* Show Global Targeting to Publisher */}
+             
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>

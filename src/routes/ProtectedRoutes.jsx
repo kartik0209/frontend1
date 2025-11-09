@@ -11,6 +11,7 @@ import CampaignDetailPage from "../pages/CampaignDetailPage";
 import PublisherDetailsPage from "../pages/PublisherDetails";
 import AdvertiserDetailsPage from "../pages/AdvertiserDetailsPage";
 import ConversionReportsPageOld from "../pages/ConversionReportPage-Old";
+import CampaignSettingsPage from "../pages/CampaignSettingsPage";
 
 // Lazy load components for better performance
 const Dashboard = lazy(() => import("../pages/Dashboard"));
@@ -118,6 +119,17 @@ const ProtectedRoutes = () => {
               </ProtectedRoute>
             }
           />
+
+          
+          <Route
+            path="/campaign/:id/settings"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS?.CAMPAIGNS_VIEW}>
+                <CampaignSettingsPage />
+              </ProtectedRoute>
+            }
+          />
+
 
           <Route
             path="/campaign/create"
