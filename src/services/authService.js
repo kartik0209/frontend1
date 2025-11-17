@@ -8,6 +8,8 @@ const AUTH_ENDPOINTS = {
   RESET_PASSWORD: '/common/auth/reset-password',
  // VERIFY_EMAIL: '/common/auth/verify-email',
   REFRESH_TOKEN: '/common/auth/refresh-token',
+  SIGNUP_PUBLISHER: '/common/advertiser/signup',
+  SIGNUP_ADVERTISER: '/common/publisher/signup',
 };
 
 export const authAPI = {
@@ -71,6 +73,36 @@ export const authAPI = {
     try {
       const response = await apiClient.post(AUTH_ENDPOINTS.REFRESH_TOKEN, {
         refreshToken: token,
+      });
+      return response.data;
+    } catch (error) {
+      throw handleAPIError(error);
+    }
+  },
+
+  // Signup publisher
+  signupPublisher: async (payload) => {
+    try {
+      const response = await apiClient.post(AUTH_ENDPOINTS.SIGNUP_PUBLISHER, {
+        name: payload.name.trim(),
+        email: payload.email.trim().toLowerCase(),
+        password: payload.password,
+        subdomain: payload.subdomain || 'afftrex',
+      });
+      return response.data;
+    } catch (error) {
+      throw handleAPIError(error);
+    }
+  },
+
+  // Signup advertiser
+  signupAdvertiser: async (payload) => {
+    try {
+      const response = await apiClient.post(AUTH_ENDPOINTS.SIGNUP_ADVERTISER, {
+        name: payload.name.trim(),
+        email: payload.email.trim().toLowerCase(),
+        password: payload.password,
+        subdomain: payload.subdomain || 'afftrex',
       });
       return response.data;
     } catch (error) {

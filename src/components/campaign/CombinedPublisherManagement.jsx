@@ -35,8 +35,6 @@ const CombinedPublisherManagement = ({
   const [allPublishers, setAllPublishers] = useState([]);
   const [targetKeys, setTargetKeys] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
-  const [issaved, setIsSavedLocal] = useState(false);
 
   // Tracking Link States
   const [publishersList, setPublishersList] = useState([]);
@@ -77,7 +75,6 @@ const CombinedPublisherManagement = ({
     setLoading(true);
     try {
       const response = await apiClient.post('/common/publisher/list', {
-        excludeApprovedForCampaign: true,
         campaign_id: campaignId
       });
 
@@ -88,7 +85,7 @@ const CombinedPublisherManagement = ({
           id: publisher.id,
           name: publisher.name
         }));
-        
+
         setAllPublishers(publishersData);
       } else {
         throw new Error(response.data?.message || 'Failed to fetch publishers');
@@ -100,7 +97,7 @@ const CombinedPublisherManagement = ({
     }
   };
 
-  // Fetch approved publishers for tracking link dropdown
+  // Fetch approved publishers for tracking link dropdown and set targetKeys
   const fetchApprovedPublishers = async () => {
     if (!campaignId) return;
 
@@ -114,7 +111,11 @@ const CombinedPublisherManagement = ({
         `/common/publisher/${campaignId}/approved-publishers`
       );
       if (response.data?.success) {
-        setPublishersList(response.data.data || []);
+        const approvedPublishers = response.data.data || [];
+        setPublishersList(approvedPublishers);
+        // Set targetKeys to approved publishers' keys
+        const approvedKeys = approvedPublishers.map(pub => pub.id.toString());
+        setTargetKeys(approvedKeys);
       } else {
         throw new Error(
           response.data?.message || "Failed to load publishers."
@@ -135,52 +136,17 @@ const CombinedPublisherManagement = ({
     fetchApprovedPublishers();
   }, [campaignId]);
 
-  // Refresh approved publishers when issaved changes
+  // Refresh approved publishers when setIsSaved changes
   useEffect(() => {
-    if (issaved) {
+    if (setIsSaved) {
       fetchApprovedPublishers();
     }
-  }, [issaved]);
+  }, [setIsSaved]);
 
 
 
 
-  // Add this function after handleSave
-const forceRefreshData = async (retryCount = 0) => {
-  const maxRetries = 3;
-  try {
-    // Clear current data first
-    setPublishersList([]);
-    setListLoading(true);
-    
-    // Fetch with cache busting
-    const timestamp = Date.now();
-    const response = await apiClient.get(
-      `/common/publisher/${campaignId}/approved-publishers?nocache=${timestamp}&retry=${retryCount}`
-    );
-    
-    if (response.data?.success) {
-      setPublishersList(response.data.data || []);
-      setListLoading(false);
-      
-      // Also refresh the transfer list
-      await fetchPublishers();
-      return true;
-    } else {
-      throw new Error('Failed to fetch updated data');
-    }
-  } catch (error) {
-    if (retryCount < maxRetries) {
-      // Retry after increasing delay
-      setTimeout(() => {
-        forceRefreshData(retryCount + 1);
-      }, (retryCount + 1) * 1000);
-    } else {
-      setListLoading(false);
-      message.error('Failed to refresh data after multiple attempts. Please refresh the page.');
-    }
-  }
-};
+
   // Generate tracking link
  // Generate tracking link
 const fetchAndSetLink = async (publisherId) => {
@@ -242,58 +208,70 @@ const fetchAndSetLink = async (publisherId) => {
     }
   };
 
-  // Handle transfer changes for publisher approval
-  const handleTransferChange = (newTargetKeys, direction, moveKeys) => {
-    setTargetKeys(newTargetKeys);
+  // Handle transfer changes for publisher approval/removal
+  const handleTransferChange = async (newTargetKeys, direction, moveKeys) => {
+    const movedPublishers = allPublishers.filter(pub => moveKeys.includes(pub.key));
 
-    const currentApproved = allPublishers.filter(pub =>
-      newTargetKeys.includes(pub.key)
-    );
-    onApprovedPublishersChange?.(currentApproved);
+    if (direction === 'right') {
+      // Immediately update UI
+      setTargetKeys(newTargetKeys);
+      setPublishersList(prev => [...prev, ...movedPublishers]);
+      const currentApproved = allPublishers.filter(pub =>
+        newTargetKeys.includes(pub.key)
+      );
+      onApprovedPublishersChange?.(currentApproved);
+
+      // Call API
+      try {
+        const response = await apiClient.post('/common/publisher/approve', {
+          campaignId: Number(campaignId),
+          publisherIds: moveKeys.map(Number),
+        });
+
+        if (response.data?.success) {
+          message.success('Publishers approved successfully!');
+        } else {
+          throw new Error(response.data?.message || 'Failed to approve publishers');
+        }
+      } catch (error) {
+        message.error(error.message || 'Failed to approve publishers');
+        // Revert changes
+        setTargetKeys(targetKeys);
+        setPublishersList(prev => prev.filter(pub => !moveKeys.includes(pub.id.toString())));
+        onApprovedPublishersChange?.(allPublishers.filter(pub => targetKeys.includes(pub.key)));
+      }
+    } else if (direction === 'left') {
+      // Immediately update UI
+      setTargetKeys(newTargetKeys);
+      setPublishersList(prev => prev.filter(pub => !moveKeys.includes(pub.id.toString())));
+      const currentApproved = allPublishers.filter(pub =>
+        newTargetKeys.includes(pub.key)
+      );
+      onApprovedPublishersChange?.(currentApproved);
+
+      // Call API
+      try {
+        const response = await apiClient.post('/api/common/publisher/remove-approved', {
+          campaignId: Number(campaignId),
+          publisherIds: moveKeys.map(Number),
+        });
+
+        if (response.data?.success) {
+          message.success('Publishers removed successfully!');
+        } else {
+          throw new Error(response.data?.message || 'Failed to remove publishers');
+        }
+      } catch (error) {
+        message.error(error.message || 'Failed to remove publishers');
+        // Revert changes
+        setTargetKeys(targetKeys);
+        setPublishersList(prev => [...prev, ...movedPublishers]);
+        onApprovedPublishersChange?.(allPublishers.filter(pub => targetKeys.includes(pub.key)));
+      }
+    }
   };
 
-  // Save approved publishers
- // Save approved publishers
-// Save approved publishers
-const handleSave = async () => {
-  if (!targetKeys.length) {
-    message.warning('Please select at least one publisher to approve');
-    return;
-  }
 
-  setSaveLoading(true);
-  try {
-    const response = await apiClient.post('/common/publisher/approve', {
-      campaignId: Number(campaignId),
-      publisherIds: targetKeys.map(Number),
-    });
-
-    if (response.data?.success) {
-      message.success('Publishers approved successfully!');
-      
-      // Clear selections
-      setTargetKeys([]);
-      onApprovedPublishersChange?.([]);
-      
-      // Update state
-      const newSavedState = !issaved;
-      setIsSavedLocal(newSavedState);
-      setIsSaved?.(newSavedState);
-      
-      // Force refresh with retry logic
-      setTimeout(() => {
-        forceRefreshData();
-      }, 1500);
-      
-    } else {
-      throw new Error(response.data?.message || 'Failed to approve publishers');
-    }
-  } catch (error) {
-    message.error(error.message || 'Failed to save publisher approval');
-  } finally {
-    setSaveLoading(false);
-  }
-};
 
   // Link options change handler
   const handleLinkOptionChange = (option, checked) => {
@@ -608,22 +586,6 @@ onChange={(e) => {
         title="Approve Publishers"
         bordered={false}
         headStyle={{ backgroundColor: '#fafafa' }}
-        extra={
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            onClick={handleSave}
-            loading={saveLoading}
-            disabled={!targetKeys.length}
-            style={{
-              backgroundColor: "transparent",
-              color: 'black',
-              border: "none"
-            }}
-          >
-            Save ({targetKeys.length})
-          </Button>
-        }
       >
         <Transfer
           dataSource={allPublishers}

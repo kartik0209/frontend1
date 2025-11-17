@@ -10,8 +10,8 @@ import Homepage from '../pages/Homepage';
 const Login = lazy(() => import('../pages/Login'));
 const ForgotPassword = lazy(() => import('../pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('../pages/ResetPassword'));
-// const SignupPublisher = lazy(() => import('../pages/SignupPublisher'));
-// const SignupAdvertiser = lazy(() => import('../pages/SignupAdvertiser'));
+const SignupPublisher = lazy(() => import('../pages/SignupPublisher'));
+const SignupAdvertiser = lazy(() => import('../pages/SignupAdvertiser'));
 
 // Custom fallback component for different page types
 const PublicPageSkeleton = ({ pageType }) => {
@@ -85,22 +85,22 @@ const PublicRoutes = () => {
         />
         
         {/* Registration routes */}
-        {/* <Route 
-          path="/signup/publisher" 
+        <Route
+          path="/signup/publisher"
           element={
             <Suspense fallback={<PublicPageSkeleton pageType="signup" />}>
               <SignupPublisher />
             </Suspense>
-          } 
+          }
         />
-        <Route 
-          path="/signup/advertiser" 
+        <Route
+          path="/signup/advertiser"
           element={
             <Suspense fallback={<PublicPageSkeleton pageType="signup" />}>
               <SignupAdvertiser />
             </Suspense>
-          } 
-        /> */}
+          }
+        />
         
         {/* Fallback for any unmatched public routes */}
         <Route path="*" element={<Navigate to="/" replace />} />

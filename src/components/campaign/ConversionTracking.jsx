@@ -5,7 +5,7 @@ import { CopyOutlined } from '@ant-design/icons';
 const { TextArea } = Input;
 const { Option } = Select;
 
-// 1. Accept `trackingType` and `onTrackingTypeChange` as props
+
 const ConversionTracking = ({ 
   value = '', 
   onChange,
@@ -13,7 +13,7 @@ const ConversionTracking = ({
   onTrackingTypeChange, // The function to call when the dropdown changes
   options=[]
 }) => {
-  // 2. The internal state for trackingType has been removed.
+
 
   const handleCopy = async () => {
     try {
