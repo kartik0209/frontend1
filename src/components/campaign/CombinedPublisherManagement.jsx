@@ -251,7 +251,7 @@ const fetchAndSetLink = async (publisherId) => {
 
       // Call API
       try {
-        const response = await apiClient.post('/api/common/publisher/remove-approved', {
+        const response = await apiClient.post('/common/publisher/remove-approved', {
           campaignId: Number(campaignId),
           publisherIds: moveKeys.map(Number),
         });

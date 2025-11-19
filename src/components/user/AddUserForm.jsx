@@ -233,7 +233,7 @@ const AddUserForm = ({
                 label="Teams ID (Optional)"
               >
                 <Input 
-                  prefix={<TeamsOutlined />}
+                 
                   placeholder="Your Teams ID" 
                 />
               </Form.Item>

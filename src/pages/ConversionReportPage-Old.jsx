@@ -153,20 +153,19 @@ const ConversionReportsPageOld = ({ name }) => {
     fetchAllReports(1, pagination.pageSize, filterQuery);
   };
 
-  // CHANGE 4: Add helper function to build query with publisher/advertiser filters
-  const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
-    const params = new URLSearchParams();
+ const buildPublisherAdvertiserQuery = (publisherIds, advertiserIds) => {
+  const params = new URLSearchParams();
 
-    if (publisherIds && publisherIds.length > 0) {
-      params.append("publisherId", publisherIds.join(","));
-    }
+  if (publisherIds && publisherIds.length > 0) {
+    params.append("publisher", publisherIds.join(","));
+  }
 
-    if (advertiserIds && advertiserIds.length > 0) {
-      params.append("advertiserId", advertiserIds.join(","));
-    }
+  if (advertiserIds && advertiserIds.length > 0) {
+    params.append("advertiser", advertiserIds.join(","));
+  }
 
-    return params.toString();
-  };
+  return params.toString();
+};
 
   const buildFilterQuery = (filters, customDateRange = null) => {
     const params = new URLSearchParams();
@@ -960,18 +959,17 @@ const ConversionReportsPageOld = ({ name }) => {
   };
 
   const columns = getTableColumns();
-// Replace the second useEffect
 useEffect(() => {
   const loadDataFromUrl = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const startDate = urlParams.get("startDate");
     const endDate = urlParams.get("endDate");
-    const publisherId = urlParams.get("publisherId");
-    const campaignId = urlParams.get("campaignId");
-    const advertiserId = urlParams.get("advertiserId");
+    const publisher = urlParams.get("publisher");
+    const campaign = urlParams.get("campaign");
+    const advertiser = urlParams.get("advertiser");
 
     // Only proceed if we have URL params
-    if (!startDate && !endDate && !publisherId && !campaignId && !advertiserId) {
+    if (!startDate && !endDate && !publisher && !campaign && !advertiser) {
       return;
     }
 
@@ -984,19 +982,20 @@ useEffect(() => {
     }
 
     // Set publisher if provided
-    if (publisherId) {
-      const pubIds = publisherId.split(",").map(id => parseInt(id));
+    if (publisher) {
+      const pubIds = publisher.split(",").map(id => parseInt(id));
       setSelectedPublishers(pubIds);
     }
 
     // Set campaign if provided
-    if (campaignId) {
-      setSelectedCampaign(parseInt(campaignId));
+    if (campaign) {
+      const campIds = campaign.split(",").map(id => parseInt(id));
+      setSelectedCampaign(campIds.length === 1 ? campIds[0] : null);
     }
 
     // Set advertiser if provided
-    if (advertiserId) {
-      const advIds = advertiserId.split(",").map(id => parseInt(id));
+    if (advertiser) {
+      const advIds = advertiser.split(",").map(id => parseInt(id));
       setSelectedAdvertisers(advIds);
     }
 
@@ -1004,22 +1003,22 @@ useEffect(() => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     // Fetch data only once
-    if (campaignId) {
-      await fetchCampaignReports(parseInt(campaignId), 1, 10);
+    const pubIds = publisher ? publisher.split(",").map(id => parseInt(id)) : [];
+    const advIds = advertiser ? advertiser.split(",").map(id => parseInt(id)) : [];
+    const campId = campaign ? parseInt(campaign.split(",")[0]) : null;
+    const range = startDate && endDate ? [dayjs(startDate), dayjs(endDate)] : null;
+    
+    if (campId) {
+      await fetchCampaignReports(campId, 1, 10);
     } else {
-      const pubIds = publisherId ? publisherId.split(",").map(id => parseInt(id)) : [];
-      const advIds = advertiserId ? advertiserId.split(",").map(id => parseInt(id)) : [];
-      const range = startDate && endDate ? [dayjs(startDate), dayjs(endDate)] : null;
       const filterQuery = buildPublisherAdvertiserQuery(pubIds, advIds);
-      
       await fetchAllReports(1, 10, filterQuery, range);
     }
   };
 
   loadDataFromUrl();
-}, []); // Empty dependency array - run only once
+}, []);
 
-// Also update the first useEffect to NOT fetch data if URL params exist
 useEffect(() => {
   fetchCampaigns();
   fetchPublishers();
@@ -1027,8 +1026,8 @@ useEffect(() => {
 
   // Only set default date range if no URL params exist
   const urlParams = new URLSearchParams(window.location.search);
-  const hasUrlParams = urlParams.get("startDate") || urlParams.get("campaignId") || 
-                        urlParams.get("publisherId") || urlParams.get("advertiserId");
+  const hasUrlParams = urlParams.get("startDate") || urlParams.get("campaign") || 
+                        urlParams.get("publisher") || urlParams.get("advertiser");
   
   if (!hasUrlParams) {
     const initialRange = getDateRangeByType("today");
@@ -1081,6 +1080,7 @@ useEffect(() => {
               <strong>Campaign</strong>
             </div>
             <Select
+            
               placeholder="All Campaigns"
               style={{ width: "100%" }}
               value={selectedCampaign}

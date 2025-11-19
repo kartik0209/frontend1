@@ -105,58 +105,58 @@ const ConversionReportsPage = ({ name }) => {
   const currentGroupBy = getGroupByFromName(name);
 
   // Helper function to build the query string from applied filters
-// Helper function to build the query string from applied filters
-const buildFilterQuery = (filters, customDateRange = null) => {
-  const params = new URLSearchParams();
+  // Helper function to build the query string from applied filters
+  const buildFilterQuery = (filters, customDateRange = null) => {
+    const params = new URLSearchParams();
 
-  // Handle date range
-  const activeDateRange = customDateRange || dateRange;
-  if (activeDateRange && activeDateRange[0] && activeDateRange[1]) {
-    params.append(
-      "startDate",
-      dayjs(activeDateRange[0]).format("YYYY-MM-DD")
-    );
-    params.append("endDate", dayjs(activeDateRange[1]).format("YYYY-MM-DD"));
-  }
+    // Handle date range
+    const activeDateRange = customDateRange || dateRange;
+    if (activeDateRange && activeDateRange[0] && activeDateRange[1]) {
+      params.append(
+        "startDate",
+        dayjs(activeDateRange[0]).format("YYYY-MM-DD")
+      );
+      params.append("endDate", dayjs(activeDateRange[1]).format("YYYY-MM-DD"));
+    }
 
-  // Add groupBy parameters
-  if (filters && filters.groupByOptions) {
-    const selectedGroupBy = Object.keys(filters.groupByOptions).filter(
-      (key) => filters.groupByOptions[key]
-    );
-    
-    // If user selected groupBy options, use them; otherwise fallback to currentGroupBy
-    if (selectedGroupBy.length > 0) {
-      params.append("groupBy", selectedGroupBy.join(","));
+    // Add groupBy parameters
+    if (filters && filters.groupByOptions) {
+      const selectedGroupBy = Object.keys(filters.groupByOptions).filter(
+        (key) => filters.groupByOptions[key]
+      );
+
+      // If user selected groupBy options, use them; otherwise fallback to currentGroupBy
+      if (selectedGroupBy.length > 0) {
+        params.append("groupBy", selectedGroupBy.join(","));
+      } else {
+        params.append("groupBy", currentGroupBy);
+      }
     } else {
+      // Fallback if no filters object
       params.append("groupBy", currentGroupBy);
     }
-  } else {
-    // Fallback if no filters object
-    params.append("groupBy", currentGroupBy);
-  }
 
-  if (!filters || !filters.basicFilters) return params.toString();
+    if (!filters || !filters.basicFilters) return params.toString();
 
-  const { basicFilters } = filters;
+    const { basicFilters } = filters;
 
-  if (basicFilters.pixelType)
-    params.append("pixelType", basicFilters.pixelType);
-  if (basicFilters.eventType)
-    params.append("eventType", basicFilters.eventType);
-  if (basicFilters.conversionStatus)
-    params.append("conversionStatus", basicFilters.conversionStatus);
-  if (basicFilters.transactionId)
-    params.append("transactionId", basicFilters.transactionId);
-  if (basicFilters.trackingId)
-    params.append("trackingId", basicFilters.trackingId);
-  if (basicFilters.minAmount)
-    params.append("minAmount", basicFilters.minAmount);
-  if (basicFilters.maxAmount)
-    params.append("maxAmount", basicFilters.maxAmount);
+    if (basicFilters.pixelType)
+      params.append("pixelType", basicFilters.pixelType);
+    if (basicFilters.eventType)
+      params.append("eventType", basicFilters.eventType);
+    if (basicFilters.conversionStatus)
+      params.append("conversionStatus", basicFilters.conversionStatus);
+    if (basicFilters.transactionId)
+      params.append("transactionId", basicFilters.transactionId);
+    if (basicFilters.trackingId)
+      params.append("trackingId", basicFilters.trackingId);
+    if (basicFilters.minAmount)
+      params.append("minAmount", basicFilters.minAmount);
+    if (basicFilters.maxAmount)
+      params.append("maxAmount", basicFilters.maxAmount);
 
-  return params.toString();
-};
+    return params.toString();
+  };
 
   const fetchCampaigns = async () => {
     setLoading(true);
@@ -238,7 +238,7 @@ const buildFilterQuery = (filters, customDateRange = null) => {
     setReportsLoading(true);
     setError(null);
     const filterQuery = buildFilterQuery(filters, customDateRange);
-console.log("Fetching reports with filters:",publisherIds);
+    console.log("Fetching reports with filters:", publisherIds);
 
     try {
       let url = `/admin/report/main-report?page=${page}&pageSize=${pageSize}`;
@@ -300,7 +300,6 @@ console.log("Fetching reports with filters:",publisherIds);
     }
   };
 
-
   const handleApplyFilters = (filters) => {
     const updatedFilters = {
       ...filters,
@@ -314,50 +313,48 @@ console.log("Fetching reports with filters:",publisherIds);
     fetchMainReports(1, pagination.pageSize, updatedFilters);
   };
 
-const handleCampaignChange = (campaignIds) => {
-  setSelectedCampaigns(campaignIds);
-  fetchMainReports(
-    1,
-    pagination.pageSize,
-    appliedFilters,
-    campaignIds,
-    selectedPublishers,
-    selectedAdvertisers,
-    dateRange
-  );
-};
+  const handleCampaignChange = (campaignIds) => {
+    setSelectedCampaigns(campaignIds);
+    fetchMainReports(
+      1,
+      pagination.pageSize,
+      appliedFilters,
+      campaignIds,
+      selectedPublishers,
+      selectedAdvertisers,
+      dateRange
+    );
+  };
 
-console.log("publishers selected:", selectedPublishers,);
+  console.log("publishers selected:", selectedPublishers);
 
+  const handlePublisherChange = (publisherIds) => {
+    console.log("handlePublisherChange called with:", publisherIds);
+    setSelectedPublishers(publisherIds);
 
+    fetchMainReports(
+      1,
+      pagination.pageSize,
+      appliedFilters,
+      selectedCampaigns,
+      publisherIds,
+      selectedAdvertisers,
+      dateRange
+    );
+  };
 
-const handlePublisherChange = (publisherIds) => {
-  console.log("handlePublisherChange called with:", publisherIds);
-  setSelectedPublishers(publisherIds);
-
- fetchMainReports(
-    1,
-    pagination.pageSize,
-    appliedFilters,
-    selectedCampaigns,
-    publisherIds,  
-    selectedAdvertisers,
-    dateRange
-  );
-};
-
- const handleAdvertiserChange = (advertiserIds) => {
-  setSelectedAdvertisers(advertiserIds);
-  fetchMainReports(
-    1,
-    pagination.pageSize,
-    appliedFilters,
-    selectedCampaigns,
-    selectedPublishers,
-    advertiserIds,
-    dateRange
-  );
-};
+  const handleAdvertiserChange = (advertiserIds) => {
+    setSelectedAdvertisers(advertiserIds);
+    fetchMainReports(
+      1,
+      pagination.pageSize,
+      appliedFilters,
+      selectedCampaigns,
+      selectedPublishers,
+      advertiserIds,
+      dateRange
+    );
+  };
 
   const handleDateRangeChange = (dates) => {
     setDateRange(dates);
@@ -396,38 +393,38 @@ const handlePublisherChange = (publisherIds) => {
     }
   };
 
- const handleTableChange = (paginationInfo, filters, sorter) => {
-  const { current, pageSize } = paginationInfo;
-  fetchMainReports(
-    current,
-    pageSize,
-    appliedFilters,
-    selectedCampaigns,
-    selectedPublishers,
-    selectedAdvertisers,
-    dateRange
-  );
-};
- const handleRefresh = async () => {
-  try {
-    await fetchMainReports(
-      pagination.current,
-      pagination.pageSize,
+  const handleTableChange = (paginationInfo, filters, sorter) => {
+    const { current, pageSize } = paginationInfo;
+    fetchMainReports(
+      current,
+      pageSize,
       appliedFilters,
       selectedCampaigns,
       selectedPublishers,
       selectedAdvertisers,
       dateRange
     );
-    await fetchCampaigns();
-    await fetchPublishers();
-    await fetchAdvertisers();
-    message.success("Data refreshed successfully!");
-  } catch (error) {
-    console.error("Error during refresh:", error);
-    message.error("Failed to refresh data");
-  }
-};
+  };
+  const handleRefresh = async () => {
+    try {
+      await fetchMainReports(
+        pagination.current,
+        pagination.pageSize,
+        appliedFilters,
+        selectedCampaigns,
+        selectedPublishers,
+        selectedAdvertisers,
+        dateRange
+      );
+      await fetchCampaigns();
+      await fetchPublishers();
+      await fetchAdvertisers();
+      message.success("Data refreshed successfully!");
+    } catch (error) {
+      console.error("Error during refresh:", error);
+      message.error("Failed to refresh data");
+    }
+  };
 
   const handleExportAll = async () => {
     try {
@@ -525,207 +522,224 @@ const handlePublisherChange = (publisherIds) => {
   };
 
   // Dynamic columns based on groupBy type
- // Replace your getColumns function with this dynamic version
+  // Replace your getColumns function with this dynamic version
 
-const getColumns = () => {
-  const dataColumns = [];
+  const getColumns = () => {
+    const dataColumns = [];
 
-  // Detect which fields exist in the first report item
-  const firstRecord = reportData && reportData.length > 0 ? reportData[0] : {};
-  const hasFields = {
-    campaign: 'campaign' in firstRecord || 'campaignId' in firstRecord,
-    publisher: 'publisher' in firstRecord || 'publisherId' in firstRecord,
-    advertiser: 'advertiser' in firstRecord || 'advertiserId' in firstRecord,
-    day: 'Day' in firstRecord,
-  };
+    // Detect which fields exist in the first report item
+    const firstRecord =
+      reportData && reportData.length > 0 ? reportData[0] : {};
+    const hasFields = {
+      campaign: "campaign" in firstRecord || "campaignId" in firstRecord,
+      publisher: "publisher" in firstRecord || "publisherId" in firstRecord,
+      advertiser: "advertiser" in firstRecord || "advertiserId" in firstRecord,
+      day: "Day" in firstRecord,
+    };
 
-  // Add Day column if present
-  if (hasFields.day) {
-    dataColumns.push({
-      title: "Day",
-      dataIndex: "Day",
-      key: "Day",
-      width: 120,
-      style: { fontSize: "12px" },
-      sorter: (a, b) => new Date(a.Day) - new Date(b.Day),
-    });
-  }
+    // Add Day column if present
+    if (hasFields.day) {
+      dataColumns.push({
+        title: "Day",
+        dataIndex: "Day",
+        key: "Day",
+        width: 120,
+        style: { fontSize: "12px" },
+        sorter: (a, b) => new Date(a.Day) - new Date(b.Day),
+      });
+    }
 
-  // Add Campaign column if present
-  if (hasFields.campaign) {
-    dataColumns.push({
-      title: "Campaign",
-      dataIndex: "campaign",
-      key: "campaign",
-      width: 150,
-      style: { fontSize: "12px" },
-      render: (value, record) => {
-        if (!value && !record.campaignId) return <Tag color="gray">N/A</Tag>;
+    // Add Campaign column if present
+    if (hasFields.campaign) {
+      dataColumns.push({
+        title: "Campaign",
+        dataIndex: "campaign",
+        key: "campaign",
+        width: 150,
+        style: { fontSize: "12px" },
+        render: (value, record) => {
+          if (!value && !record.campaignId) return <Tag color="gray">N/A</Tag>;
 
-        const campaignName = value || "Unknown Campaign";
-        const campaignId = record.campaignId || record.campaign?.id;
+          const campaignName = value || "Unknown Campaign";
+          const campaignId = record.campaignId || record.campaign?.id;
 
-        if (!campaignId) {
-          return <span style={{ fontSize: "12px" }}>{campaignName}</span>;
-        }
+          if (!campaignId) {
+            return <span style={{ fontSize: "12px" }}>{campaignName}</span>;
+          }
 
-        return (
-          <span
-            onClick={() => navigate(`/campaign/${campaignId}`)}
-            style={{
-              color: "#1890ff",
-              fontWeight: 500,
-              fontSize: "12px",
-              cursor: "pointer",
-              display: "inline-block",
-            }}
-          >
-            {campaignId} - {campaignName}
-          </span>
-        );
+          return (
+            <span
+              onClick={() => navigate(`/campaign/${campaignId}`)}
+              style={{
+                color: "#1890ff",
+                fontWeight: 500,
+                fontSize: "12px",
+                cursor: "pointer",
+                display: "inline-block",
+              }}
+            >
+              {campaignId} - {campaignName}
+            </span>
+          );
+        },
+        sorter: (a, b) => {
+          const aVal = (a.campaign || "").toString().toLowerCase();
+          const bVal = (b.campaign || "").toString().toLowerCase();
+          return aVal.localeCompare(bVal);
+        },
+      });
+    }
+
+    // Add Publisher column if present
+    if (hasFields.publisher) {
+      dataColumns.push({
+        title: "Publisher",
+        dataIndex: "publisher",
+        key: "publisher",
+        width: 150,
+        style: { fontSize: "12px" },
+        render: (publisher, record) => {
+          if (!publisher && !record.publisherId)
+            return <Tag color="gray">N/A</Tag>;
+
+          const publisherName = publisher || "Unknown Publisher";
+          const publisherId = record.publisherId || publisher?.id;
+
+          if (!publisherId) {
+            return <span style={{ fontSize: "12px" }}>{publisherName}</span>;
+          }
+
+          return (
+            <span
+              onClick={() => navigate(`/publisher/${publisherId}`)}
+              style={{
+                color: "#1890ff",
+                fontWeight: 500,
+                fontSize: "12px",
+                cursor: "pointer",
+                display: "inline-block",
+              }}
+            >
+              {publisherId} - {publisherName}
+            </span>
+          );
+        },
+        sorter: (a, b) => {
+          const aVal = (a.publisher || "").toString().toLowerCase();
+          const bVal = (b.publisher || "").toString().toLowerCase();
+          return aVal.localeCompare(bVal);
+        },
+      });
+    }
+
+    // Add Advertiser column if present
+    if (hasFields.advertiser) {
+      dataColumns.push({
+        title: "Advertiser",
+        dataIndex: "advertiser",
+        key: "advertiser",
+        width: 150,
+        style: { fontSize: "12px" },
+        render: (advertiser, record) => {
+          if (!advertiser && !record.advertiserId)
+            return <Tag color="gray">N/A</Tag>;
+
+          const advertiserName = advertiser || "Unknown Advertiser";
+          const advertiserId = record.advertiserId || advertiser?.id;
+
+          if (!advertiserId) {
+            return <span style={{ fontSize: "12px" }}>{advertiserName}</span>;
+          }
+
+          return (
+            <span
+              onClick={() => navigate(`/advertiser/${advertiserId}`)}
+              style={{
+                color: "#1890ff",
+                fontWeight: 500,
+                fontSize: "12px",
+                cursor: "pointer",
+                display: "inline-block",
+              }}
+            >
+              {advertiserId} - {advertiserName}
+            </span>
+          );
+        },
+        sorter: (a, b) => {
+          const aVal = (a.advertiser || "").toString().toLowerCase();
+          const bVal = (b.advertiser || "").toString().toLowerCase();
+          return aVal.localeCompare(bVal);
+        },
+      });
+    }
+
+    // Add metric columns (always shown)
+    dataColumns.push(
+      {
+        title: "Clicks",
+        dataIndex: "grossClicks",
+        key: "grossClicks",
+        render: (value) => (parseInt(value) || 0).toLocaleString(),
+        align: "right",
+        width: 100,
+        style: { fontSize: "12px" },
+        sorter: (a, b) =>
+          (parseInt(a.grossClicks) || 0) - (parseInt(b.grossClicks) || 0),
       },
-      sorter: (a, b) => {
-        const aVal = (a.campaign || "").toString().toLowerCase();
-        const bVal = (b.campaign || "").toString().toLowerCase();
-        return aVal.localeCompare(bVal);
-      },
-    });
-  }
-
-  // Add Publisher column if present
-  if (hasFields.publisher) {
-    dataColumns.push({
-      title: "Publisher",
-      dataIndex: "publisher",
-      key: "publisher",
-      width: 150,
-      style: { fontSize: "12px" },
-      render: (publisher, record) => {
-        if (!publisher && !record.publisherId) return <Tag color="gray">N/A</Tag>;
-
-        const publisherName = publisher || "Unknown Publisher";
-        const publisherId = record.publisherId || publisher?.id;
-
-        if (!publisherId) {
-          return <span style={{ fontSize: "12px" }}>{publisherName}</span>;
-        }
-
-        return (
-          <span
-            onClick={() => navigate(`/publisher/${publisherId}`)}
-            style={{
-              color: "#1890ff",
-              fontWeight: 500,
-              fontSize: "12px",
-              cursor: "pointer",
-              display: "inline-block",
-            }}
-          >
-            {publisherId} - {publisherName}
-          </span>
-        );
-      },
-      sorter: (a, b) => {
-        const aVal = (a.publisher || "").toString().toLowerCase();
-        const bVal = (b.publisher || "").toString().toLowerCase();
-        return aVal.localeCompare(bVal);
-      },
-    });
-  }
-
-  // Add Advertiser column if present
-  if (hasFields.advertiser) {
-    dataColumns.push({
-      title: "Advertiser",
-      dataIndex: "advertiser",
-      key: "advertiser",
-      width: 150,
-      style: { fontSize: "12px" },
-      render: (advertiser, record) => {
-        if (!advertiser && !record.advertiserId) return <Tag color="gray">N/A</Tag>;
-
-        const advertiserName = advertiser || "Unknown Advertiser";
-        const advertiserId = record.advertiserId || advertiser?.id;
-
-        if (!advertiserId) {
-          return <span style={{ fontSize: "12px" }}>{advertiserName}</span>;
-        }
-
-        return (
-          <span
-            onClick={() => navigate(`/advertiser/${advertiserId}`)}
-            style={{
-              color: "#1890ff",
-              fontWeight: 500,
-              fontSize: "12px",
-              cursor: "pointer",
-              display: "inline-block",
-            }}
-          >
-            {advertiserId} - {advertiserName}
-          </span>
-        );
-      },
-      sorter: (a, b) => {
-        const aVal = (a.advertiser || "").toString().toLowerCase();
-        const bVal = (b.advertiser || "").toString().toLowerCase();
-        return aVal.localeCompare(bVal);
-      },
-    });
-  }
-
-  // Add metric columns (always shown)
-  dataColumns.push(
-    {
-      title: "Clicks",
-      dataIndex: "grossClicks",
-      key: "grossClicks",
-      render: (value) => (parseInt(value) || 0).toLocaleString(),
-      align: "right",
-      width: 100,
-      style: { fontSize: "12px" },
-      sorter: (a, b) =>
-        (parseInt(a.grossClicks) || 0) - (parseInt(b.grossClicks) || 0),
-    },
     {
   title: "Conversions",
   dataIndex: "totalConversions",
   key: "totalConversions",
   render: (value, record) => {
     const conversions = parseInt(value) || 0;
-    
+
     // Build query params for navigation
     const params = new URLSearchParams();
-    
+
     // Add date range
     if (dateRange && dateRange[0] && dateRange[1]) {
-      params.append("startDate", dayjs(dateRange[0]).format("YYYY-MM-DD"));
+      params.append(
+        "startDate",
+        dayjs(dateRange[0]).format("YYYY-MM-DD")
+      );
       params.append("endDate", dayjs(dateRange[1]).format("YYYY-MM-DD"));
     }
-    
-    // Add publisher if present in record
-    if (record.publisherId) {
-      params.append("publisherId", record.publisherId);
+
+    // Add selected campaigns
+    if (selectedCampaigns && selectedCampaigns.length > 0) {
+      params.append("campaign", selectedCampaigns.join(","));
     }
-    
-    // Add campaign if present in record
+
+    // Add selected publishers
+    if (selectedPublishers && selectedPublishers.length > 0) {
+      params.append("publisher", selectedPublishers.join(","));
+    }
+
+    // Add selected advertisers
+    if (selectedAdvertisers && selectedAdvertisers.length > 0) {
+      params.append("advertiser", selectedAdvertisers.join(","));
+    }
+
+    // Add row-specific IDs if available
     if (record.campaignId) {
-      params.append("campaignId", record.campaignId);
+      params.append("rowCampaignId", record.campaignId);
     }
-    
-    // Add advertiser if present in record
+    if (record.publisherId) {
+      params.append("rowPublisherId", record.publisherId);
+    }
     if (record.advertiserId) {
-      params.append("advertiserId", record.advertiserId);
+      params.append("rowAdvertiserId", record.advertiserId);
     }
-    
+
     const queryString = params.toString();
-    
+
     return (
       <span
-      onClick={(e) => {
-  e.stopPropagation();
-  navigate(`/reports/conversion-old?${queryString}`);
-}}
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/reports/conversion-old?${queryString}`);
+        }}
         style={{
           color: "#1890ff",
           cursor: "pointer",
@@ -744,62 +758,62 @@ const getColumns = () => {
     (parseInt(a.totalConversions) || 0) -
     (parseInt(b.totalConversions) || 0),
 },
-    {
-      title: "Revenue",
-      dataIndex: "totalRevenue",
-      key: "totalRevenue",
-      render: (value) => {
-        if (!value || value === 0) return "$0.00";
-        return `${parseFloat(value).toFixed(2)}`;
+      {
+        title: "Revenue",
+        dataIndex: "totalRevenue",
+        key: "totalRevenue",
+        render: (value) => {
+          if (!value || value === 0) return "$0.00";
+          return `${parseFloat(value).toFixed(2)}`;
+        },
+        align: "right",
+        width: 120,
+        style: { fontSize: "12px" },
+        sorter: (a, b) =>
+          (parseFloat(a.totalRevenue) || 0) - (parseFloat(b.totalRevenue) || 0),
       },
-      align: "right",
-      width: 120,
-      style: { fontSize: "12px" },
-      sorter: (a, b) =>
-        (parseFloat(a.totalRevenue) || 0) - (parseFloat(b.totalRevenue) || 0),
-    },
-    {
-      title: "Payout",
-      dataIndex: "totalPayout",
-      key: "totalPayout",
-      render: (value) => {
-        if (!value || value === 0) return "$0.00";
-        return `${parseFloat(value).toFixed(2)}`;
+      {
+        title: "Payout",
+        dataIndex: "totalPayout",
+        key: "totalPayout",
+        render: (value) => {
+          if (!value || value === 0) return "$0.00";
+          return `${parseFloat(value).toFixed(2)}`;
+        },
+        align: "right",
+        width: 120,
+        style: { fontSize: "12px" },
+        sorter: (a, b) =>
+          (parseFloat(a.totalPayout) || 0) - (parseFloat(b.totalPayout) || 0),
       },
-      align: "right",
-      width: 120,
-      style: { fontSize: "12px" },
-      sorter: (a, b) =>
-        (parseFloat(a.totalPayout) || 0) - (parseFloat(b.totalPayout) || 0),
-    },
-    {
-      title: "Profit",
-      dataIndex: "totalProfit",
-      key: "totalProfit",
-      render: (value) => {
-        if (!value || value === 0) return "$0.00";
-        const profit = parseFloat(value);
-        return (
-          <span
-            style={{ color: profit >= 0 ? "green" : "red", fontSize: "12px" }}
-          >
-            {profit.toFixed(2)}
-          </span>
-        );
-      },
-      align: "right",
-      width: 120,
-      style: { fontSize: "12px" },
-      sorter: (a, b) =>
-        (parseFloat(a.totalProfit) || 0) - (parseFloat(b.totalProfit) || 0),
-    }
-  );
+      {
+        title: "Profit",
+        dataIndex: "totalProfit",
+        key: "totalProfit",
+        render: (value) => {
+          if (!value || value === 0) return "$0.00";
+          const profit = parseFloat(value);
+          return (
+            <span
+              style={{ color: profit >= 0 ? "green" : "red", fontSize: "12px" }}
+            >
+              {profit.toFixed(2)}
+            </span>
+          );
+        },
+        align: "right",
+        width: 120,
+        style: { fontSize: "12px" },
+        sorter: (a, b) =>
+          (parseFloat(a.totalProfit) || 0) - (parseFloat(b.totalProfit) || 0),
+      }
+    );
 
-  return dataColumns;
-};
+    return dataColumns;
+  };
 
-// Then update your columns variable
-const columns = [...getColumns()];
+  // Then update your columns variable
+  const columns = [...getColumns()];
 
   const getInitialFilterValues = () => {
     const initialFilters = {
@@ -819,59 +833,55 @@ const columns = [...getColumns()];
     return initialFilters;
   };
 
+  useEffect(() => {
+    setSelectedCampaigns([]);
+    setSelectedPublishers([]);
+    setSelectedAdvertisers([]);
+    setDateRangeType("today");
+    setShowCustomDatePicker(false);
+    setError(null);
 
+    const initialFilters = {
+      groupByOptions: {
+        [getGroupByFromName(name)]: true,
+      },
+      reportOptions: {
+        clicks: true,
+        conversions: true,
+        revenue: true,
+        payout: true,
+        profit: true,
+        conversionRate: true,
+        epc: true,
+      },
+      basicFilters: {
+        pixelType: null,
+        eventType: null,
+        conversionStatus: null,
+        transactionId: "",
+        trackingId: "",
+        minAmount: null,
+        maxAmount: null,
+      },
+      searchFilters: {},
+      additionalFilters: {},
+      otherOptions: {},
+    };
 
-useEffect(() => {
- 
-  setSelectedCampaigns([]);
-  setSelectedPublishers([]);
-  setSelectedAdvertisers([]);
-  setDateRangeType("today");
-  setShowCustomDatePicker(false);
-  setError(null);
-  
+    setAppliedFilters(initialFilters);
 
-  const initialFilters = {
-    groupByOptions: {
-      [getGroupByFromName(name)]: true,
-    },
-    reportOptions: {
-      clicks: true,
-      conversions: true,
-      revenue: true,
-      payout: true,
-      profit: true,
-      conversionRate: true,
-      epc: true,
-    },
-    basicFilters: {
-      pixelType: null,
-      eventType: null,
-      conversionStatus: null,
-      transactionId: "",
-      trackingId: "",
-      minAmount: null,
-      maxAmount: null,
-    },
-    searchFilters: {},
-    additionalFilters: {},
-    otherOptions: {},
-  };
-  
-  setAppliedFilters(initialFilters);
-  
-  // Fetch fresh data
-  fetchCampaigns();
-  fetchPublishers();
-  fetchAdvertisers();
+    // Fetch fresh data
+    fetchCampaigns();
+    fetchPublishers();
+    fetchAdvertisers();
 
-  // Set initial date range to "last30days"
-  const initialRange = getDateRangeByType("today");
-  setDateRange(initialRange);
+    // Set initial date range to "last30days"
+    const initialRange = getDateRangeByType("today");
+    setDateRange(initialRange);
 
-  // Fetch reports with fresh filters
-  fetchMainReports(1, 10, initialFilters, [], [], [], initialRange);
-}, [name]);
+    // Fetch reports with fresh filters
+    fetchMainReports(1, 10, initialFilters, [], [], [], initialRange);
+  }, [name]);
 
   return (
     <div style={{ padding: "14px" }}>
@@ -917,6 +927,7 @@ useEffect(() => {
               Campaign
             </div>
             <Select
+              mode="multiple"
               placeholder="All Campaigns"
               style={{ width: "100%" }}
               value={selectedCampaigns}
@@ -944,6 +955,7 @@ useEffect(() => {
               Publisher
             </div>
             <Select
+              mode="multiple"
               placeholder="All Publishers"
               style={{ width: "100%" }}
               value={selectedPublishers}
@@ -967,6 +979,7 @@ useEffect(() => {
               Advertiser
             </div>
             <Select
+             mode="multiple"
               placeholder="All Advertisers"
               style={{ width: "100%" }}
               value={selectedAdvertisers}
@@ -1063,7 +1076,7 @@ useEffect(() => {
                 showQuickJumper: true,
                 showTotal: (total, range) =>
                   `${range[0]}-${range[1]} of ${total} records`,
-                pageSizeOptions: ["10", "20", "50", "100","200","400"],
+                pageSizeOptions: ["10", "20", "50", "100", "200", "400"],
               }}
               scroll={{ x: "max-content" }}
               loading={reportsLoading}
