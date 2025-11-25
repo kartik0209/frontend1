@@ -65,7 +65,7 @@ const AdvertiserViewModal = ({ visible, onClose, advertiserData }) => {
           {advertiserData.reference_id || "N/A"}
         </Descriptions.Item>
         <Descriptions.Item label="Managers" span={2}>
-          {advertiserData.managers || "N/A"}
+          {advertiserData.manager_id || "N/A"}
         </Descriptions.Item>
         <Descriptions.Item label="Website URL" span={2}>
           {advertiserData.website_url ? (

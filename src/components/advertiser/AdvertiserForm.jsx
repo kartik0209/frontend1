@@ -141,7 +141,7 @@ const AdvertiserForm = ({
         </Col>
 
         <Col xs={24} sm={12}>
-          <Form.Item label=" Acount Managers" name="managers">
+          <Form.Item label=" Acount Managers" name="manager_id">
             <Input placeholder="Enter manager name" />
           </Form.Item>
         </Col>

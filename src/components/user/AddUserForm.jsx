@@ -64,11 +64,11 @@ const AddUserForm = ({
 
   // Role options - matching your API structure
   const roleOptions = [
-    { value: 'advertiser_manager', label: 'Advertiser Manager', color: '#87d068' },
-    { value: 'publisher_manager', label: 'Publisher Manager', color: '#108ee9' },
+    { value: 'advertiser manager', label: 'Advertiser Manager', color: '#87d068' },
+    { value: 'publisher manager', label: 'Publisher Manager', color: '#108ee9' },
     { value: 'operation_manager', label: 'Operation Manager', color: '#faad14' },
     { value: 'accountant', label: 'Accountant', color: '#52c41a' },
-    { value: 'sub_admin', label: 'Sub Admin', color: '#d4380d' },
+    { value: 'sub admin', label: 'Sub Admin', color: '#d4380d' },
   ];
 
   // Status options - matching your API (Active/Inactive)
@@ -218,7 +218,7 @@ const AddUserForm = ({
                 label="Phone Number"
                 rules={[
                   { required: true, message: 'Please enter phone number' },
-                  { pattern: /^[\+]?[1-9][\d]{0,15}$/, message: 'Please enter a valid phone number' }
+                  { pattern: /^[+]?[1-9][\d]{0,15}$/, message: 'Please enter a valid phone number' }
                 ]}
               >
                 <Input 

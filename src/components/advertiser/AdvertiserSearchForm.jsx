@@ -50,7 +50,7 @@ const AdvertiserSearchForm = ({ form, onFinish, onClear, onClose, loading }) => 
 
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={8}>
-          <Form.Item label="Managers" name="managers">
+          <Form.Item label="Managers" name="manager_id">
             <Input placeholder="Enter Manager Name" />
           </Form.Item>
         </Col>
