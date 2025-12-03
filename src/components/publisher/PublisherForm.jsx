@@ -10,6 +10,7 @@ import {
   Space,
   Divider,
 } from "antd";
+import apiClient from "../../services/apiServices";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -22,14 +23,14 @@ const PublisherForm = ({
   isEdit = false,
 }) => {
   const [showAdvancedSetup, setShowAdvancedSetup] = React.useState(false);
-
+const [managers, setManagers] = React.useState([]);
   const handleAdvancedSetupToggle = (checked) => {
     setShowAdvancedSetup(checked);
     if (!checked) {
       // Clear advanced setup fields when toggle is off
       form.setFieldsValue({
         password: "",
-        managers: "",
+        managers: undefined,
         phone_secondary: "",
         microsoft_teams: "",
         address: "",
@@ -44,6 +45,20 @@ const PublisherForm = ({
       });
     }
   };
+
+  React.useEffect(() => {
+  const fetchManagers = async () => {
+    try {
+      const response = await apiClient.get('/common/publisher/users/publisher-managers');
+      if (response.data && response.data.success) {
+        setManagers(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching managers:', error);
+    }
+  };
+  fetchManagers();
+}, []);
 
   return (
     <Form
@@ -256,11 +271,25 @@ const PublisherForm = ({
                 <Input.Password placeholder="Leave empty to Auto Generate" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item label="Account Manager (Optional)" name="managers">
-                <Input placeholder="Account Manager" />
-              </Form.Item>
-            </Col>
+          <Col xs={24} sm={12}>
+  <Form.Item label="Account Manager (Optional)" name="manager_id">
+    <Select 
+      placeholder="Select account manager"
+      showSearch
+      optionFilterProp="children"
+      filterOption={(input, option) =>
+        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      }
+      allowClear
+    >
+      {managers.map((manager) => (
+        <Option key={manager.id} value={manager.id}>
+          {manager.name} - {manager.email}
+        </Option>
+      ))}
+    </Select>
+  </Form.Item>
+</Col>
           </Row>
 
           <Row gutter={[16, 16]}>

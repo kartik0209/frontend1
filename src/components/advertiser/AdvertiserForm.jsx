@@ -17,6 +17,8 @@ import "react-phone-number-input/style.css";
 import currencyList from "currency-list";
 import currencyCodes from "currency-codes";
 
+import apiClient from "../../services/apiServices";
+
 // Map the data to AntD Select options
 
 const { Option } = Select;
@@ -58,6 +60,21 @@ const AdvertiserForm = ({
   //       city: undefined
   //     });
   //   };
+const [managers, setManagers] = React.useState([]);
+
+  React.useEffect(() => {
+  const fetchManagers = async () => {
+    try {
+      const response = await apiClient.get('/common/advertiser/users/advertiser-managers');
+      if (response.data && response.data.success) {
+        setManagers(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching managers:', error);
+    }
+  };
+  fetchManagers();
+}, []);
 
   // const handleStateChange = (value) => {
   //   setSelectedState(value);
@@ -140,11 +157,29 @@ const AdvertiserForm = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12}>
-          <Form.Item label=" Acount Managers" name="manager_id">
-            <Input placeholder="Enter manager name" />
-          </Form.Item>
-        </Col>
+      <Col xs={24} sm={12}>
+  <Form.Item 
+    label="Account Manager" 
+    name="manager_id"
+    rules={[{ required: true, message: "Please select account manager" }]}
+  >
+    <Select 
+      placeholder="Select account manager"
+      showSearch
+      optionFilterProp="children"
+      filterOption={(input, option) =>
+        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      }
+      allowClear
+    >
+      {managers.map((manager) => (
+        <Option key={manager.id} value={manager.id}>
+          {manager.name} - {manager.email}
+        </Option>
+      ))}
+    </Select>
+  </Form.Item>
+</Col>
         {/* <Col xs={24} sm={12}>
           <Form.Item
             label="Phone"
