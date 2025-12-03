@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {Button, Card, Input, Tag, message } from "antd";
+import { useDispatch, useSelector } from "react-redux";
 import CampaignHeader from "../components/campaign/CampaignHeader";
 import CampaignTable from "../components/campaign/CampaignTable";
 import SearchModal from "../components/campaign/SearchModal";
@@ -8,6 +9,8 @@ import CampaignModal from "../components/campaign/CampaignModal";
 import CampaignViewModal from "../components/campaign/CampaignViewModal";
 import { columnOptions, baseColumns } from "../data/campaignData";
 import apiClient from "../services/apiServices";
+import { fetchCampaigns, updateCampaignStatus as updateCampaignStatusThunk } from "../store/campaignsSlice";
+import { debounce } from "../utils/helpers";
 import "../styles/CampaignManagement.scss";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
 import { useNavigate } from "react-router-dom";
@@ -20,12 +23,12 @@ import {
 } from "@ant-design/icons";
 
 const CampaignManagement = () => {
+  const dispatch = useDispatch();
+  const { list: campaigns, loading } = useSelector((state) => state.campaigns);
   const navigate = useNavigate();
   const [searchVisible, setSearchVisible] = useState(false);
   const [columnSettingsVisible, setColumnSettingsVisible] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [campaigns, setCampaigns] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [viewModalVisible, setViewModalVisible] = useState(false);
 const [selectedCampaign, setSelectedCampaign] = useState(null);
 const [editModalVisible, setEditModalVisible] = useState(false);
@@ -37,50 +40,54 @@ const [filteredCampaigns, setFilteredCampaigns] = useState([]);
 
 // CHANGE: Update the handleQuickSearch function for Campaigns to search by ID, Title, and Advertiser
 
-const handleQuickSearch = (e) => {
-  const value = e.target.value;
-  setSearchText(value);
-  
-  if (value.trim()) {
+  const doQuickSearch = (value, list) => {
+    if (!value.trim()) {
+      setFilteredCampaigns(list);
+      return;
+    }
+
     const searchValue = value.toLowerCase();
-    
-    const filtered = campaigns.filter((campaign) => {
-      // Search by ID (convert to string)
-      const id = (campaign.id || '').toString().toLowerCase();
-      
-      // Search by Title
-      const title = (campaign.title || '').toLowerCase();
-      
-      // Search by Advertiser Name (handle nested object and null)
-      const advertiserName = campaign.advertiser 
-        ? (typeof campaign.advertiser === 'string' 
-          ? campaign.advertiser 
-          : campaign.advertiser.name || ''
-        ).toLowerCase()
-        : '';
-      
-      // Search by Tracking Slug
-      const trackingSlug = (campaign.trackingSlug || '').toLowerCase();
-      
-      // Return true if any field matches the search value
+
+    const filtered = list.filter((campaign) => {
+      const id = (campaign.id || "").toString().toLowerCase();
+      const title = (campaign.title || "").toLowerCase();
+      const advertiserName = campaign.advertiser
+        ? (typeof campaign.advertiser === "string"
+            ? campaign.advertiser
+            : campaign.advertiser.name || ""
+          ).toLowerCase()
+        : "";
+      const trackingSlug = (campaign.trackingSlug || "").toLowerCase();
+
       return (
-        id.includes(searchValue) || 
-        title.includes(searchValue) || 
+        id.includes(searchValue) ||
+        title.includes(searchValue) ||
         advertiserName.includes(searchValue) ||
         trackingSlug.includes(searchValue)
       );
     });
-    
-    setFilteredCampaigns(filtered);
-  } else {
-    setFilteredCampaigns(campaigns);
-  }
-};
 
-// 4. ADD THIS USEEFFECT (add after other useEffects)
-useEffect(() => {
-  setFilteredCampaigns(campaigns);
-}, [campaigns]);
+    setFilteredCampaigns(filtered);
+  };
+
+  const debouncedQuickSearch = useMemo(
+    () =>
+      debounce((value, list) => {
+        doQuickSearch(value, list);
+      }, 400),
+    []
+  );
+
+  const handleQuickSearch = (e) => {
+    const value = e.target.value;
+    setSearchText(value);
+    debouncedQuickSearch(value, campaigns);
+  };
+
+  // Keep filtered list in sync with campaigns
+  useEffect(() => {
+    setFilteredCampaigns(campaigns);
+  }, [campaigns]);
 // 1. Add these state variables in CampaignManagement component
 const [saveLoading, setSaveLoading] = useState(false);
 
@@ -139,9 +146,9 @@ const fetchColumnPreferences = async () => {
 
 // 3. Update the useEffect to fetch preferences on component mount
 useEffect(() => {
-  fetchCampaigns();
+  dispatch(fetchCampaigns({}));
   fetchColumnPreferences(); // Add this line
-}, []);
+}, [dispatch]);
 
 
 
@@ -351,55 +358,13 @@ useEffect(() => {
     };
   });
 
-  // Fetch campaigns from API
-  const fetchCampaigns = async () => {
-    setLoading(true);
-    try {
-      const response = await apiClient.post("/admin/campaign/list", {
-        // Add any required parameters here
-      });
-
-      console.log("API Response:", response.data);
-
-      if (response.data && response.data.success) {
-        const campaignData =
-          response.data.data || response.data.campaigns || [];
-        console.log("Campaign Data:", campaignData);
-
-        // Ensure each campaign has a unique key for the table
-        const campaignsWithKeys = campaignData.map((campaign) => ({
-          ...campaign,
-          key: campaign.id || Math.random().toString(36).substr(2, 9),
-        }));
-
-        setCampaigns(campaignsWithKeys);
-        message.success(
-          `${campaignsWithKeys.length} campaigns loaded successfully!`
-        );
-      } else {
-        throw new Error(response.data?.message || "Failed to fetch campaigns");
-      }
-    } catch (error) {
-      console.error("Error fetching campaigns:", error);
-      message.error(
-        error.response?.data?.message || "Failed to load campaigns"
-      );
-      setCampaigns([]); // Set empty array on error
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCampaigns();
-  }, []);
+  // NOTE: fetching is now handled via Redux in the useEffect above
 
   const visibleTableColumns = allColumns.filter(
     (col) => visibleColumns[col.key]
   );
 
-    const handleSearch = async (values) => {
-      setLoading(true);
+  const handleSearch = async (values) => {
       try {
         // Clean up search parameters
         const searchParams = Object.keys(values).reduce((acc, key) => {
@@ -415,33 +380,12 @@ useEffect(() => {
 
         console.log("Search params:", searchParams);
 
-        const response = await apiClient.post(
-          "/admin/campaign/list",
-          searchParams
-        );
-
-        console.log("Search response:", response.data);
-
-        if (response.data && response.data.success) {
-          const campaignData =
-            response.data.data || response.data.campaigns || [];
-          const campaignsWithKeys = campaignData.map((campaign) => ({
-            ...campaign,
-            key: campaign.id || Math.random().toString(36).substr(2, 9),
-          }));
-
-          setCampaigns(campaignsWithKeys);
-          message.success(
-            `Search completed! Found ${campaignsWithKeys.length} campaigns.`
-          );
-        } else {
-          throw new Error(response.data?.message || "Search failed");
-        }
+        await dispatch(fetchCampaigns(searchParams)).unwrap();
+        message.success("Search completed!");
       } catch (error) {
         console.error("Search error:", error);
         message.error(error.response?.data?.message || "Search failed");
       } finally {
-        setLoading(false);
         setSearchVisible(false);
       }
     };
@@ -550,41 +494,15 @@ const handleDelete = (campaignId) => {
   console.log('Delete campaign:', campaignId);
 };
 
-// API function for updating campaign status
-const updateCampaignStatus = async (campaignId, newStatus) => {
-  const response = await apiClient.patch(`/admin/campaign/${campaignId}/status`, {
-    status: newStatus
-  });
-  console.log('Update status response:', response.data);
-  return response.data;
-};
-
-// Usage in your CampaignManagement component
 const handleStatusChange = async (campaignId, newStatus) => {
   try {
-    setLoading(true);
-    
-    const response = await updateCampaignStatus(campaignId, newStatus);
-    
-    if (response.success) {
-      // Update the campaigns state to reflect the change
-      setCampaigns(prevCampaigns => 
-        prevCampaigns.map(campaign => 
-          campaign.id === campaignId 
-            ? { ...campaign, status: newStatus }
-            : campaign
-        )
-      );
-      fetchCampaigns(); // Refresh campaigns
-      message.success(`Campaign status updated to ${newStatus.toUpperCase()}`);
-    } else {
-      throw new Error(response.message || 'Failed to update status');
-    }
+    await dispatch(
+      updateCampaignStatusThunk({ id: campaignId, status: newStatus })
+    ).unwrap();
+    message.success(`Campaign status updated to ${newStatus.toUpperCase()}`);
   } catch (error) {
     console.error('Error updating campaign status:', error);
     message.error(error.response?.data?.message || 'Failed to update campaign status');
-  } finally {
-    setLoading(false);
   }
 };
 

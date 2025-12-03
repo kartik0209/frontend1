@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Table,
   Button,
@@ -28,6 +29,14 @@ import {
   PoweroffOutlined,
 } from "@ant-design/icons";
 import apiClient from "../services/apiServices";
+import {
+  fetchUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  updateUserStatus,
+} from "../store/usersSlice";
+import { debounce } from "../utils/helpers";
 import AddUserForm from "../components/user/AddUserForm";
 import UserViewModal from "../components/user/UserViewModal";
 import SuccessModal from "../components/model/SuccessModal";
@@ -38,8 +47,8 @@ import "../styles/Users.scss";
 const { Title, Text } = Typography;
 
 const Users = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { list: users, loading } = useSelector((state) => state.users);
   const [searchTerm, setSearchTerm] = useState("");
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -57,63 +66,23 @@ const Users = () => {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  // Fetch users from API
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await apiClient.get("/admin/user/company-users");
-      console.log("Fetched users response:", response);
-
-      if (
-        response.data &&
-        response.data.success &&
-        Array.isArray(response.data.data)
-      ) {
-        setUsers(response.data.data);
-      } else if (Array.isArray(response.data)) {
-        setUsers(response.data);
-      } else {
-        setUsers([]);
-        console.warn(
-          "API response does not contain a valid users array:",
-          response.data
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      setFailModalData({
-        title: "Failed to Load Users",
-        message: "Unable to fetch users from the server. Please try again.",
-      });
-      setFailModalOpen(true);
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Handle form submission (create/update user)
   const handleFormSubmit = async (values) => {
     setSubmitting(true);
     try {
       if (editMode && selectedUser) {
-        const response = await apiClient.put(
-          `/admin/user/${selectedUser.id}`,
-          values
-        );
-        console.log("User updated response:", response);
+        await dispatch(
+          updateUser({ id: selectedUser.id, values })
+        ).unwrap();
+
         setSuccessModalData({
           title: "User Updated Successfully",
-          message: `${
-            values.name || selectedUser.name
-          } has been updated successfully.`,
+          message: `${values.name || selectedUser.name
+            } has been updated successfully.`,
         });
       } else {
-        const response = await apiClient.post(
-          "/admin/user/createEmployee",
-          values
-        );
-        console.log("User created response:", response);
+        await dispatch(createUser(values)).unwrap();
+
         setSuccessModalData({
           title: "User Created Successfully",
           message: `${values.name} has been added to the system successfully.`,
@@ -122,7 +91,6 @@ const Users = () => {
 
       setSuccessModalOpen(true);
       handleCloseDrawer();
-      fetchUsers();
     } catch (error) {
       console.error("Error saving user:", error);
       setFailModalData({
@@ -173,15 +141,13 @@ const Users = () => {
   // Confirm delete user
   const confirmDeleteUser = async () => {
     try {
-      const res = await apiClient.delete(`/admin/user/${userToDelete.id}`);
-      console.log("Delete user response:", res);
+      await dispatch(deleteUser(userToDelete.id)).unwrap();
 
       setSuccessModalData({
         title: "User Deleted Successfully",
         message: `${userToDelete.name} has been removed from the system.`,
       });
       setSuccessModalOpen(true);
-      fetchUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
       setFailModalData({
@@ -204,16 +170,14 @@ const Users = () => {
     console.log(`Toggling status for user ${userId} to ${newStatus}`);
 
     try {
-      const res = await apiClient.put(`/admin/user/${userId}/status`, {
-        status: newStatus,
-      });
-      console.log("Status update response:", res);
+      await dispatch(
+        updateUserStatus({ id: userId, status: newStatus })
+      ).unwrap();
 
       setSuccessModalData({
         title: "Status Updated Successfully",
-        message: `${user.name} has been ${
-          newStatus === "Active" ? "activated" : "deactivated"
-        } successfully.`,
+        message: `${user.name} has been ${newStatus === "Active" ? "activated" : "deactivated"
+          } successfully.`,
       });
       setSuccessModalOpen(true);
       fetchUsers();
@@ -232,22 +196,45 @@ const Users = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
-  // Filter users based on search term
-  const filteredUsers = Array.isArray(users)
-    ? users.filter(
+  const [filteredUsers, setFilteredUsers] = useState([]);
+
+  const doUserSearch = (value, list) => {
+    if (!value.trim()) {
+      setFilteredUsers(list || []);
+      return;
+    }
+
+    const searchValue = value.toLowerCase();
+    const result = Array.isArray(list)
+      ? list.filter(
         (user) =>
           (user.name &&
-            user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            user.name.toLowerCase().includes(searchValue)) ||
           (user.email &&
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            user.email.toLowerCase().includes(searchValue)) ||
           (user.role &&
             typeof user.role === "string" &&
-            user.role.toLowerCase().includes(searchTerm.toLowerCase()))
+            user.role.toLowerCase().includes(searchValue))
       )
-    : [];
+      : [];
+
+    setFilteredUsers(result);
+  };
+
+  const debouncedUserSearch = useMemo(
+    () =>
+      debounce((value, list) => {
+        doUserSearch(value, list);
+      }, 400),
+    []
+  );
+
+  useEffect(() => {
+    setFilteredUsers(users || []);
+  }, [users]);
 
   // Create action menu for each user
   const getActionMenu = (record) => {
@@ -423,128 +410,132 @@ const Users = () => {
   ];
 
   return (
-   <div className="users-page">
-  <Card className="users-content-card">
-    {/* Search + Add User in one row */}
-    <Row
-      justify="space-between"
-      align="middle"
-      gutter={[16, 16]} // spacing between columns
-      className="search-add-row"
-    >
-      <Col xs={24} sm={18} md={18} lg={14} xl={18}>
-        <Input
-          placeholder="Search users by name, email, or role..."
-          prefix={<SearchOutlined className="search-icon" />}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          size="large"
-          allowClear
-          className="search-input"
-        
-        />
-      </Col>
-
-      <Col xs={24} sm={6} md={6} lg={6} xl={6} style={{ textAlign: "right" }}>
-        <Button
-          type="primary"
-          icon={<UserAddOutlined />}
-          size="large"
-          onClick={handleAddUser}
-          className="add-user-button"
-          block={window.innerWidth < 576} // makes full width on small screens
+    <div className="users-page">
+      <Card className="users-content-card">
+        {/* Search + Add User in one row */}
+        <Row
+          justify="space-between"
+          align="middle"
+          gutter={[16, 16]} // spacing between columns
+          className="search-add-row"
         >
-          Add User
-        </Button>
-      </Col>
-    </Row>
+          <Col xs={24} sm={18} md={18} lg={14} xl={18}>
+            <Input
+              placeholder="Search users by name, email, or role..."
+              prefix={<SearchOutlined className="search-icon" />}
+              value={searchTerm}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearchTerm(value);
+                debouncedUserSearch(value, users);
+              }}
+              size="large"
+              allowClear
+              className="search-input"
 
-    {/* Users Table */}
-    <div className="table-wrapper" style={{marginTop:"20px"}}>
-      <Table
-        columns={columns}
-        dataSource={filteredUsers}
-        loading={loading}
-        rowKey="id"
-        pagination={{
-          pageSize: 15,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
+            />
+          </Col>
+
+          <Col xs={24} sm={6} md={6} lg={6} xl={6} style={{ textAlign: "right" }}>
+            <Button
+              type="primary"
+              icon={<UserAddOutlined />}
+              size="large"
+              onClick={handleAddUser}
+              className="add-user-button"
+              block={window.innerWidth < 576} // makes full width on small screens
+            >
+              Add User
+            </Button>
+          </Col>
+        </Row>
+
+        {/* Users Table */}
+        <div className="table-wrapper" style={{ marginTop: "20px" }}>
+          <Table
+            columns={columns}
+            dataSource={filteredUsers}
+            loading={loading}
+            rowKey="id"
+            pagination={{
+              pageSize: 15,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
+            }}
+            scroll={{ x: "max-content" }}
+            className="users-table"
+            rowClassName="users-table-row"
+          />
+        </div>
+      </Card>
+
+      {/* Add/Edit Drawer */}
+      <Drawer
+        title={
+          <div className="drawer-title">
+            <UserOutlined />
+            {editMode ? "Edit User" : "Add New User"}
+          </div>
+        }
+        width={520}
+        onClose={handleCloseDrawer}
+        open={drawerVisible}
+        bodyStyle={{ paddingBottom: 80 }}
+        destroyOnClose
+        maskClosable={false}
+        className="user-drawer"
+      >
+        <AddUserForm
+          onSubmit={handleFormSubmit}
+          onCancel={handleCloseDrawer}
+          loading={submitting}
+          initialValues={editMode ? selectedUser : {}}
+          showAdditionalFields
+        />
+      </Drawer>
+
+      {/* View, Success, Fail, and Confirm Modals */}
+      <UserViewModal
+        visible={viewModalVisible}
+        onClose={() => {
+          setViewModalVisible(false);
+          setSelectedUserForView(null);
         }}
-        scroll={{ x: "max-content" }}
-        className="users-table"
-        rowClassName="users-table-row"
+        userData={selectedUserForView}
+      />
+
+      <SuccessModal
+        open={successModalOpen}
+        title={successModalData.title}
+        message={successModalData.message}
+        onClose={() => setSuccessModalOpen(false)}
+        autoClose
+        autoCloseDelay={4000}
+      />
+
+      <FailModal
+        open={failModalOpen}
+        title={failModalData.title}
+        message={failModalData.message}
+        onOk={() => setFailModalOpen(false)}
+        showCancel={false}
+      />
+
+      <ConfirmModal
+        open={confirmModalOpen}
+        title="Delete User"
+        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone and will remove all associated data.`}
+        onConfirm={confirmDeleteUser}
+        onCancel={() => {
+          setConfirmModalOpen(false);
+          setUserToDelete(null);
+        }}
+        confirmText="Delete User"
+        cancelText="Cancel"
+        danger
       />
     </div>
-  </Card>
-
-  {/* Add/Edit Drawer */}
-  <Drawer
-    title={
-      <div className="drawer-title">
-        <UserOutlined />
-        {editMode ? "Edit User" : "Add New User"}
-      </div>
-    }
-    width={520}
-    onClose={handleCloseDrawer}
-    open={drawerVisible}
-    bodyStyle={{ paddingBottom: 80 }}
-    destroyOnClose
-    maskClosable={false}
-    className="user-drawer"
-  >
-    <AddUserForm
-      onSubmit={handleFormSubmit}
-      onCancel={handleCloseDrawer}
-      loading={submitting}
-      initialValues={editMode ? selectedUser : {}}
-      showAdditionalFields
-    />
-  </Drawer>
-
-  {/* View, Success, Fail, and Confirm Modals */}
-  <UserViewModal
-    visible={viewModalVisible}
-    onClose={() => {
-      setViewModalVisible(false);
-      setSelectedUserForView(null);
-    }}
-    userData={selectedUserForView}
-  />
-
-  <SuccessModal
-    open={successModalOpen}
-    title={successModalData.title}
-    message={successModalData.message}
-    onClose={() => setSuccessModalOpen(false)}
-    autoClose
-    autoCloseDelay={4000}
-  />
-
-  <FailModal
-    open={failModalOpen}
-    title={failModalData.title}
-    message={failModalData.message}
-    onOk={() => setFailModalOpen(false)}
-    showCancel={false}
-  />
-
-  <ConfirmModal
-    open={confirmModalOpen}
-    title="Delete User"
-    message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone and will remove all associated data.`}
-    onConfirm={confirmDeleteUser}
-    onCancel={() => {
-      setConfirmModalOpen(false);
-      setUserToDelete(null);
-    }}
-    confirmText="Delete User"
-    cancelText="Cancel"
-    danger
-  />
-</div>
 
   );
 };

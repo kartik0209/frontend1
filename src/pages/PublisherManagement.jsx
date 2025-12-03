@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button, Card, Input, Tag } from "antd";
 import PublisherHeader from "../components/publisher/PublisherHeader";
 import PublisherTable from "../components/publisher/PublisherTable";
@@ -10,6 +10,7 @@ import SuccessModal from "../components/model/SuccessModal";
 import FailModal from "../components/model/FailModal";
 import { columnOptions, baseColumns } from "../data/publisherData";
 import apiClient from "../services/apiServices";
+import { debounce } from "../utils/helpers";
 import "../styles/PublisherManagement.scss";
 import TableSkeleton from "../components/skeletons/TableSkeleton";
 import ConfirmModal from "../components/model/ConfirmModal";
@@ -30,15 +31,13 @@ const PublisherManagement = () => {
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [publishers, setPublishers] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [editingPublisher, setEditingPublisher] = useState(null);
   const [viewingPublisher, setViewingPublisher] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
-  //const [publishers, setPublishers] = useState([]);
-const [filteredPublishers, setFilteredPublishers] = useState([]);
-  //const [loading, setLoading] = useState(false);
+  const [filteredPublishers, setFilteredPublishers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   //const [isFilterVisible, setIsFilterVisible] = useState(false);
   
@@ -106,7 +105,7 @@ const [filteredPublishers, setFilteredPublishers] = useState([]);
   // 5. Update the useEffect to fetch preferences on component mount
   useEffect(() => {
     fetchPublishers();
-    fetchColumnPreferences(); // Add this line
+    fetchColumnPreferences();
   }, []);
 
   const navigate = useNavigate();
@@ -292,10 +291,6 @@ const [filteredPublishers, setFilteredPublishers] = useState([]);
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchPublishers();
-  }, []);
 
   const visibleTableColumns = allColumns.filter(
     (col) => visibleColumns[col.key]
@@ -553,52 +548,59 @@ const [filteredPublishers, setFilteredPublishers] = useState([]);
   };
 
 
+const doQuickSearch = (value, list) => {
+  if (!value.trim()) {
+    setFilteredPublishers(list);
+    return;
+  }
+
+  const searchValue = value.toLowerCase();
+
+  const filtered = list.filter((publisher) => {
+    const id = (publisher.id || "").toString().toLowerCase();
+    const name = (publisher.name || "").toLowerCase();
+    const username = (publisher.username || "").toLowerCase();
+    const email = (publisher.email || "").toLowerCase();
+    const company = (publisher.company || "").toLowerCase();
+    const companyName = (publisher.companyName || "").toLowerCase();
+    const managers = (publisher.managers || "").toLowerCase();
+    const referredBy = (publisher.referred_by || "").toLowerCase();
+    const note = (publisher.note || "").toLowerCase();
+    const tags = (publisher.tags || []).join(" ").toLowerCase();
+    const companyInfoName =
+      (publisher.companyInfo?.name || "").toLowerCase();
+
+    return (
+      id.includes(searchValue) ||
+      name.includes(searchValue) ||
+      username.includes(searchValue) ||
+      email.includes(searchValue) ||
+      company.includes(searchValue) ||
+      companyName.includes(searchValue) ||
+      companyInfoName.includes(searchValue) ||
+      managers.includes(searchValue) ||
+      referredBy.includes(searchValue) ||
+      note.includes(searchValue) ||
+      tags.includes(searchValue)
+    );
+  });
+
+  setFilteredPublishers(filtered);
+};
+
+const debouncedQuickSearch = useMemo(
+  () =>
+    debounce((value, list) => {
+      doQuickSearch(value, list);
+    }, 400),
+  []
+);
+
 const handleQuickSearch = (e) => {
   const value = e.target.value;
   setSearchText(value);
-
-  if (value.trim()) {
-    const searchValue = value.toLowerCase();
-
-    const filtered = publishers.filter((publisher) => {
-      // Convert all searchable fields to lowercase strings
-      const id = (publisher.id || "").toString().toLowerCase();
-      const name = (publisher.name || "").toLowerCase();
-      const username = (publisher.username || "").toLowerCase();
-      const email = (publisher.email || "").toLowerCase();
-      const company = (publisher.company || "").toLowerCase();
-      const companyName = (publisher.companyName || "").toLowerCase();
-      const managers = (publisher.managers || "").toLowerCase();
-      const referredBy = (publisher.referred_by || "").toLowerCase();
-      const note = (publisher.note || "").toLowerCase();
-      const tags = (publisher.tags || []).join(" ").toLowerCase();
-      const companyInfoName =
-        (publisher.companyInfo?.name || "").toLowerCase();
-
-      // Return true if any field includes the search value
-      return (
-        id.includes(searchValue) ||
-        name.includes(searchValue) ||
-        username.includes(searchValue) ||
-        email.includes(searchValue) ||
-        company.includes(searchValue) ||
-        companyName.includes(searchValue) ||
-        companyInfoName.includes(searchValue) ||
-        managers.includes(searchValue) ||
-        referredBy.includes(searchValue) ||
-        note.includes(searchValue) ||
-        tags.includes(searchValue)
-      );
-    });
-
-    setFilteredPublishers(filtered);
-  } else {
-    // Reset if search input is cleared
-    setFilteredPublishers(publishers);
-  }
+  debouncedQuickSearch(value, publishers);
 };
-
-
 
   // Update filtered data when publishers change
   useEffect(() => {
