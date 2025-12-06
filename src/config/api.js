@@ -1,12 +1,13 @@
-// src/config/api.js
+import { getApiBaseUrl } from "../utils/getApiBaseUrl";
+
 const API_CONFIG = {
-  BASE_URL:  'https://api.afftrex.org/api',
-  TIMEOUT: 15000, // Reduced for better performance
+  BASE_URL: getApiBaseUrl(),       // ⬅ dynamic base URL
+  TIMEOUT: 15000,
   DEFAULT_HEADERS: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   RETRY_ATTEMPTS: 2,
-  CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
+  CACHE_DURATION: 5 * 60 * 1000,
 };
 
 export default API_CONFIG;
