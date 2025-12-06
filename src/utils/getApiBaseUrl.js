@@ -12,5 +12,7 @@ export const getApiBaseUrl = () => {
   }
 
   // Build dynamic API URL
-  return `https://${sub}.afftrex.org/api`;
+//   return `https://${sub}.afftrex.org/api`;
+
+  return `https://api.afftrex.org/api`;
 };
